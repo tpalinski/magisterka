@@ -1,0 +1,14 @@
+
+% 
+
+Obecne systemy wyszukiwania informacji coraz częściej integrują technologie oparte na uczeniu maszynowym. Technika \textbf{RAG (Retrieval-Augmented Generation)} integruje mechanizmy generatywne z modułami wyszukiwania informacji, umożliwiając modelom językowym \textbf{LLM} dostęp do kontekstowo istotnych danych podczas generacji odpowiedzi. Dzięki temu możliwe jest znaczne zwiększenie precyzji i warygodności uzyskiwanych wyników. 
+
+Kluczowym elementem modułu wyszukiwania jest reprezentacja danych w przestrzeni wektorowej. Zamiast opierać wyszukiwanie na dopasowaniu słów kluczowych, systemy te wykorzystują \textbf{embeddingi} - numeryczne reprezentacje semantyczne tekstu, obrazów lub innych modalności. Umożliwia to porównywanie znaczenia zapytań i dokumentów na poziomie ich ukrytej reprezentacji (latent space representation), co znacząco zwiększa trafność wyników w porównaniu z klasycznymi metodami leksykalnymi.
+
+Jednym z wyzwań stojących przed tego typu systeami jest efektywne łączenie różnych modalności danych, w szczególności sygnału akustycznego (mowy) i tekstu. W większości obecnych rozwiązań proces wyszukiwania informacji na podstawie zapytań głosowych realizowany jest dwuetapowo. Najpierw model \textbf{ASR (Automatic Speech Recognition)} konwertuje sygnał dzwiękowy na tekst. Następnie model embeddingowy przekształca tekst do przestrzeni wektorowej. Choć podejście to jest szeroko stosowane to wprowadza ono dodatkową warstwę pośrednią, która może prowadzić do utraty części informacji semantycznych i prozodycznych zawartych w mowie, a także do propagacji błędów wynikających z niepoprawnej transkrypcji.
+
+Warto zauważyć, że zarówno modele \textbf{ASR}, jak i embeddingowe, wymagają długiego procesu uczenia oraz ogromnych zbiorów danych, co sprawia, że ich ponowne trenowanie lub dostrajanie do nowych zadań jest kosztowne obliczeniowo i czasowo. Dlatego szczególnie istotne staje się opracowanie metod umożliwiających wykorzystanie już istniejących modeli w sposób bardziej zintegrowany.
+
+W odpowiedzi na powyższe ograniczenia możliwe jest wykorzystanie istniejących modeli \textbf{ASR} oraz modeli \textbf{embeddingowych} i opracowanie mechanizmu umożliwiającego mapowanie przestrzeni ukrytej rozpoznanej mowy na przestrzeń ukrytą modelu embeddingowego. Takie rozwiązanie pozwala uniknąć transkrypcji tekstowej, co sprzyja zachowaniu pełniejszej informacji semantycznej i prozodycznej zawartej w sygnale mowy, przy jednoczesnym wykorzystaniu istniejących modeli ASR i embeddingowych.
+
+Celem niniejszej pracy jest opracowanie i analiza systemu umożliwiającego wyszukiwanie informacji w specjalistycznych bazach danych (medycznych) za pomocą zapytań głosowych. W pracy zostanie pretestowana trafność i precyzja wyszukiwania informacji, porównując popularne dwuetapowe podejście z rozwiązaniem wykorzystującym model pośredni - translator ukrytych reprezentacji audio modelu ASR a modelem embeddingowym.

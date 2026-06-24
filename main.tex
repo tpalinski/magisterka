@@ -1,0 +1,134 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{polski}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[hyphens]{url} % Must be loaded before biblatex
+
+\usepackage[
+    backend=biber,
+    style=numeric,
+    sorting=nty,
+    maxnames=5,
+    minnames=4,
+    giveninits=true,
+    url=true,
+    doi=true,
+    eprint=false,
+    ]{biblatex}
+\addbibresource{references.bib}
+
+\AtBeginBibliography{
+    \raggedright
+    }
+
+% Bibliography formatting: commas between fields, no "In:" prefix
+\renewcommand*{\newunitpunct}{\addcomma\space}
+\renewbibmacro{in:}{}
+
+\usepackage{geometry}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{times}
+\usepackage{pdfpages}
+\usepackage{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{csquotes}
+\usepackage{microtype}
+
+% Configure URL breaking for bibliography
+\setcounter{biburlnumpenalty}{0}
+\setcounter{biburlucpenalty}{0}
+\setcounter{biburllcpenalty}{0}
+
+\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}\PackageWarning{TODO:}{#1!}}
+
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
+
+\geometry{a4paper, left=3cm, right=2.5cm, top=2.5cm, bottom=2.5cm}
+
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+\title{Ocena jakości wyszukiwania informacji w bazach specjalistycznych za pomocą zapytania głosowego przetworzonego na tekst (speech-to-text) z wykorzystaniem uczenia głębokiego}
+\author{Krystian Chmielewski, Tymoteusz Paliński}
+\date{Luty 2026}
+
+
+
+\begin{document}
+
+\includepdf[pages=1, scale=1, offset=0mm 0mm, frame=false]{StronaTytulowa_pl.pdf}
+\newpage
+
+% Głębokość spisu treści
+\setcounter{tocdepth}{3}
+% Głębokość numerowania
+\setcounter{secnumdepth}{3}
+
+\thispagestyle{empty}
+\tableofcontents
+\newpage
+
+% --- Abstract ---
+\input{chapters/abstract.tex}
+
+% --- Wprowadzenie ---
+\newpage
+\section{Wprowadzenie}
+% \input{wprowadzenie.tex}
+\input{chapters/wprowadzenie_przeglad}
+
+% --- Przegląd ---
+\newpage
+\section{Przegląd}
+% TODO: Cytowania do umieszczenia w tekście gdy sekcje będą gotowe:
+% devlin2019, lin2020, Athar_Sheikh_2025, leveragingwordembeddingandmedicalentity,
+% NFCorpus, MedQuAD, pubmed, medembed, wav2vecBERT
+\input{chapters/przeglad_pogladow}
+
+% Badanie latent space
+\newpage
+\section{Semantyczne reprezentacje wektorów cech modeli ASR}
+\input{chapters/latent}
+
+\newpage
+\section{Ewaluacja architektur dopasowania reprezentacji latentnych modeli ASR i modeli embeddingowych}
+\input{chapters/latentTranslation}
+
+\newpage
+\section{System wyszukiwania informacji z wykorzystaniem architektury dopasowania reprezentacji latentnych modeli ASR i modeli embeddingowych}
+\input{chapters/retrievalSystem}
+
+% --- Część Praktyczna ---
+% \newpage
+% \section{Praktyka}
+% \input{chapters/praktyka}
+
+% --- Podsumowanie ---
+\newpage
+\section{Podsumowanie}
+\input{chapters/summary}
+
+
+
+% --- Bibliografia ---
+\newpage
+\begingroup
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+\raggedright
+\printbibliography[heading=bibintoc, title={WYKAZ LITERATURY}]
+\endgroup
+
+
+% --- Appendix ---
+\newpage
+\section*{Dodatki}
+\addcontentsline{toc}{section}{Dodatki}
+
+
+\end{document}
