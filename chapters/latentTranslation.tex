@@ -13,14 +13,48 @@ Omówienie architektury, motywacja, przebieg treningu
 Potencjalnym problemem modelu \textit{Attention Pool Model} jest brak dostosowania istniejącego modelu embeddingowego do naszej docelowej domeny -- tekstów i transkrypcji rozmów w języku polskim o tematyce medycznej. Zaradzić temu ma druga proponowana przez nas architektura \textit{Embedding Alignment Model}. Zakłada ona wykorzystanie pretrenowanych modeli ASR i tekstowych jako enkodery wyodrębniające pewne cechy danych wejściowych dla swoich własnych modalności, dalsze przetwarzanie danych w ramach mechanizmu \textit{self attention}, poprzedzonego opcjonalnie blokami TransformerEncoder, a następnie połączenie ich w ramach wspólnej warstwy projekcji. Diagram struktury proponowanego modelu przedstawiono na Rysunku:
 
 \todo{Tu wstawić architekturę modelu}
+\input{tikz/eam}
 
 
 \todo{Fact check this stuff about cone}
 Wykorzystanie równoległego przetwarzania modalności jest techniką wykorzystywaną z powodzeniem w multimodalnych modelach embeddingowych. Autorzy modelu JinaV4 zauważyli znaczne zmniejszenie efektu stożka, zawdzięczone właśnie zastosowaniu osobnych enkoderów dla modalności tekstu i obrazu \cite{jina_v4}. Trudnością w ramach treningu tego modelu jest jednak wypracowanie zupełnie nowej geometrii przestrzeni wyjściowej modelu. W przypadku modelu APM, jest ona definiowana przez stabilny w ramach enkodowania semantyki danych pretrenowany model embeddingowy, co oznacza wyłącznie translację do pewnej wzorcowej, izotropicznej, semantycznie nacechowanej przestrzeni. Dla modelu EAM, celem treningu jest ukształtowanie takiej przestrzeni z pewnego punktu wyjścia, co wymaga bardziej skomplikowanej architektury i dopasowania funkcji straty.
+
+\todo{Cite InfoNCE i clip}
+Głównym czynnikiem kształtującym przestrzeń wyjściową modelu \textit{Embedding Alignment Model} jest funkcja straty InfoNCE, wykorzystana m.in. w wielomodalnym modelu CLIP. Niech
+
+\todo{Wzór}
+
+\todo{Cite FlatNCE for logK, info nce behaviour}
+Minimalizacja tej funkcji prowadzi do zwiększenia podobieństwa kosinusowego między reprezentacjami o tym samym znaczeniu dla dwóch różnych modalności -- w naszym przypadku, pewnego nagrania mowy i jego transkrypcji, i jednoczesnego zmniejszenia podobieństwa dla pozostałych danych w ramach jednego \textit{mini batch}. Zależność od różnorodności danych przetwarzanych w ramach każdego \textit{mini batch} może prowadzić do znacznego pogorszenia działania modelu w przypadku małych rozmiarów paczek danych, przez co InfoNCE stanowi dosyć drogą funkcję względem zasobów obliczeniowych. Niezwykle ważny jest również dobór odpowiedniej wartości dla hiperparametru temperatury $\theta$. Zbyt duża jego wartość prowadzi do zbyt pobłażliwego zachowania funkcji straty, zbyt mała powoduje załamanie reprezentacji powodowane próbą zbyt szybkiego zminimalizowania trudnej funkcji. Aby temu zapobiec, zastosować można zmniejszenie $\theta$ wraz z czasem trawania treningu, powodując stopniowe wymuszenie coraz dokładniejszych reprezentacji.
+
+\todo{Cite vicreg}
+Oprócz samej funkcji straty, wykorzystaliśmy również dwie dodatkowe metody regularyzacji modelu. Zainspirowani metodą VicReg, dodaliśmy czynnik regularyzacyjny odpowiedzialny za minimalizowanie kowariancji generowanych reprezentacji, dodatkowo wspierający kształtowanie jak najbardziej izotropowej przestrzeni embeddingowej. Niech 
+
+\todo{Wzór}
+
+\todo{cite and consult const, fact check the training}
+Drugi czynnik zainspirowany treningiem modeli CONST opiera się również na funkcji InfoNCE, lecz ma on za zadanie jak najbardziej zbliżyć do siebie reprezentacje dla modalności tekstu i mowy, zanim trafią one do dedykowanych warstw \textit{self attention}. W tym celu podczas treningu wykorzystywana jest dodatkowa warstwa \textit{cross attention}, w której tokeny tekstowe pełnią rolę zapytania (\textit{query}), natomiast tokeny audio klucza (\textit{key}) i wartości (\textit{value}). Następnie, przetworzona w ten sposób reprezentacja mowy jest poddawana jest dalszym operacjom w ramach warstw \textit{self attention} i projekcji liniowej. Na koniec, obliczana jest funkcja straty oparta na InfoNCE dla wynikowych reprezentacji audio i reprezentacji tekstu przetworzonych w ramach normalnego przebiegu modelu.
+
+\todo{Diagram przebiegu ze wszystkimi funkcjami straty}
+
+\todo{Cite zerowy neg sim dlaczego}
+Podczas treningu, monitorowany musi być szereg parametrów, w celu rzetelnej oceny stabilności treningu. Poza poszczególnymi wartościami czynników składających się na funcję straty, ogromne znaczenie mają wartości podobieństw kosinusowych między różnymi parami reprezentacji próbek. Pierwszą z nich jest podobieństwo między reprezentacją tekstu i reprezentacją audio dla jednego przykładu i wnosi ona informacje o tym, jak dobrze model przypisuje znaczenie semantyczne tym samym danym w ramach różnych modalności. Kolejną metryką jest podobieństwo między przykładem tekstowym lub audio a drugim najbardziej podobnym przykładem w ramach innej modalności, tzw. \textit{hard negative}, wraz z marginesem stanowiącym różnicę między bazowym podobieństwem a podobieństwem do \textit{hard negative}. Wysoki margines oznacza dobrą separację między nawet znaczeniowo podobnymi próbkami, natomiast niska wartość tej metryki wskazuje na niską zdolność dyskryminacji modelu (dla niskich wartości podobieństwa kosinusowego dla przykładów pozytywnych) lub na powstanie wysoce anizotropowej przestrzeni embeddingowej (dla wysokich wartości bazowego podobieństwa kosinusowego). Ostatnią z nych jest średnie podobieństwo kosinusowe do wszystkich przykładów innych niż pozytywny, które dla zdrowego modelu zazwyczaj oscyluje wokól zera.
+
 \subsubsection{Wykorzystane techinki uczenia nienadzorowanego Data2Vec we wstępnym treningu}
-Omówienie wykorzystania Data2Vec dla każdego z powyższych modeli
+Jednym z największych problemów towarzyszących naszej pracy jest ograniczona ilość możliwych do wykorzystania danych. AdmedVOICE stanowi jedyne dostępne źródło danych o zawierające nagrania mowy i ich transkrypcje w ramach specjalistycznej domeny medycznej w języku polskim. W ramach analizy istniejących modeli ASR, wykazaliśmy ich potencjał do wykorzystania w ramach treningu na danych angielskich, co częściowo może ograniczyć ten problem. Kolejnym krokiem jest wykorzystanie techniki uczenia nienadzorowanego, na zbiorach tekstów medycznych i nagrań o tej tematyce.
+
+
+W ramach modelu \textit{Embedding Alignment Model} wykorzystywane są osobne strumienie przetwarzania dla modalności tekstu i mowy, które mogą zawierać w sobie szereg warstw TransformerEncoder. To właśnie dzięki temu podejściu, możliwe jest wykorzystanie treningu wstępnego opartego o uczenie nienadzorowane (samonadzorowane), a następnie wykorzystaniu tak wytrenowanych bloków w końcowym modelu EAM. 
+
+Trening wstępny opiera się na metodyce Data2Vec \cite{data2vec}, która sprawdziła się dla modalności tekstu, obrazu i mowy. Polega on na zastosowaniu dwóch modeli -- nauczyciela i ucznia. Na początku modele inicjowane są losowo i posiadają identyczne wagi. Podczas treningu, cechy wydobywane są przez enkoder audio lub tekstu, zależnie od modalności, i przekazywane do inferencji przez model nauczyciela. W tym samym czasie, przygotowywane są dane do inferencji przez model ucznia - wybierane są kroki czasowe dla wektorów cech, z pewnym podobieństwem $p_m$, a następnie wybrane kroki wraz z $n$ następnymi wartościami są zerowane. Następnie dane te przekazywane są do modelu ucznia w celu inferencji. Funkcja straty polega na porównaniu K ostatnich reprezentacji latentnych nauczyciela z ostatnią reprezentacją modelu ucznia. Niech..
+
+\todo{Wzór}
+
+Następnie aktualizowane są parametry modelu ucznia za pomocą propagacji wstecznej, po czym parametry modelu nauczyciela modyfikowane są na podstawie średniej kroczącej wykładniczej i parametrów modelu ucznia, skalowane za pomocą parametru wyżarzania $\theta$.
+
 \subsubsection{Ewaluacja proponowanych modeli}
 Metryki i sposoby ewaluacji pozwalające na jednorodne porównanie modeli.
+W sumie to pewnie trzeba przenieść do 5 rozdziału, bo aktualnie nie jest możliwe miarodajne porównanie bez benchmarku nie opartego na istniejącym modelu embeddingowym, WER też nic nie daje
 \subsection{Eksperymenty}
 \subsubsection{Założenia projektowe}
 Wykorzystane zbiory danych, warianty modeli

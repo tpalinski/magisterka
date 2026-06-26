@@ -1,0 +1,75 @@
+\begin{tikzpicture}[
+    font=\small,
+    >=Latex,
+    block/.style={
+        draw,
+        rounded corners=2pt,
+        thick,
+        minimum width=2.8cm,
+        minimum height=0.9cm,
+        align=center
+    },
+    enc/.style={block, fill=blue!20},
+    trans/.style={block, fill=purple!20},
+    attn/.style={block, fill=orange!25},
+    proj/.style={block, fill=green!20},
+    arrow/.style={->, thick}
+]
+
+% ---------------- Inputs ----------------
+\node[block] (text) {Text Input};
+\node[block, below=1.2cm of text] (audio) {Audio Input};
+
+% ---------------- Pretrained Encoders ----------------
+\node[enc, right=2.2cm of text] (txtenc) {Pretrained\\Text Encoder};
+\node[enc, right=2.2cm of audio] (audenc) {Pretrained\\Audio Encoder};
+
+% ---------------- Transformer stacks ----------------
+\node[trans, right=2.2cm of txtenc] (txttr) {Transformer\\Encoder $\times N$};
+\node[trans, right=2.2cm of audenc] (audtr) {Transformer\\Encoder $\times N$};
+
+% ---------------- Self Attention ----------------
+\node[attn, right=2.2cm of txttr] (txtattn1) {Self-Attention};
+\node[attn, right=0.6cm of txtattn1] (txtattn2) {Self-Attention};
+
+\node[attn, right=2.2cm of audtr] (audattn1) {Self-Attention};
+\node[attn, right=0.6cm of audattn1] (audattn2) {Self-Attention};
+
+% ---------------- Shared Projection ----------------
+\node[proj, right=2.4cm of txtattn2] (projtxt) {Shared\\Projection Head};
+\node[proj, right=2.4cm of audattn2] (projout) {Shared\\Projection Head};
+
+% ---------------- Arrows: Inputs -> Encoders ----------------
+\draw[arrow] (text) -- (txtenc);
+\draw[arrow] (audio) -- (audenc);
+
+% ---------------- Encoders -> Transformers ----------------
+\draw[arrow] (txtenc) -- (txttr);
+\draw[arrow] (audenc) -- (audtr);
+
+% ---------------- Transformers -> Attention ----------------
+\draw[arrow] (txttr) -- (txtattn1);
+\draw[arrow] (audtr) -- (audattn1);
+
+% ---------------- Attention chain ----------------
+\draw[arrow] (txtattn1) -- (txtattn2);
+\draw[arrow] (audattn1) -- (audattn2);
+
+% ---------------- Projection ----------------
+\draw[arrow] (txtattn2) -- (projtxt);
+\draw[arrow] (audattn2) -- (projout);
+
+% ---------------- Shared projection connection ----------------
+\draw[arrow] (projtxt) -- ++(1.5,0);
+\draw[arrow] (projout) -- ++(1.5,0);
+
+% ---------------- Grouping boxes ----------------
+\node[draw, dashed, rounded corners, fit=(txtenc)(txttr)(txtattn1)(txtattn2)(projtxt),
+      inner sep=8pt,
+      label=above:{Text Branch}] {};
+
+\node[draw, dashed, rounded corners, fit=(audenc)(audtr)(audattn1)(audattn2)(projout),
+      inner sep=8pt,
+      label=above:{Audio Branch}] {};
+
+\end{tikzpicture}
