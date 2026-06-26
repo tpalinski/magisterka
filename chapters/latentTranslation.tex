@@ -8,8 +8,15 @@ Contrastive, triplet loss
 Powtorzenie wnioskow z poprzedniego rozdzialu, dobór modelu embeddingowego
 \subsubsection{Model agregujący atencję \textit{Attention Pool Model} wykorzystujacy uczenie nadzorowane}
 Omówienie architektury, motywacja, przebieg treningu
-\subsubsection{Model oparty o translację reprezentacji latentnych \textit{Semantic Alignment Model} wykorzystujący uczenie nienadzorowane}
-Omówienie architektury, motywacja, przebieg treningu
+\todo{@Krystian pro tip - Jinav5 gelato, robią prawie to samo, tylko że chyba lorą + matrioshka}
+\subsubsection{Model oparty o translację reprezentacji latentnych \textit{Embedding Alignment Model} wykorzystujący uczenie nienadzorowane}
+Potencjalnym problemem modelu \textit{Attention Pool Model} jest brak dostosowania istniejącego modelu embeddingowego do naszej docelowej domeny -- tekstów i transkrypcji rozmów w języku polskim o tematyce medycznej. Zaradzić temu ma druga proponowana przez nas architektura \textit{Embedding Alignment Model}. Zakłada ona wykorzystanie pretrenowanych modeli ASR i tekstowych jako enkodery wyodrębniające pewne cechy danych wejściowych dla swoich własnych modalności, dalsze przetwarzanie danych w ramach mechanizmu \textit{self attention}, poprzedzonego opcjonalnie blokami TransformerEncoder, a następnie połączenie ich w ramach wspólnej warstwy projekcji. Diagram struktury proponowanego modelu przedstawiono na Rysunku:
+
+\todo{Tu wstawić architekturę modelu}
+
+
+\todo{Fact check this stuff about cone}
+Wykorzystanie równoległego przetwarzania modalności jest techniką wykorzystywaną z powodzeniem w multimodalnych modelach embeddingowych. Autorzy modelu JinaV4 zauważyli znaczne zmniejszenie efektu stożka, zawdzięczone właśnie zastosowaniu osobnych enkoderów dla modalności tekstu i obrazu \cite{jina_v4}. Trudnością w ramach treningu tego modelu jest jednak wypracowanie zupełnie nowej geometrii przestrzeni wyjściowej modelu. W przypadku modelu APM, jest ona definiowana przez stabilny w ramach enkodowania semantyki danych pretrenowany model embeddingowy, co oznacza wyłącznie translację do pewnej wzorcowej, izotropicznej, semantycznie nacechowanej przestrzeni. Dla modelu EAM, celem treningu jest ukształtowanie takiej przestrzeni z pewnego punktu wyjścia, co wymaga bardziej skomplikowanej architektury i dopasowania funkcji straty.
 \subsubsection{Wykorzystane techinki uczenia nienadzorowanego Data2Vec we wstępnym treningu}
 Omówienie wykorzystania Data2Vec dla każdego z powyższych modeli
 \subsubsection{Ewaluacja proponowanych modeli}
