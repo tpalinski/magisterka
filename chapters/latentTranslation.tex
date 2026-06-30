@@ -1,19 +1,25 @@
 \subsection{Założenia teorytyczne}
+
 \subsubsection{Translacja reprezentacji latentnych modeli do wspólnej przestrzeni}
 Istniejące techniki linear translation, dodatkowe bardziej zaawansowane
+
 \subsubsection{Modele multimodalne i wymuszenie semantycznych reprezenacji danych}
 Contrastive, triplet loss
+
+
 \subsection{Metodologia}
-\subsubsection{Wykorzystane modele ASR i embeddingowe}
-Powtorzenie wnioskow z poprzedniego rozdzialu, dobór modelu embeddingowego
+
+
 \subsubsection{Model agregujący atencję \textit{Attention Pool Model} wykorzystujacy uczenie nadzorowane}
 Omówienie architektury, motywacja, przebieg treningu
 \todo{@Krystian pro tip - Jinav5 gelato, robią prawie to samo, tylko że chyba lorą + matrioshka}
+
+
 \subsubsection{Model oparty o translację reprezentacji latentnych \textit{Embedding Alignment Model} wykorzystujący uczenie nienadzorowane}
 Potencjalnym problemem modelu \textit{Attention Pool Model} jest brak dostosowania istniejącego modelu embeddingowego do naszej docelowej domeny -- tekstów i transkrypcji rozmów w języku polskim o tematyce medycznej. Zaradzić temu ma druga proponowana przez nas architektura \textit{Embedding Alignment Model}. Zakłada ona wykorzystanie pretrenowanych modeli ASR i tekstowych jako enkodery wyodrębniające pewne cechy danych wejściowych dla swoich własnych modalności, dalsze przetwarzanie danych w ramach mechanizmu \textit{self attention}, poprzedzonego opcjonalnie blokami TransformerEncoder, a następnie połączenie ich w ramach wspólnej warstwy projekcji. Diagram struktury proponowanego modelu przedstawiono na Rysunku:
 
 \todo{Tu wstawić architekturę modelu}
-\input{tikz/eam}
+% \input{tikz/eam}
 
 
 \todo{Fact check this stuff about cone}
@@ -35,12 +41,13 @@ Oprócz samej funkcji straty, wykorzystaliśmy również dwie dodatkowe metody r
 \todo{cite and consult const, fact check the training}
 Drugi czynnik zainspirowany treningiem modeli CONST opiera się również na funkcji InfoNCE, lecz ma on za zadanie jak najbardziej zbliżyć do siebie reprezentacje dla modalności tekstu i mowy, zanim trafią one do dedykowanych warstw \textit{self attention}. W tym celu podczas treningu wykorzystywana jest dodatkowa warstwa \textit{cross attention}, w której tokeny tekstowe pełnią rolę zapytania (\textit{query}), natomiast tokeny audio klucza (\textit{key}) i wartości (\textit{value}). Następnie, przetworzona w ten sposób reprezentacja mowy jest poddawana jest dalszym operacjom w ramach warstw \textit{self attention} i projekcji liniowej. Na koniec, obliczana jest funkcja straty oparta na InfoNCE dla wynikowych reprezentacji audio i reprezentacji tekstu przetworzonych w ramach normalnego przebiegu modelu.
 
-\todo{Diagram przebiegu ze wszystkimi funkcjami straty}
+\todo{Diagram przebiegu (architektury) ze wszystkimi funkcjami straty}
 
 \todo{Cite zerowy neg sim dlaczego}
 Podczas treningu, monitorowany musi być szereg parametrów, w celu rzetelnej oceny stabilności treningu. Poza poszczególnymi wartościami czynników składających się na funcję straty, ogromne znaczenie mają wartości podobieństw kosinusowych między różnymi parami reprezentacji próbek. Pierwszą z nich jest podobieństwo między reprezentacją tekstu i reprezentacją audio dla jednego przykładu i wnosi ona informacje o tym, jak dobrze model przypisuje znaczenie semantyczne tym samym danym w ramach różnych modalności. Kolejną metryką jest podobieństwo między przykładem tekstowym lub audio a drugim najbardziej podobnym przykładem w ramach innej modalności, tzw. \textit{hard negative}, wraz z marginesem stanowiącym różnicę między bazowym podobieństwem a podobieństwem do \textit{hard negative}. Wysoki margines oznacza dobrą separację między nawet znaczeniowo podobnymi próbkami, natomiast niska wartość tej metryki wskazuje na niską zdolność dyskryminacji modelu (dla niskich wartości podobieństwa kosinusowego dla przykładów pozytywnych) lub na powstanie wysoce anizotropowej przestrzeni embeddingowej (dla wysokich wartości bazowego podobieństwa kosinusowego). Ostatnią z nych jest średnie podobieństwo kosinusowe do wszystkich przykładów innych niż pozytywny, które dla zdrowego modelu zazwyczaj oscyluje wokól zera.
 
 \subsubsection{Wykorzystane techinki uczenia nienadzorowanego Data2Vec we wstępnym treningu}
+
 Jednym z największych problemów towarzyszących naszej pracy jest ograniczona ilość możliwych do wykorzystania danych. AdmedVOICE stanowi jedyne dostępne źródło danych o zawierające nagrania mowy i ich transkrypcje w ramach specjalistycznej domeny medycznej w języku polskim. W ramach analizy istniejących modeli ASR, wykazaliśmy ich potencjał do wykorzystania w ramach treningu na danych angielskich, co częściowo może ograniczyć ten problem. Kolejnym krokiem jest wykorzystanie techniki uczenia nienadzorowanego, na zbiorach tekstów medycznych i nagrań o tej tematyce.
 
 
@@ -50,22 +57,38 @@ Trening wstępny opiera się na metodyce Data2Vec \cite{data2vec}, która sprawd
 
 \todo{Wzór}
 
-Następnie aktualizowane są parametry modelu ucznia za pomocą propagacji wstecznej, po czym parametry modelu nauczyciela modyfikowane są na podstawie średniej kroczącej wykładniczej i parametrów modelu ucznia, skalowane za pomocą parametru wyżarzania $\theta$.
+Następnie aktualizowane są parametry modelu ucznia za pomocą propagacji wstecznej, po czym parametry modelu nauczyciela modyfikowane są na podstawie średniej kroczącej wykładniczej i parametrów modelu ucznia, skalowane za pomocą parametru wyżarzania $\theta$: 
+
+\todo{Wzór}
+
+\todo{Sprawdzić czy ktokolwiek kiedykolwiek sprawdzil te innowacyjna teorie}
+Niestety, w literaturze nie spotkaliśmy ewaluacji wpływu treningu wstępnego za pomocą Data2Vec na końcowe zachowanie pełnego modelu embeddingowego. Możliwe jest, że predykcja zamaskowanych kroków czasowych dobrze reprezentowanych pod względem ich semantyki i wykorzystnie nie zmieniającego się modelu ekstrakcji cech pogorszy działanie końcowego modelu, więc poprawność tej metody dla naszego zastosowania wymaga sprawdzenia empirycznego. Kolejnym potencjalnym zagrożeniem jest pogorszenie izotropii przestrzeni związane z dodaniem kolejnych warstw modelu. W celu prewencji takiego zachowania modelu, podczas treningu wstępnego metodą Data2Vec dodała została regularyzacja zainspirowana metodą VicReg, podobnie jak w przypadku bazowego modelu \textit{Embedding Alignment Model}. Niech ....
+
+\todo{Wzór}
+
+Zastosowanie takiej metody regularyzacji prowadzi do zmniejszenia kowariancji i zwiększenia wariancji w ramach każdej paczki danych \textit{mini batch}, pozwalając na pewne zwiększenie izotropii warstwy wyjścia modelu. Należy nadmienić, że regularyzacja ta stosowana jest wyłącznie dla danych wyjściowych z modelu ucznia. 
+
+
+\subsubsection{Wykorzystane modele ASR i embeddingowe}
+Analiza właściowości modeli ASR w świetle reprezentacji ukrytych nacechowanych semantycznie zawarta w Rozdziale 3 wyraźnie wyłoniła model z największym potencjałem do wykorzystania w naszych eksperymentach dotyczących architektur modeli z rodziny speech-to-retrieval -- SeamlessM4T autorstwa Mety \cite{m4t}. Drugim modelem ASR wykorzystanym przez nas był model Whisper \cite{whisper}, również wykazujący cechy enkodowania semantyki danych wejściowych, szczególnie po wykorzystaniu przetwarzania jego danych wyjściowych za pomocą metody \textit{All But the Top}. 
+
+W przypadku modeli embeddingowych dla tekstu, zdecydowaliśmy się skorzystać z modelu Jinav4 \cite{jina_v4}, która wraz z modelem LABSE\cite{feng-etal-2022-language} zdawał się najlepiej współgrać z ewaluowanymi w Rozdziale 3 modelami ASR.Z racji tego, że model \texit{Embedding Alignment Model} wymaga reprezentacji danych przedstawiających zależności w czasie, wykorzystaliśmy w ramach niego enkoder tekstowy z rodziny SeamlessM4T (Sonarspace).
 
 \subsubsection{Ewaluacja proponowanych modeli}
 Metryki i sposoby ewaluacji pozwalające na jednorodne porównanie modeli.
 W sumie to pewnie trzeba przenieść do 5 rozdziału, bo aktualnie nie jest możliwe miarodajne porównanie bez benchmarku nie opartego na istniejącym modelu embeddingowym, WER też nic nie daje
 \subsection{Eksperymenty}
 \subsubsection{Założenia projektowe}
-Wykorzystane zbiory danych, warianty modeli
+Podczas treningów modeli wykorzystaliśmy 3 różne zbiory danych. Pierwszym i zarazem najważniejszym z nich był zbiór AdmedVOICE, zawierający nagrania i transkrypcje w ramach specjalistycznej domeny języka medycznego. Dodatkowymi zbiorami użytymi przez nas w roli zbiorów wspomagających uczenie modelu podczas treningu wstępnego nienadzorowanego były nagrania mowy w języku angielskim ze zbioru \textit{Medical Speech, Transcription, and Intent}
 \subsubsection{Implementacja}
 Opis wykorzystanych narzędzi
 \subsubsection{Analiza wyników}
-Porównanie stabilności treningu, wpływ Data2Vec na jakość modeli
+Porównanie stabilności treningu, wpływ Data2Vec na jakość modeli AKA dac wykresy na podstawie tensorboarda i jacha.
 \subsection{Wnioski}
 \subsubsection{Ewaluacja architektury \textit{Attention Pool Model}}
 Omówienie, porównanie wariantów, wnioski dotyczące zachowania i generalizacji
 \subsubsection{Ewaluacja architektury \textit{Semantic Alignment Model}}
 Omówienie, porównanie wariantów, wnioski dotyczące zachowania i generalizacji
+Jak tu wytrenuje gora 3/4 warianty, to jakie wnioski. Panie, to do ewaluacji trzeba normalnej XD.
 \subsubsection{Potencjalne osiągi modeli w kontekście pełnego systemu wyszukiwania}
-Zarysowanie powyższych wniosków w realiach systemu wyszukiwania
+Zarysowanie powyższych wniosków w realiach systemu wyszukiwania - bezsensowne gdybanie, i tak trzeba podlaczyc do evaluatora
