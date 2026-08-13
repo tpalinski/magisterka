@@ -16,27 +16,33 @@ Omówienie architektury, motywacja, przebieg treningu
 
 
 \subsubsection{Model oparty o translację reprezentacji latentnych \textit{Embedding Alignment Model} wykorzystujący uczenie nienadzorowane}
-Potencjalnym problemem modelu \textit{Attention Pool Model} jest brak dostosowania istniejącego modelu embeddingowego do naszej docelowej domeny -- tekstów i transkrypcji rozmów w języku polskim o tematyce medycznej. Zaradzić temu ma druga proponowana przez nas architektura \textit{Embedding Alignment Model}. Zakłada ona wykorzystanie pretrenowanych modeli ASR i tekstowych jako enkodery wyodrębniające pewne cechy danych wejściowych dla swoich własnych modalności, dalsze przetwarzanie danych w ramach mechanizmu \textit{self attention}, poprzedzonego opcjonalnie blokami TransformerEncoder, a następnie połączenie ich w ramach wspólnej warstwy projekcji. Diagram struktury proponowanego modelu przedstawiono na Rysunku:
+Potencjalnym problemem modelu \textit{Attention Pool Model} jest brak dostosowania istniejącego modelu embeddingowego do naszej docelowej domeny -- tekstów i transkrypcji rozmów w języku polskim o tematyce medycznej. Zaradzić temu ma druga proponowana przez nas architektura \textit{Embedding Alignment Model}. Zakłada ona wykorzystanie pretrenowanych modeli ASR i tekstowych jako enkodery wyodrębniające pewne cechy danych wejściowych dla swoich własnych modalności, dalsze przetwarzanie danych w ramach mechanizmu \textit{self attention}, poprzedzonego opcjonalnie blokami TransformerEncoder, a następnie połączenie ich w ramach wspólnej warstwy projekcji. Diagram struktury proponowanego modelu przedstawiono na Rysunku \ref{fig:eamArchitecture}.
 
 \todo{Tu wstawić architekturę modelu}
-% \input{tikz/eam}
+\begin{figure}[width=\linewidth]
+    \input{tikz/eam}
+    \label{fig:eamArchitecture}
+\end{figure}
 
-
-\todo{Fact check this stuff about cone}
 Wykorzystanie równoległego przetwarzania modalności jest techniką wykorzystywaną z powodzeniem w multimodalnych modelach embeddingowych. Autorzy modelu JinaV4 zauważyli znaczne zmniejszenie efektu stożka, zawdzięczone właśnie zastosowaniu osobnych enkoderów dla modalności tekstu i obrazu \cite{jina_v4}. Trudnością w ramach treningu tego modelu jest jednak wypracowanie zupełnie nowej geometrii przestrzeni wyjściowej modelu. W przypadku modelu APM, jest ona definiowana przez stabilny w ramach enkodowania semantyki danych pretrenowany model embeddingowy, co oznacza wyłącznie translację do pewnej wzorcowej, izotropicznej, semantycznie nacechowanej przestrzeni. Dla modelu EAM, celem treningu jest ukształtowanie takiej przestrzeni z pewnego punktu wyjścia, co wymaga bardziej skomplikowanej architektury i dopasowania funkcji straty.
 
-\todo{Cite InfoNCE i clip}
-Głównym czynnikiem kształtującym przestrzeń wyjściową modelu \textit{Embedding Alignment Model} jest funkcja straty InfoNCE, wykorzystana m.in. w wielomodalnym modelu CLIP. Niech
+Głównym czynnikiem kształtującym przestrzeń wyjściową modelu \textit{Embedding Alignment Model} jest funkcja straty InfoNCE \cite{radford2021learning}, wykorzystana m.in. w wielomodalnym modelu CLIP \cite{radford2021clip}. Wyrażana jest ona następującym wzorem:
+\begin{equation}
+    \begin{align}
+    &\mathcal{L}_{\mathrm{InfoNCE}} = -\frac{1}{2N} \sum_{i=1}^{N} \left(\log \frac{\exp(s(a_i, t_i)})}{\sum_{j=1}^{N}\exp(s(a_i, t_j)})} + \log \frac{\exp(s(a_i, t_i))}{\sum_{j=1}^{N}\exp(s(a_j, t_i)} \right) \\
+    &s(a, t) = \frac{a_i^\mathsf{T}t_j}{\tau}
+    \end{align}
+\label{eq:infoNCE}
+\end{equation}
 
-\todo{Wzór}
+gdzie $a_i$ $t_i$ oznaczają odpowiednio reprezentację audio i tekstową $i$-tej pary, $s(a, t)$ oznacza podobieństwo pomiędzy reprezentacją audio i reprezentacją tekstową, $\tau$ oznacza współczynnik temperatury, a $N$ oznacza liczbę par w danym \textit{mini batch}. 
 
-\todo{Cite FlatNCE for logK, info nce behaviour}
-Minimalizacja tej funkcji prowadzi do zwiększenia podobieństwa kosinusowego między reprezentacjami o tym samym znaczeniu dla dwóch różnych modalności -- w naszym przypadku, pewnego nagrania mowy i jego transkrypcji, i jednoczesnego zmniejszenia podobieństwa dla pozostałych danych w ramach jednego \textit{mini batch}. Zależność od różnorodności danych przetwarzanych w ramach każdego \textit{mini batch} może prowadzić do znacznego pogorszenia działania modelu w przypadku małych rozmiarów paczek danych, przez co InfoNCE stanowi dosyć drogą funkcję względem zasobów obliczeniowych. Niezwykle ważny jest również dobór odpowiedniej wartości dla hiperparametru temperatury $\theta$. Zbyt duża jego wartość prowadzi do zbyt pobłażliwego zachowania funkcji straty, zbyt mała powoduje załamanie reprezentacji powodowane próbą zbyt szybkiego zminimalizowania trudnej funkcji. Aby temu zapobiec, zastosować można zmniejszenie $\theta$ wraz z czasem trawania treningu, powodując stopniowe wymuszenie coraz dokładniejszych reprezentacji.
+Minimalizacja tej funkcji prowadzi do zwiększenia podobieństwa kosinusowego między reprezentacjami o tym samym znaczeniu dla dwóch różnych modalności -- w naszym przypadku, pewnego nagrania mowy i jego transkrypcji, i jednoczesnego zmniejszenia podobieństwa dla pozostałych danych w ramach jednego \textit{mini batch}. Zależność od różnorodności danych przetwarzanych w ramach każdego \textit{mini batch} może prowadzić do znacznego pogorszenia działania modelu w przypadku małych rozmiarów paczek danych, przez co InfoNCE stanowi dosyć drogą funkcję względem zasobów obliczeniowych \cite{chen2021flatnce}. Niezwykle ważny jest również dobór odpowiedniej wartości dla hiperparametru temperatury $\theta$. Zbyt duża jego wartość prowadzi do zbyt pobłażliwego zachowania funkcji straty, zbyt mała powoduje załamanie reprezentacji powodowane próbą zbyt szybkiego zminimalizowania trudnej funkcji. Aby temu zapobiec, zastosować można zmniejszenie $\theta$ wraz z czasem trawania treningu, powodując stopniowe wymuszenie coraz dokładniejszych reprezentacji.
 
-\todo{Cite vicreg}
-Oprócz samej funkcji straty, wykorzystaliśmy również dwie dodatkowe metody regularyzacji modelu. Zainspirowani metodą VicReg, dodaliśmy czynnik regularyzacyjny odpowiedzialny za minimalizowanie kowariancji generowanych reprezentacji, dodatkowo wspierający kształtowanie jak najbardziej izotropowej przestrzeni embeddingowej. Niech 
-
-\todo{Wzór}
+Oprócz samej funkcji straty, wykorzystaliśmy również dwie dodatkowe metody regularyzacji modelu. Zainspirowani metodą VicReg, dodaliśmy czynnik regularyzacyjny odpowiedzialny za minimalizowanie kowariancji generowanych reprezentacji, dodatkowo wspierający kształtowanie jak najbardziej izotropowej przestrzeni embeddingowej.
+\begin{equation}
+    \mathcal{L}_{\mathrm{cov}} = \frac{1}{D} \sum_{\substack{i,j=1 \\ i\neq j}}^{D} C_{ij}^{2} \\
+\end{equation}
 
 \todo{cite and consult const, fact check the training}
 Drugi czynnik zainspirowany treningiem modeli CONST opiera się również na funkcji InfoNCE, lecz ma on za zadanie jak najbardziej zbliżyć do siebie reprezentacje dla modalności tekstu i mowy, zanim trafią one do dedykowanych warstw \textit{self attention}. W tym celu podczas treningu wykorzystywana jest dodatkowa warstwa \textit{cross attention}, w której tokeny tekstowe pełnią rolę zapytania (\textit{query}), natomiast tokeny audio klucza (\textit{key}) i wartości (\textit{value}). Następnie, przetworzona w ten sposób reprezentacja mowy jest poddawana jest dalszym operacjom w ramach warstw \textit{self attention} i projekcji liniowej. Na koniec, obliczana jest funkcja straty oparta na InfoNCE dla wynikowych reprezentacji audio i reprezentacji tekstu przetworzonych w ramach normalnego przebiegu modelu.
@@ -92,8 +98,8 @@ Analiza właściowości modeli ASR w świetle reprezentacji ukrytych nacechowany
 W przypadku modeli embeddingowych dla tekstu, zdecydowaliśmy się skorzystać z modelu Jinav4 \cite{jina_v4}, która wraz z modelem LABSE\cite{feng-etal-2022-language} zdawał się najlepiej współgrać z ewaluowanymi w Rozdziale 3 modelami ASR.Z racji tego, że model \textit{Embedding Alignment Model} wymaga reprezentacji danych przedstawiających zależności w czasie, wykorzystaliśmy w ramach niego enkoder tekstowy z rodziny SeamlessM4T (Sonarspace).
 
 \subsubsection{Ewaluacja proponowanych modeli}
-Metryki i sposoby ewaluacji pozwalające na jednorodne porównanie modeli.
-W sumie to pewnie trzeba przenieść do 5 rozdziału, bo aktualnie nie jest możliwe miarodajne porównanie bez benchmarku nie opartego na istniejącym modelu embeddingowym, WER też nic nie daje
+Z racji diametralnej różnicy w działaniu modeli z rodziny \textit{Attention Pool Model} i \textit{Embedding Alignment Model}, jak i funkcji strat minimalizowanych podczas treningu przez każdy z nich, nie jest możliwe relatywne porównanie ich skuteczności względem siebie na poziomie metryk treningowych otrzymanych ze zbioru treningowego -- dokładna analiza ich działania w systemie wyszukiwania informacji i porównanie z bazowym podejściem opartym o przekształcanie mowy na tekst znajduje się w Rozdziale 5.
+Jednakże, ocenić można jakość tych modeli z osobna, w ramach specyficznych dla nich metryk, uzyskanych podczas treningu. W przypadku modeli z rodziny \textit{Attention Pool Model}, idealny model cechowałby się podobieństwem kosinusowym między generowanym przez niego embeddingiem audio a wzorcowym embeddingiem transkrypcji jak najbardziej zbliżonym do wartości $1.0$. Dla rodziny \textit{Embedding Alignment Model}, największe znaczenie ma maksymalizacja różnicy między podobieństwem między parą audio-transkrypcja a podobieństwem do drugiego najbardziej podobnego przykładu dla innej modalności - określa ona docelową zdolność separacji między przykładami pozytywnymi i negatywnymi.
 \subsection{Eksperymenty}
 \subsubsection{Założenia projektowe}
 Podczas treningów modeli wykorzystaliśmy 3 różne zbiory danych. Pierwszym i zarazem najważniejszym z nich był zbiór AdmedVOICE, zawierający nagrania i transkrypcje w ramach specjalistycznej domeny języka medycznego. Dodatkowymi zbiorami użytymi przez nas w roli zbiorów wspomagających uczenie modelu podczas treningu wstępnego nienadzorowanego były nagrania mowy w języku angielskim ze zbioru \textit{Medical Speech, Transcription, and Intent}

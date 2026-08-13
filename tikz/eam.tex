@@ -1,12 +1,15 @@
+\usetikzlibrary{positioning,arrows.meta,fit}
+
 \begin{tikzpicture}[
+    scale=0.65,
+    transform shape,
     font=\small,
-    >=Latex,
     block/.style={
         draw,
         rounded corners=2pt,
         thick,
-        minimum width=2.8cm,
-        minimum height=0.9cm,
+        minimum width=2.4cm,
+        minimum height=0.85cm,
         align=center
     },
     enc/.style={block, fill=blue!20},
@@ -16,60 +19,156 @@
     arrow/.style={->, thick}
 ]
 
-% ---------------- Inputs ----------------
+\newcommand{\transformerstack}[3]{%
+    % Invisible node defining the stack's bounding box
+    \node[
+        minimum width=2.7cm,
+        minimum height=1.6cm,
+        inner sep=0pt
+    ] (#3) at (#1,#2) {};
+
+    % Back layers
+    \foreach \i in {3,2,1} {
+        \draw[
+            fill=purple!12,
+            draw=purple!60!black,
+            thick
+        ]
+        (#1-1.2+\i*0.10,#2-0.375+\i*0.10)
+        rectangle
+        (#1+1.2+\i*0.10,#2+0.375+\i*0.10);
+    }
+
+    % Front layer
+    \draw[
+        fill=purple!25,
+        draw=purple!60!black,
+        thick,
+        rounded corners=1pt
+    ]
+    (#1-1.2,#2-0.375)
+    rectangle
+    (#1+1.2,#2+0.375);
+
+    % Label
+    \node[
+        align=center,
+        text width=2.1cm
+    ] at (#1,#2)
+    {Transformer\\Encoder};
+
+    % × N
+    \node[
+        font=\small\bfseries
+    ] at (#1,#2-0.72)
+    {$\times N$};
+}
+
+% ============================================================
+% TEXT BRANCH
+% ============================================================
+
 \node[block] (text) {Text Input};
-\node[block, below=1.2cm of text] (audio) {Audio Input};
 
-% ---------------- Pretrained Encoders ----------------
-\node[enc, right=2.2cm of text] (txtenc) {Pretrained\\Text Encoder};
-\node[enc, right=2.2cm of audio] (audenc) {Pretrained\\Audio Encoder};
+\node[enc, right=1.2cm of text] (txtenc)
+    {Pretrained\\Text Encoder};
 
-% ---------------- Transformer stacks ----------------
-\node[trans, right=2.2cm of txtenc] (txttr) {Transformer\\Encoder $\times N$};
-\node[trans, right=2.2cm of audenc] (audtr) {Transformer\\Encoder $\times N$};
+\transformerstack{6}{2} {txttr}
 
-% ---------------- Self Attention ----------------
-\node[attn, right=2.2cm of txttr] (txtattn1) {Self-Attention};
-\node[attn, right=0.6cm of txtattn1] (txtattn2) {Self-Attention};
+\node[attn, right=1.2cm of txttr] (txtattn1)
+    {Self-Attention};
 
-\node[attn, right=2.2cm of audtr] (audattn1) {Self-Attention};
-\node[attn, right=0.6cm of audattn1] (audattn2) {Self-Attention};
+\node[attn, right=0.4cm of txtattn1] (txtattn2)
+    {Self-Attention};
 
-% ---------------- Shared Projection ----------------
-\node[proj, right=2.4cm of txtattn2] (projtxt) {Shared\\Projection Head};
-\node[proj, right=2.4cm of audattn2] (projout) {Shared\\Projection Head};
+\node[proj, right=1.2cm of txtattn2] (txtproj)
+    {Projection\\Head};
 
-% ---------------- Arrows: Inputs -> Encoders ----------------
+
+% ============================================================
+% AUDIO BRANCH
+% ============================================================
+
+\node[block, below=2cm of text] (audio)
+    {Audio Input};
+
+\node[enc, right=1.2cm of audio] (audenc)
+    {Pretrained\\Audio Encoder};
+
+\transformerstack{6}{2}{audtr}
+
+\node[attn, right=1.2cm of audtr] (audattn1)
+    {Self-Attention};
+
+\node[attn, right=0.4cm of audattn1] (audattn2)
+    {Self-Attention};
+
+\node[proj, right=1.2cm of audattn2] (audproj)
+    {Projection\\Head};
+
+
+% ============================================================
+% TEXT ARROWS
+% ============================================================
+
 \draw[arrow] (text) -- (txtenc);
-\draw[arrow] (audio) -- (audenc);
-
-% ---------------- Encoders -> Transformers ----------------
 \draw[arrow] (txtenc) -- (txttr);
-\draw[arrow] (audenc) -- (audtr);
-
-% ---------------- Transformers -> Attention ----------------
 \draw[arrow] (txttr) -- (txtattn1);
-\draw[arrow] (audtr) -- (audattn1);
-
-% ---------------- Attention chain ----------------
 \draw[arrow] (txtattn1) -- (txtattn2);
+\draw[arrow] (txtattn2) -- (txtproj);
+
+
+% ============================================================
+% AUDIO ARROWS
+% ============================================================
+
+\draw[arrow] (audio) -- (audenc);
+\draw[arrow] (audenc) -- (audtr);
+\draw[arrow] (audtr) -- (audattn1);
 \draw[arrow] (audattn1) -- (audattn2);
+\draw[arrow] (audattn2) -- (audproj);
 
-% ---------------- Projection ----------------
-\draw[arrow] (txtattn2) -- (projtxt);
-\draw[arrow] (audattn2) -- (projout);
 
-% ---------------- Shared projection connection ----------------
-\draw[arrow] (projtxt) -- ++(1.5,0);
-\draw[arrow] (projout) -- ++(1.5,0);
+% ============================================================
+% SHARED EMBEDDING SPACE
+% ============================================================
 
-% ---------------- Grouping boxes ----------------
-\node[draw, dashed, rounded corners, fit=(txtenc)(txttr)(txtattn1)(txtattn2)(projtxt),
-      inner sep=8pt,
-      label=above:{Text Branch}] {};
+\node[
+    draw,
+    dashed,
+    rounded corners,
+    thick,
+    minimum width=2.8cm,
+    minimum height=2.4cm,
+    right=1.5cm of txtproj,
+    yshift=-1cm,
+    align=center
+] (embedding) {Shared\\Embedding\\Space};
 
-\node[draw, dashed, rounded corners, fit=(audenc)(audtr)(audattn1)(audattn2)(projout),
-      inner sep=8pt,
-      label=above:{Audio Branch}] {};
+\draw[arrow] (txtproj) -- (embedding.north west);
+\draw[arrow] (audproj) -- (embedding.south west);
+
+
+% ============================================================
+% BRANCH BOXES
+% ============================================================
+
+\node[
+    draw,
+    dashed,
+    rounded corners,
+    inner sep=8pt,
+    fit=(text)(txtproj),
+    label=above:Text Branch
+] {};
+
+\node[
+    draw,
+    dashed,
+    rounded corners,
+    inner sep=8pt,
+    fit=(audio)(audproj),
+    label=above:Audio Branch
+] {};
 
 \end{tikzpicture}
