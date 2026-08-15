@@ -27,6 +27,52 @@
 \renewcommand*{\newunitpunct}{\addcomma\space}
 \renewbibmacro{in:}{}
 
+\newcommand{\transformerstack}[2]{%
+    % Back layer
+    \node[
+        draw,
+        fill=purple!10,
+        thick,
+        rounded corners=1pt,
+        minimum width=2.5cm,
+        minimum height=0.8cm,
+        #1,
+        xshift=0.30cm,
+        yshift=0.30cm
+    ] (#2back) {};
+
+    % Middle layer
+    \node[
+        draw,
+        fill=purple!15,
+        thick,
+        rounded corners=1pt,
+        minimum width=2.5cm,
+        minimum height=0.8cm,
+        #1,
+        xshift=0.15cm,
+        yshift=0.15cm
+    ] (#2mid) {};
+
+    % Front layer
+    \node[
+        draw,
+        fill=purple!25,
+        thick,
+        rounded corners=1pt,
+        minimum width=2.5cm,
+        minimum height=0.8cm,
+        align=center,
+        #1
+    ] (#2) {Transformer\\Encoder};
+
+    % × N
+    \node[
+        font=\small\bfseries,
+        below=0.25cm of #2
+    ] (#2label) {$\times N$};
+}
+
 \usepackage{geometry}
 \usepackage{titlesec}
 \usepackage{graphicx}

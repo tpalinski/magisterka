@@ -1,0 +1,178 @@
+\begin{tikzpicture}[
+    scale=0.65,
+    transform shape,
+    font=\small,
+    block/.style={
+        draw,
+        rounded corners=2pt,
+        thick,
+        minimum width=2.5cm,
+        minimum height=0.85cm,
+        align=center
+    },
+    enc/.style={block, fill=blue!20},
+    attn/.style={block, fill=orange!25},
+    cross/.style={block, fill=red!20},
+    pool/.style={block, fill=yellow!20},
+    proj/.style={block, fill=green!20},
+    loss/.style={
+        draw,
+        rounded corners=2pt,
+        thick,
+        minimum width=2.5cm,
+        minimum height=0.85cm,
+        align=center,
+        fill=gray!15
+    },
+    arrow/.style={
+        ->,
+        thick
+    }
+]
+
+% ============================================================
+% ARCHITECTURAL NODES
+% ============================================================
+
+\node[enc] (text)
+    {Encoded\\Text};
+
+\node[enc, below=3cm of text] (audio)
+    {Encoded\\Audio};
+
+
+% Separate self-attention modules
+\node[
+    attn,
+    right=1.8cm of text
+] (txtattn)
+    {Text\\\textit{Self-Attention}};
+
+\node[
+    attn,
+    right=1.8cm of audio
+] (audattn)
+    {Audio\\\textit{Self-Attention}};
+
+
+% Single cross-attention module.
+% Audio is the query/output stream.
+\node[
+    cross,
+    below=1.5cm of txtattn
+] (crossattn)
+    {Cross-Attention\\Audio $\leftarrow$ Text};
+
+
+% Shared pooling and projection
+\node[
+    pool,
+    right=2cm of txtattn
+] (pool)
+    {Attention\\Pooling};
+
+\node[
+    proj,
+    right=1.5cm of pool
+] (proj)
+    {Projection};
+
+\node[attn, right=1.5cm of proj] (plain) {Repezentacje\\(brak \textit{cross-attention})};
+\node[cross, below=1.5cm of plain] (crossed) {Repezentacje w ramach\\\textit{cross-attention}};
+
+
+% ============================================================
+% NORMAL TEXT PATH
+% ============================================================
+
+\draw[arrow]
+    (text) -- (txtattn);
+
+\draw[arrow]
+    (txtattn) -- (pool);
+
+
+% ============================================================
+% NORMAL AUDIO PATH
+% ============================================================
+
+\draw[arrow]
+    (audio) -- (audattn);
+
+\draw[arrow]
+    (audattn.east) -| (pool.south);
+
+
+% ============================================================
+% CROSS-ATTENTION
+% ============================================================
+
+% Audio is the query / output stream
+\draw[arrow]
+    (audio.east)
+    -- ++(0.6,0)
+    |- (crossattn.west);
+
+\draw[arrow]
+    (text.south)
+    -- ++(0,-0.8)
+    -- ++(4.32,0)
+    -- (crossattn.north);
+
+
+% Cross-attended audio goes through the
+% SAME audio self-attention module
+\draw[arrow]
+    (crossattn.south)
+    -| (audattn.north);
+
+
+% ============================================================
+% SHARED POOLING / PROJECTION
+% ============================================================
+
+\draw[arrow]
+    (pool) -- (proj);
+
+
+% ============================================================
+% LOSSES
+% ============================================================
+
+\node[
+    loss,
+    right=1.5cm of plain
+] (infonce)
+    {$\mathcal{L}_{\mathrm{InfoNCE}}(x)$ \\ $\mathcal{L}_{\mathrm{cov}(x)}$};
+
+\node[
+    loss,
+    right=1.5cm of crossed
+] (crossloss)
+{$\mathcal{L}_{\mathrm{InfoNCE}}(x_\mathrm{cross})$ \\ $\mathcal{L}_{\mathrm{cov}(x_\mathrm{cross})}$};
+
+
+% ============================================================
+% LOSS CONNECTIONS
+% ============================================================
+
+% Normal text/audio embeddings
+\draw[arrow]
+    (proj.east)
+    -- (plain.west);
+
+% Cross-modal auxiliary loss
+\draw[arrow]
+    (proj.south)
+    |- (crossed.west);
+
+\draw[arrow]
+    (plain.east)
+    |- (infonce.west);
+
+\draw[arrow]
+    (crossed.east)
+    |- (crossloss.west);
+
+
+\end{tikzpicture}

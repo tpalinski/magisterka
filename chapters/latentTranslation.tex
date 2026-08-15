@@ -1,3 +1,4 @@
+%LTex: language=pl
 \subsection{Założenia teorytyczne}
 
 \subsubsection{Translacja reprezentacji latentnych modeli do wspólnej przestrzeni}
@@ -8,8 +9,6 @@ Contrastive, triplet loss
 
 
 \subsection{Metodologia}
-
-
 \subsubsection{Model agregujący atencję \textit{Attention Pool Model} wykorzystujacy uczenie nadzorowane}
 Omówienie architektury, motywacja, przebieg treningu
 \todo{@Krystian pro tip - Jinav5 gelato, robią prawie to samo, tylko że chyba lorą + matrioshka}
@@ -18,54 +17,67 @@ Omówienie architektury, motywacja, przebieg treningu
 \subsubsection{Model oparty o translację reprezentacji latentnych \textit{Embedding Alignment Model} wykorzystujący uczenie nienadzorowane}
 Potencjalnym problemem modelu \textit{Attention Pool Model} jest brak dostosowania istniejącego modelu embeddingowego do naszej docelowej domeny -- tekstów i transkrypcji rozmów w języku polskim o tematyce medycznej. Zaradzić temu ma druga proponowana przez nas architektura \textit{Embedding Alignment Model}. Zakłada ona wykorzystanie pretrenowanych modeli ASR i tekstowych jako enkodery wyodrębniające pewne cechy danych wejściowych dla swoich własnych modalności, dalsze przetwarzanie danych w ramach mechanizmu \textit{self attention}, poprzedzonego opcjonalnie blokami TransformerEncoder, a następnie połączenie ich w ramach wspólnej warstwy projekcji. Diagram struktury proponowanego modelu przedstawiono na Rysunku \ref{fig:eamArchitecture}.
 
-\todo{Tu wstawić architekturę modelu}
-\begin{figure}[width=\linewidth]
+\begin{figure}
     \input{tikz/eam}
     \label{fig:eamArchitecture}
+    \caption{Architektura modelu \textit{Embedding Alignment Model}. Bloki \textit{TransformerEncoder} są opcjonalne i reprezentują modele poddane treningowi wstępnemu za pomocą uczenia nienadzorowanego.}
 \end{figure}
 
 Wykorzystanie równoległego przetwarzania modalności jest techniką wykorzystywaną z powodzeniem w multimodalnych modelach embeddingowych. Autorzy modelu JinaV4 zauważyli znaczne zmniejszenie efektu stożka, zawdzięczone właśnie zastosowaniu osobnych enkoderów dla modalności tekstu i obrazu \cite{jina_v4}. Trudnością w ramach treningu tego modelu jest jednak wypracowanie zupełnie nowej geometrii przestrzeni wyjściowej modelu. W przypadku modelu APM, jest ona definiowana przez stabilny w ramach enkodowania semantyki danych pretrenowany model embeddingowy, co oznacza wyłącznie translację do pewnej wzorcowej, izotropicznej, semantycznie nacechowanej przestrzeni. Dla modelu EAM, celem treningu jest ukształtowanie takiej przestrzeni z pewnego punktu wyjścia, co wymaga bardziej skomplikowanej architektury i dopasowania funkcji straty.
 
 Głównym czynnikiem kształtującym przestrzeń wyjściową modelu \textit{Embedding Alignment Model} jest funkcja straty InfoNCE \cite{radford2021learning}, wykorzystana m.in. w wielomodalnym modelu CLIP \cite{radford2021clip}. Wyrażana jest ona następującym wzorem:
 \begin{equation}
-    \begin{align}
-    &\mathcal{L}_{\mathrm{InfoNCE}} = -\frac{1}{2N} \sum_{i=1}^{N} \left(\log \frac{\exp(s(a_i, t_i)})}{\sum_{j=1}^{N}\exp(s(a_i, t_j)})} + \log \frac{\exp(s(a_i, t_i))}{\sum_{j=1}^{N}\exp(s(a_j, t_i)} \right) \\
-    &s(a, t) = \frac{a_i^\mathsf{T}t_j}{\tau}
-    \end{align}
+\begin{aligned}
+\mathcal{L}_{\mathrm{InfoNCE}}
+&= -\frac{1}{2N} \sum_{i=1}^{N}
+\left(
+    \log
+    \frac{\exp(s(a_i, t_i))}
+         {\sum_{j=1}^{N}\exp(s(a_i, t_j))}
+    +
+    \log
+    \frac{\exp(s(a_i, t_i))}
+         {\sum_{j=1}^{N}\exp(s(a_j, t_i))}
+\right), \\
+s(a,t)
+&= \frac{a_i^\mathsf{T}t_j}{\tau}.
+\end{aligned}
 \label{eq:infoNCE}
 \end{equation}
 
-gdzie $a_i$ $t_i$ oznaczają odpowiednio reprezentację audio i tekstową $i$-tej pary, $s(a, t)$ oznacza podobieństwo pomiędzy reprezentacją audio i reprezentacją tekstową, $\tau$ oznacza współczynnik temperatury, a $N$ oznacza liczbę par w danym \textit{mini batch}. 
+gdzie $a_i$ $t_i$ oznaczają odpowiednio reprezentację audio i tekstową $i$-tej pary, $s(a, t)$ oznacza podobieństwo pomiędzy reprezentacją audio i reprezentacją tekstową, $\tau$ oznacza współczynnik temperatury, a $N$ oznacza liczbę par w danym \textit{mini batch}.
 
-Minimalizacja tej funkcji prowadzi do zwiększenia podobieństwa kosinusowego między reprezentacjami o tym samym znaczeniu dla dwóch różnych modalności -- w naszym przypadku, pewnego nagrania mowy i jego transkrypcji, i jednoczesnego zmniejszenia podobieństwa dla pozostałych danych w ramach jednego \textit{mini batch}. Zależność od różnorodności danych przetwarzanych w ramach każdego \textit{mini batch} może prowadzić do znacznego pogorszenia działania modelu w przypadku małych rozmiarów paczek danych, przez co InfoNCE stanowi dosyć drogą funkcję względem zasobów obliczeniowych \cite{chen2021flatnce}. Niezwykle ważny jest również dobór odpowiedniej wartości dla hiperparametru temperatury $\theta$. Zbyt duża jego wartość prowadzi do zbyt pobłażliwego zachowania funkcji straty, zbyt mała powoduje załamanie reprezentacji powodowane próbą zbyt szybkiego zminimalizowania trudnej funkcji. Aby temu zapobiec, zastosować można zmniejszenie $\theta$ wraz z czasem trawania treningu, powodując stopniowe wymuszenie coraz dokładniejszych reprezentacji.
+Minimalizacja tej funkcji prowadzi do zwiększenia podobieństwa kosinusowego między reprezentacjami o tym samym znaczeniu dla dwóch różnych modalności -- w naszym przypadku, pewnego nagrania mowy i jego transkrypcji, i jednoczesnego zmniejszenia podobieństwa dla pozostałych danych w ramach jednego \textit{mini batch}. Zależność od różnorodności danych przetwarzanych w ramach każdego \textit{mini batch} może prowadzić do znacznego pogorszenia działania modelu w przypadku małych rozmiarów paczek danych, przez co InfoNCE stanowi dosyć drogą funkcję względem zasobów obliczeniowych \cite{chen2021flatnce}. Niezwykle ważny jest również dobór odpowiedniej wartości dla hiperparametru temperatury $\theta$. Zbyt duża jego wartość prowadzi do zbyt pobłażliwego zachowania funkcji straty, zbyt mała powoduje załamanie reprezentacji powodowane próbą zbyt szybkiego zminimalizowania trudnej funkcji. Aby temu zapobiec, zastosować można zmniejszenie $\theta$ wraz z czasem trwania treningu, powodując stopniowe wymuszenie coraz dokładniejszych reprezentacji.
 
-Oprócz samej funkcji straty, wykorzystaliśmy również dwie dodatkowe metody regularyzacji modelu. Zainspirowani metodą VicReg, dodaliśmy czynnik regularyzacyjny odpowiedzialny za minimalizowanie kowariancji generowanych reprezentacji, dodatkowo wspierający kształtowanie jak najbardziej izotropowej przestrzeni embeddingowej.
+Oprócz samej funkcji straty wykorzystaliśmy również dwie dodatkowe metody regularyzacji modelu. Zainspirowani metodą VicReg, dodaliśmy czynnik regularyzacyjny odpowiedzialny za minimalizowanie kowariancji generowanych reprezentacji, dodatkowo wspierający kształtowanie jak najbardziej izotropowej przestrzeni embeddingowej.
 \begin{equation}
     \mathcal{L}_{\mathrm{cov}} = \frac{1}{D} \sum_{\substack{i,j=1 \\ i\neq j}}^{D} C_{ij}^{2} \\
 \end{equation}
 
-\todo{cite and consult const, fact check the training}
-Drugi czynnik zainspirowany treningiem modeli CONST opiera się również na funkcji InfoNCE, lecz ma on za zadanie jak najbardziej zbliżyć do siebie reprezentacje dla modalności tekstu i mowy, zanim trafią one do dedykowanych warstw \textit{self attention}. W tym celu podczas treningu wykorzystywana jest dodatkowa warstwa \textit{cross attention}, w której tokeny tekstowe pełnią rolę zapytania (\textit{query}), natomiast tokeny audio klucza (\textit{key}) i wartości (\textit{value}). Następnie, przetworzona w ten sposób reprezentacja mowy jest poddawana jest dalszym operacjom w ramach warstw \textit{self attention} i projekcji liniowej. Na koniec, obliczana jest funkcja straty oparta na InfoNCE dla wynikowych reprezentacji audio i reprezentacji tekstu przetworzonych w ramach normalnego przebiegu modelu.
+Drugi czynnik zainspirowany treningiem modeli CONST opiera się również na funkcji InfoNCE, lecz ma on za zadanie jak najbardziej zbliżyć do siebie reprezentacje dla modalności tekstu i mowy, zanim trafią one do dedykowanych warstw \textit{self attention}. W tym celu podczas treningu wykorzystywana jest dodatkowa warstwa \textit{cross attention}, w której tokeny tekstowe pełnią rolę zapytania (\textit{query}), natomiast tokeny audio klucza (\textit{key}) i wartości (\textit{value}). Następnie, przetworzona w ten sposób reprezentacja mowy jest poddawana jest dalszym operacjom w ramach warstw \textit{self attention} i projekcji liniowej. Na koniec, obliczana jest funkcja straty oparta na InfoNCE dla wynikowych reprezentacji audio i reprezentacji tekstu przetworzonych w ramach normalnego przebiegu modelu. Podobne podejście, polegające na wykorzystaniu mechanizmu \textit{cross attention} w ramach dodatkowej funkcji straty, zostało z powodzeniem wykorzystane w modelu \textit{ALBEF}, multimodalnym modelu embeddingowym wspierającym modalności tekstu i obrazu, przyspieszając działanie modelu i ograniczając liczbę jego parametrów \cite{li2021align}.
 
-\todo{Diagram przebiegu (architektury) ze wszystkimi funkcjami straty}
+\begin{figure}
+    \input{tikz/eamloss}
+    \ref{fig:eamLoss}
+    \caption{Diagram przebiegu treningu wraz z funkcjami straty. Wykorzystanie mechanizmu \textit{cross-attention} jest opcjonalne w ramach treningu i nie bierze on udziału w ramach procesu inferencji.}
+\end{figure}
 
-\todo{Cite zerowy neg sim dlaczego}
-Podczas treningu, monitorowany musi być szereg parametrów, w celu rzetelnej oceny stabilności treningu. Poza poszczególnymi wartościami czynników składających się na funcję straty, ogromne znaczenie mają wartości podobieństw kosinusowych między różnymi parami reprezentacji próbek. Pierwszą z nich jest podobieństwo między reprezentacją tekstu i reprezentacją audio dla jednego przykładu i wnosi ona informacje o tym, jak dobrze model przypisuje znaczenie semantyczne tym samym danym w ramach różnych modalności. Kolejną metryką jest podobieństwo między przykładem tekstowym lub audio a drugim najbardziej podobnym przykładem w ramach innej modalności, tzw. \textit{hard negative}, wraz z marginesem stanowiącym różnicę między bazowym podobieństwem a podobieństwem do \textit{hard negative}. Wysoki margines oznacza dobrą separację między nawet znaczeniowo podobnymi próbkami, natomiast niska wartość tej metryki wskazuje na niską zdolność dyskryminacji modelu (dla niskich wartości podobieństwa kosinusowego dla przykładów pozytywnych) lub na powstanie wysoce anizotropowej przestrzeni embeddingowej (dla wysokich wartości bazowego podobieństwa kosinusowego). Ostatnią z nych jest średnie podobieństwo kosinusowe do wszystkich przykładów innych niż pozytywny, które dla zdrowego modelu zazwyczaj oscyluje wokól zera.
+Podczas treningu, monitorowany musi być szereg parametrów, w celu rzetelnej oceny stabilności treningu. Poza poszczególnymi wartościami czynników składających się na funkcję straty, ogromne znaczenie mają wartości podobieństw kosinusowych między różnymi parami reprezentacji próbek. Pierwszą z nich jest podobieństwo między reprezentacją tekstu i reprezentacją audio dla jednego przykładu i wnosi ona informacje o tym, jak dobrze model przypisuje znaczenie semantyczne tym samym danym w ramach różnych modalności. Kolejną metryką jest podobieństwo między przykładem tekstowym lub audio a drugim najbardziej podobnym przykładem w ramach innej modalności, tzw. \textit{hard negative}, wraz z marginesem stanowiącym różnicę między bazowym podobieństwem a podobieństwem do \textit{hard negative}. Wysoki margines oznacza dobrą separację między nawet znaczeniowo podobnymi próbkami, natomiast niska wartość tej metryki wskazuje na niską zdolność dyskryminacji modelu (dla niskich wartości podobieństwa kosinusowego dla przykładów pozytywnych) lub na powstanie wysoce anizotropowej przestrzeni embeddingowej (dla wysokich wartości bazowego podobieństwa kosinusowego). Ostatnią z nych jest średnie podobieństwo kosinusowe do wszystkich przykładów innych niż pozytywny, które dla zdrowego modelu zazwyczaj oscyluje wokół zera \cite{infonceUnderstanding}.
 
 \subsubsection{Wykorzystane techinki uczenia nienadzorowanego Data2Vec we wstępnym treningu}
 
-Jednym z największych problemów towarzyszących naszej pracy jest ograniczona ilość możliwych do wykorzystania danych. AdmedVOICE stanowi jedyne dostępne źródło danych o zawierające nagrania mowy i ich transkrypcje w ramach specjalistycznej domeny medycznej w języku polskim. W ramach analizy istniejących modeli ASR, wykazaliśmy ich potencjał do wykorzystania w ramach treningu na danych angielskich, co częściowo może ograniczyć ten problem. Kolejnym krokiem jest wykorzystanie techniki uczenia nienadzorowanego, na zbiorach tekstów medycznych i nagrań o tej tematyce.
+Jednym z największych problemów towarzyszących naszej pracy jest ograniczona ilość możliwych do wykorzystania danych. AdmedVOICE stanowi jedyne dostępne źródło danych o zawierające nagrania mowy i ich transkrypcje w ramach specjalistycznej domeny medycznej w języku polskim. W ramach analizy istniejących modeli ASR wykazaliśmy ich potencjał do wykorzystania w ramach treningu na danych angielskich, co częściowo może ograniczyć ten problem. Kolejnym krokiem jest wykorzystanie techniki uczenia nienadzorowanego, na zbiorach tekstów medycznych i nagrań o tej tematyce.
 
-W ramach modelu \textit{Embedding Alignment Model} wykorzystywane są osobne strumienie przetwarzania dla modalności tekstu i mowy, które mogą zawierać w sobie szereg warstw TransformerEncoder. To właśnie dzięki temu podejściu, możliwe jest wykorzystanie treningu wstępnego opartego o uczenie nienadzorowane (samonadzorowane), a następnie wykorzystaniu tak wytrenowanych bloków w końcowym modelu EAM. 
+W ramach modelu \textit{Embedding Alignment Model} wykorzystywane są osobne strumienie przetwarzania dla modalności tekstu i mowy, które mogą zawierać w sobie szereg warstw TransformerEncoder. To właśnie dzięki temu podejściu, możliwe jest wykorzystanie treningu wstępnego opartego o uczenie nienadzorowane (samonadzorowane), a następnie wykorzystaniu tak wytrenowanych bloków w końcowym modelu \textit{EAM}.
 
 Trening wstępny opiera się na metodyce Data2Vec \cite{data2vec}, która jest sprawdzonym rozwiązaniem dla modalności tekstu, obrazu i mowy. Polega on na zastosowaniu dwóch modeli -- nauczyciela i ucznia. Na początku modele inicjowane są losowo i posiadają identyczne wagi. Podczas treningu, cechy wydobywane są przez enkoder audio lub tekstu, zależnie od modalności, i przekazywane do inferencji przez model nauczyciela. W tym samym czasie, przygotowywane są dane do inferencji przez model ucznia - wybierane są kroki czasowe dla wektorów cech, z pewnym podobieństwem $p_m$, a następnie wybrane kroki wraz z $n$ następnymi wartościami są zerowane, tworząc zbiór zamaskowanych kroków czasowych $\mathcal{M}$. Następnie dane te przekazywane są do modelu ucznia w celu inferencji. Funkcja straty polega na porównaniu K ostatnich reprezentacji latentnych nauczyciela z ostatnią reprezentacją modelu ucznia. Niech $z_{t}^{(k)}$ oznacza reprezentację latentną dla kroku czasowego $t$ otrzymaną z $k$-tej od końca warstwy modelu nauczyciela, natomiast $y_{t}$ oznacza reprezentację odpowiadającą temu samemu krokowi czasowemu otrzymaną z ostatniej warstwy modelu ucznia. Celem treningu jest minimalizacja odległości (w naszym przypadku normy L2) pomiędzy reprezentacją ucznia a średnią reprezentacją nauczyciela z $K$ ostatnich warstw:
 \begin{equation}
     \mathcal{L}_\mathrm{D2V} = \frac{1}{|\mathcal{M}|} \sum_{t \in \mathcal{M}} (y_{t} \frac{1}{K} \sum_{k=1}^{K} z_{t}^{(k)})
     \label{eq:data2vecLoss}
 \end{equation}
-gdzie $\mathcal{M}$ oznacza zbiór zamaskowanych kroków czasowych. Reprezentacje modelu nauczyciela są traktowane jako wartości docelowe, nie wymagające propagacji gradientu. 
+gdzie $\mathcal{M}$ oznacza zbiór zamaskowanych kroków czasowych. Reprezentacje modelu nauczyciela są traktowane jako wartości docelowe, nie wymagające propagacji gradientu.
 
-Następnie aktualizowane są parametry modelu ucznia za pomocą propagacji wstecznej, po czym parametry modelu nauczyciela modyfikowane są na podstawie średniej kroczącej wykładniczej i parametrów modelu ucznia, skalowane za pomocą parametru wyżarzania $\theta$: 
+Następnie aktualizowane są parametry modelu ucznia za pomocą propagacji wstecznej, po czym parametry modelu nauczyciela modyfikowane są na podstawie średniej kroczącej wykładniczej i parametrów modelu ucznia, skalowane za pomocą parametru wyżarzania $\theta$:
 \begin{equation}
     \theta_{T}^{(t)} = \lambda_t \theta*{T}^{(t-1)} + (1-\lambda_t)\boldsymbol{\theta}*{S}^{(t)}
 \end{equation}
@@ -74,9 +86,9 @@ gdzie $\theta*{T}^{(t)}$ oznacza parametry modelu nauczyciela w kroku $t$, $\the
 \begin{equation}
 \lambda_t = \theta^{\frac{t}{T}},
 \end{equation}
-gdzie $T$ oznacza całkowitą liczbę kroków treningowych, a $\theta$ określa końcową wartość współczynnika EMA. W ten sposób wraz z postępem treningu parametry nauczyciela są coraz silniej zależne od historycznych wartości jego parametrów, pozwalając na większą swobodę na poszukiwanie optymalnego rozwiązania problemu minimializacyjnego na początku treningu, prowadząc do bardziej dokładnych reprezentacji modelu nauczyciela.
+gdzie $T$ oznacza całkowitą liczbę kroków treningowych, a $\theta$ określa końcową wartość współczynnika EMA. W ten sposób wraz z postępem treningu parametry nauczyciela są coraz silniej zależne od historycznych wartości jego parametrów, pozwalając na większą swobodę na poszukiwanie optymalnego rozwiązania problemu minimializacyjnego na początku treningu, prowadząc do dokładniejszych reprezentacji modelu nauczyciela.
 
-Dobór współcznynnika $\theta$ stanowi krytyczny wybór w ramach treningu metodą data2vec. Nieodpowiednie dopasowanie jego wartości prowadzić może do przypadku, w którym model ucznia uczy się trywialnych reperezentacji, doprowadzając do zjawiska zwanego \textit{załamaniem wariancji}. Dlatego właśnie krytyczne podczas treningu jest monitorowanie wariancji reprezentacji zarówno modelu ucznia, jak i nauczyciela - sama wartość funkcji straty może być niezwykle myląca, szczególnie w świetle późniejszego wykorzystania pretrenowanego modelu w modelu \textit{Embedding Alignment Model}, ponieważ nie gwarantuje ona jakości generowanych przez model reprezentacji.
+Dobór współcznynnika $\theta$ stanowi krytyczny wybór w ramach treningu metodą data2vec. Nieodpowiednie dopasowanie jego wartości prowadzić może do przypadku, w którym model ucznia uczy się trywialnych reperezentacji, doprowadzając do zjawiska zwanego \textit{załamaniem wariancji}. Dlatego właśnie krytyczne podczas treningu jest monitorowanie wariancji reprezentacji zarówno modelu ucznia, jak i nauczyciela -- sama wartość funkcji straty może być niezwykle myląca, szczególnie w świetle późniejszego wykorzystania pretrenowanego modelu w modelu \textit{Embedding Alignment Model}, ponieważ nie gwarantuje ona jakości generowanych przez model reprezentacji.
 
 Trening wstępny metodą Data2Vec w modelach embeddingowych nie jest szeroko zgłębioną w literaturze metodą. W pracy \textit{mRNA2vec: mRNA Embedding with Language Model in the 5'UTR-CDS for mRNA Design} \cite{mrna2vec}, autorzy z powodzeniem wykorzystali trening wstępny oparty na metodzie Data2Vec w ramach modelu embeddingowego służącego do wyszukiwania sekwencji mRNA. Końcowy model osiągał wyniki wyższe niż istniejące modele, jednakże sekwencje mRNA stanowią drastycznie różnią się od zarówno mowy jak i tekstu, co nie stanowi jednoznacznego potwierdzenia skuteczności tej metody w ramach modelu \textit{EAM}. Ponadto, sama praca nie obejmuje analizy wynikowej przestrzeni wyjściowej modelu Data2Vec i jej właściwości w świetle geometrii reprezentacji latentnej. Dodatkowo, największą różnicą między wykorzystaniem Data2Vec w ramach modelu \textit{mRNA2vec} a \textit{EAM} jest jej umiejscowienie w łańcuchu przetwarzania - \textit{mRNA2vec} wykorzustuje ją w ramach treningu bazowego enkodera, natomiast \textit{EAM} jako swoisty adapter dla bazowego, zamrożonego enkodera. Możliwe jest, że predykcja zamaskowanych kroków czasowych dobrze reprezentowanych pod względem ich semantyki i wykorzystnie nie zmieniającego się modelu ekstrakcji cech pogorszy działanie końcowego modelu, więc poprawność tej metody dla naszego zastosowania wymaga sprawdzenia empirycznego. Kolejnym potencjalnym zagrożeniem jest pogorszenie izotropii przestrzeni związane z dodaniem kolejnych warstw modelu. W celu prewencji takiego zachowania modelu, podczas treningu wstępnego metodą Data2Vec dodana została regularyzacja względem wariancji i kowariancji na całą wynikową przestrzeń latentą zainspirowana metodą VicReg, podobnie jak w przypadku bazowego modelu \textit{Embedding Alignment Model}, która opisana jest równaniem \ref{eq:vicregData2Vec}:
 
@@ -90,10 +102,10 @@ Trening wstępny metodą Data2Vec w modelach embeddingowych nie jest szeroko zg�
 \end{equation}
 
 gdzie $\mathcal{L}_{\mathrm{D2V}}$ oznacza funkcję straty Data2Vec (równanie \ref{eq:data2vecLoss}), $D$ oznacza ilość wymiarów reprezentacji, $\sigma_d$ oznacza odchylenie standardowe $d$-tego wymiaru reprezentacji, $\gamma$ oznacza minimalną wartość odchylenia standardowego i jest hiperparametrem treningu, a $C{ij}$ oznacza element macierzy kowariancji odpowiadający wymiarom $i$ oraz $j$. Hiperparametry $\lambda_{\mathrm{var}}$ i $\lambda_{\mathrm{cov}}$ określają wpływ poszczególnych składników regularyzacyjnych na całkowitą funkcję straty.
-Zastosowanie takiej metody regularyzacji prowadzi do zmniejszenia kowariancji $\mathcal{L}_{\mathrm{cov}}$ i zwiększenia wariancji $\mathcal{L}_{\mathrm{var}}$ w ramach każdej paczki danych \textit{mini batch}, pozwalając na pewne zwiększenie izotropii warstwy wyjścia modelu. Należy nadmienić, że regularyzacja ta stosowana jest wyłącznie dla danych wyjściowych z modelu ucznia. 
+Zastosowanie takiej metody regularyzacji prowadzi do zmniejszenia kowariancji $\mathcal{L}_{\mathrm{cov}}$ i zwiększenia wariancji $\mathcal{L}_{\mathrm{var}}$ w ramach każdej paczki danych \textit{mini batch}, pozwalając na pewne zwiększenie izotropii warstwy wyjścia modelu. Należy nadmienić, że regularyzacja ta stosowana jest wyłącznie dla danych wyjściowych z modelu ucznia.
 
 \subsubsection{Wykorzystane modele ASR i embeddingowe}
-Analiza właściowości modeli ASR w świetle reprezentacji ukrytych nacechowanych semantycznie zawarta w Rozdziale 3 wyraźnie wyłoniła model z największym potencjałem do wykorzystania w naszych eksperymentach dotyczących architektur modeli z rodziny speech-to-retrieval -- SeamlessM4T autorstwa Mety \cite{m4t}. Drugim modelem ASR wykorzystanym przez nas był model Whisper \cite{whisper}, również wykazujący cechy enkodowania semantyki danych wejściowych, szczególnie po wykorzystaniu przetwarzania jego danych wyjściowych za pomocą metody \textit{All But the Top}. 
+Analiza właściowości modeli ASR w świetle reprezentacji ukrytych nacechowanych semantycznie zawarta w Rozdziale 3 wyraźnie wyłoniła model z największym potencjałem do wykorzystania w naszych eksperymentach dotyczących architektur modeli z rodziny speech-to-retrieval -- SeamlessM4T autorstwa Mety \cite{m4t}. Drugim modelem ASR wykorzystanym przez nas był model Whisper \cite{whisper}, również wykazujący cechy enkodowania semantyki danych wejściowych, szczególnie po wykorzystaniu przetwarzania jego danych wyjściowych za pomocą metody \textit{All But the Top}.
 
 W przypadku modeli embeddingowych dla tekstu, zdecydowaliśmy się skorzystać z modelu Jinav4 \cite{jina_v4}, która wraz z modelem LABSE\cite{feng-etal-2022-language} zdawał się najlepiej współgrać z ewaluowanymi w Rozdziale 3 modelami ASR.Z racji tego, że model \textit{Embedding Alignment Model} wymaga reprezentacji danych przedstawiających zależności w czasie, wykorzystaliśmy w ramach niego enkoder tekstowy z rodziny SeamlessM4T (Sonarspace).
 
@@ -102,9 +114,9 @@ Z racji diametralnej różnicy w działaniu modeli z rodziny \textit{Attention P
 Jednakże, ocenić można jakość tych modeli z osobna, w ramach specyficznych dla nich metryk, uzyskanych podczas treningu. W przypadku modeli z rodziny \textit{Attention Pool Model}, idealny model cechowałby się podobieństwem kosinusowym między generowanym przez niego embeddingiem audio a wzorcowym embeddingiem transkrypcji jak najbardziej zbliżonym do wartości $1.0$. Dla rodziny \textit{Embedding Alignment Model}, największe znaczenie ma maksymalizacja różnicy między podobieństwem między parą audio-transkrypcja a podobieństwem do drugiego najbardziej podobnego przykładu dla innej modalności - określa ona docelową zdolność separacji między przykładami pozytywnymi i negatywnymi.
 \subsection{Eksperymenty}
 \subsubsection{Założenia projektowe}
-Podczas treningów modeli wykorzystaliśmy 3 różne zbiory danych. Pierwszym i zarazem najważniejszym z nich był zbiór AdmedVOICE, zawierający nagrania i transkrypcje w ramach specjalistycznej domeny języka medycznego. Dodatkowymi zbiorami użytymi przez nas w roli zbiorów wspomagających uczenie modelu podczas treningu wstępnego nienadzorowanego były nagrania mowy w języku angielskim ze zbioru \textit{Medical Speech, Transcription, and Intent}
+Podczas treningów modeli wykorzystaliśmy 2 różne zbiory danych. Pierwszym i zarazem najważniejszym z nich był zbiór AdmedVOICE, zawierający nagrania i transkrypcje mowy po polsku w ramach specjalistycznej domeny języka medycznego. Dodatkowym zbiorem użytymym przez nas w roli zbioru wspomagającego uczenie modelu podczas treningu wstępnego nienadzorowanego były nagrania i transkrypcje mowy w języku angielskim ze zbioru \textit{Medical Speech, Transcription, and Intent}.
 \subsubsection{Implementacja}
-Opis wykorzystanych narzędzi
+W ramach implementacji proponowanych modeli wykorzystaliśmy framework PyTorch w wersji 2.8. Modele trenowane były na serwerze obliczeniowym z czterema kartami graficznymi Nvidia RTX A5000. Modele ASR i embeddingowe wraz z ich wagami zostały pobrane ze strony HuggingFace za pomocą bibliotek \textit{transformers} i \textit{sentence-transformers}. Do wizualacji i monitorowania treningu wykorzystaliśmy aplikację TensorBoard.
 \subsubsection{Analiza wyników}
 Porównanie stabilności treningu, wpływ Data2Vec na jakość modeli AKA dac wykresy na podstawie tensorboarda i jacha.
 \subsection{Wnioski}

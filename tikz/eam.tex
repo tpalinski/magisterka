@@ -1,5 +1,3 @@
-\usetikzlibrary{positioning,arrows.meta,fit}
-
 \begin{tikzpicture}[
     scale=0.65,
     transform shape,
@@ -16,96 +14,50 @@
     trans/.style={block, fill=purple!20},
     attn/.style={block, fill=orange!25},
     proj/.style={block, fill=green!20},
+    pool/.style={block, fill=yellow!20},
     arrow/.style={->, thick}
 ]
 
-\newcommand{\transformerstack}[3]{%
-    % Invisible node defining the stack's bounding box
-    \node[
-        minimum width=2.7cm,
-        minimum height=1.6cm,
-        inner sep=0pt
-    ] (#3) at (#1,#2) {};
-
-    % Back layers
-    \foreach \i in {3,2,1} {
-        \draw[
-            fill=purple!12,
-            draw=purple!60!black,
-            thick
-        ]
-        (#1-1.2+\i*0.10,#2-0.375+\i*0.10)
-        rectangle
-        (#1+1.2+\i*0.10,#2+0.375+\i*0.10);
-    }
-
-    % Front layer
-    \draw[
-        fill=purple!25,
-        draw=purple!60!black,
-        thick,
-        rounded corners=1pt
-    ]
-    (#1-1.2,#2-0.375)
-    rectangle
-    (#1+1.2,#2+0.375);
-
-    % Label
-    \node[
-        align=center,
-        text width=2.1cm
-    ] at (#1,#2)
-    {Transformer\\Encoder};
-
-    % × N
-    \node[
-        font=\small\bfseries
-    ] at (#1,#2-0.72)
-    {$\times N$};
-}
-
-% ============================================================
-% TEXT BRANCH
-% ============================================================
-
-\node[block] (text) {Text Input};
+% Text
+\node[block] (text) {Tekst};
 
 \node[enc, right=1.2cm of text] (txtenc)
-    {Pretrained\\Text Encoder};
+    {Enkoder Tekstu / \\ Model Embeddingowy};
 
-\transformerstack{6}{2} {txttr}
+\transformerstack{right=1.2cm of txtenc}{txttr}
 
-\node[attn, right=1.2cm of txttr] (txtattn1)
-    {Self-Attention};
-
-\node[attn, right=0.4cm of txtattn1] (txtattn2)
-    {Self-Attention};
-
-\node[proj, right=1.2cm of txtattn2] (txtproj)
-    {Projection\\Head};
+\node[attn, right=1.2cm of txttr] (txtattn)
+    {\textit{Self-Attention}};
 
 
-% ============================================================
-% AUDIO BRANCH
-% ============================================================
-
+% Audio
 \node[block, below=2cm of text] (audio)
-    {Audio Input};
+    {Nagrania Mowy};
 
-\node[enc, right=1.2cm of audio] (audenc)
-    {Pretrained\\Audio Encoder};
+\node[enc, right=1.8cm of audio] (audenc)
+    {Enkoder \\ (Model ASR)};
 
-\transformerstack{6}{2}{audtr}
+\transformerstack{below=1.85cm of txttr}{audtr}
 
-\node[attn, right=1.2cm of audtr] (audattn1)
-    {Self-Attention};
+\node[attn, right=1.2cm of audtr, below=2cm of txtattn] (audattn)
+    {\textit{Self-Attention}};
 
-\node[attn, right=0.4cm of audattn1] (audattn2)
-    {Self-Attention};
+% ============================================================
+% SHARED HEAD
+% ============================================================
 
-\node[proj, right=1.2cm of audattn2] (audproj)
-    {Projection\\Head};
+% Place the shared pooling node between the two branches
+\node[
+    pool,
+    right=1.5cm of txtattn,
+    yshift=-1.5cm
+] (pool) {Attention Pooling};
 
+% Projection follows the pooling node
+\node[
+    proj,
+    right=1.2cm of pool
+] (proj) {Warstwa Liniowa \\ (Projekcja)};
 
 % ============================================================
 % TEXT ARROWS
@@ -113,9 +65,7 @@
 
 \draw[arrow] (text) -- (txtenc);
 \draw[arrow] (txtenc) -- (txttr);
-\draw[arrow] (txttr) -- (txtattn1);
-\draw[arrow] (txtattn1) -- (txtattn2);
-\draw[arrow] (txtattn2) -- (txtproj);
+\draw[arrow] (txttr) -- (txtattn);
 
 
 % ============================================================
@@ -124,29 +74,15 @@
 
 \draw[arrow] (audio) -- (audenc);
 \draw[arrow] (audenc) -- (audtr);
-\draw[arrow] (audtr) -- (audattn1);
-\draw[arrow] (audattn1) -- (audattn2);
-\draw[arrow] (audattn2) -- (audproj);
-
+\draw[arrow] (audtr) -- (audattn);
 
 % ============================================================
 % SHARED EMBEDDING SPACE
 % ============================================================
 
-\node[
-    draw,
-    dashed,
-    rounded corners,
-    thick,
-    minimum width=2.8cm,
-    minimum height=2.4cm,
-    right=1.5cm of txtproj,
-    yshift=-1cm,
-    align=center
-] (embedding) {Shared\\Embedding\\Space};
-
-\draw[arrow] (txtproj) -- (embedding.north west);
-\draw[arrow] (audproj) -- (embedding.south west);
+\draw[arrow] (txtattn) -- (pool.north west);
+\draw[arrow] (audattn) -- (pool.south west);
+\draw[arrow] (pool) -- (proj);
 
 
 % ============================================================
@@ -157,18 +93,18 @@
     draw,
     dashed,
     rounded corners,
-    inner sep=8pt,
-    fit=(text)(txtproj),
-    label=above:Text Branch
+    inner sep=15pt,
+    fit=(text)(txtattn)(txtenc),
+    label=above:Tekst
 ] {};
 
 \node[
     draw,
     dashed,
     rounded corners,
-    inner sep=8pt,
-    fit=(audio)(audproj),
-    label=above:Audio Branch
+    inner sep=15pt,
+    fit=(audio)(audattn)(audenc),
+    label=below:Mowa
 ] {};
 
 \end{tikzpicture}
