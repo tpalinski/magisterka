@@ -118,7 +118,25 @@ Podczas treningów modeli wykorzystaliśmy 2 różne zbiory danych. Pierwszym i 
 \subsubsection{Implementacja}
 W ramach implementacji proponowanych modeli wykorzystaliśmy framework PyTorch w wersji 2.8. Modele trenowane były na serwerze obliczeniowym z czterema kartami graficznymi Nvidia RTX A5000. Modele ASR i embeddingowe wraz z ich wagami zostały pobrane ze strony HuggingFace za pomocą bibliotek \textit{transformers} i \textit{sentence-transformers}. Do wizualacji i monitorowania treningu wykorzystaliśmy aplikację TensorBoard.
 \subsubsection{Analiza wyników}
-Porównanie stabilności treningu, wpływ Data2Vec na jakość modeli AKA dac wykresy na podstawie tensorboarda i jacha.
+\paragraph{Attention Pool Model}
+\todo{Tabelka z final cosine sim z różnymi modelami}
+\paragraph{Embedding Alignment Model}
+W ramach treningu modeli \textit{EAM}, wytrenowano 3 warianty modeli z wykorzystaniem modelu ASR SeamlessM4T i enkodera tekstu dla tego modelu. Pierwszym, bazowym modelem był wariant \textit{Embedding Alignment Model} nie korzystający z dodatkowych bloków \textit{TransformerEncoder} poddanych treningowi wstępnemu. Wykresy przedstawiające wybrane metryki monitorowane podczas jego treningu znajdują się na Rysunkach \ref{fig:models:eamBaseTraining} i \ref{fig:models:eamBaseCosine}.
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{figures/models/model_base_final_training.png}
+    \caption{Przebieg treningu modelu EAM, wykorzystujący model SeamlessM4T i enkoder tekstu z tej samej rodziny. Wykorzystano mechanizm cross attention, brak enkoderów poddanych treningowi wstępnemu.}
+    \label{fig:models:eamBaseTraining}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{figures/models/model_base_final_cosine.png}
+    \caption{Przebieg wartości podobieństwa kosinusowego między parą audio-tekst i różnicy między drugim najbardziej podobnym przykładem (marginesu) dla modelu EAM, wykorzystującego model SeamlessM4T i enkoder tekstu z tej samej rodziny. Wykorzystano mechanizm cross attention, brak enkoderów poddanych treningowi wstępnemu.}
+    \label{fig:models:eamBaseCosine}
+\end{figure}
+
+Rysunek \ref{fig:models:eamBaseTraining} uwidacznia zachowanie przypominające zjawisko nadmiernego dopasowania powstałe około 30 epoki treningu, na co wskazuje brak tendencji spadkowej dla wartości funkcji straty dla zbioru walidacyjnego, jak i brak tendencji wzrostowej dla podobieństwa kosinusowego między parami mowa-transkrypcja. Jest to również moment punktu przegięcia widoczny na Rysunku \ref{fig:models:eamBaseCosine}, gdzie model zaczyna tracić zdolność silnej dyskryminacji między modalnościami (podobieństwo między odpowiadającymi sobie przykładami spada, podobieństwo między negatywnymi pozostaje na podobnym poziomie). Jedną z możliwych interpretacji jest próba uproszczenia reprezentacji i stopniowe zmniejszanie izotropicznej przestrzeni wypracowanej w początkowych etapach treningu, przez układające się w ten sposób minimum funkcji straty. Trening mógł zostać zakończony z powodzeniem w 30 epoce (podobieństwo kosinusowe na zbiorze walidacyjnym równe $0.81$) i ta właśnie wersja modelu poddana była późniejszej ewaluacji.
+
 \subsection{Wnioski}
 \subsubsection{Ewaluacja architektury \textit{Attention Pool Model}}
 Omówienie, porównanie wariantów, wnioski dotyczące zachowania i generalizacji
