@@ -2,25 +2,55 @@
 \subsection{Założenia teorytyczne}
 
 \subsubsection{Translacja reprezentacji latentnych modeli do wspólnej przestrzeni}
-Istniejące techniki linear translation, dodatkowe bardziej zaawansowane
+Translacja przestrzeni latentnych między modelami jest dobrze zbadanym w literaturze procesem i istnieje szereg metod pozwalających na transformację reprezentacji z dowolnego modelu do reprezentacji bazowych, powstałych poprzez enkodowanie danych za pomocą drugiego modelu, o potencjalnie innej architekturze i wymiarowości danych wynikowych. Pierwszą rodziną takich operacji są operacje liniowe, posiadające rozwiązanie mające postać jawną. Jednym z jej reprezentantów jest transformacja Prokrusta (\textit{Procrustes}), która może być wykorzystywana do translacji reprezentacji między modalnościami \cite{latentTranslation}, jednakże, wymaga ona przetwarzania wstępnego, które może zaburzyć semantyczną naturę enkodowanych informacji. Drugim rodzajem metody translacji reprezentacji są podejścia oparte o "sklejanie modeli" (\textit{Model Stiching}). W pracy \textit{Revisiting Model Stitching to Compare Neural Representations}, autorzy proponują zastąpienie pewnych warstw modelu prostą transformacją (opartą o warstwy liniowe lub konwolucyjne, w zależności od modelu) \cite{stiching}. O ile oryginalne zastosowanie tej metody osadzone jest w kontekście wyjaśnialności sieci neuronowych, sama praca wspomina o potencjalnym zastosowaniu sklejania modeli jako alternatywa do dotrenowania istniejących sieci neuronowych. Idea ta może być naturalnie rozszerzona do swojego rodzaju adaptera, pozwalającego na "sklejanie" dwóch modeli, zastępując szereg warstw nieistniejącego, abstrakcyjnego modelu mapującego dane do znanej, należącej do innego modelu przestrzeni latentnej, pewną ilością warstw prostych warstw. Idea ta odnalzała swoje zastosowanie w modelu Jina v5 \cite{Jina5}, pozwalając na łączenie enkoderów o różnych modalnościach.
 
-\subsubsection{Modele multimodalne i wymuszenie semantycznych reprezenacji danych}
-Contrastive, triplet loss
+\subsubsection{Wymuszenie semantycznych reprezentacji danych}
+Wyszukiwanie informacji jest historycznie ważnym problemem w dziedzinie informatyki. W sztucznej inteligencji, powstało wiele metod wymuszania enkodowania semantyczności danych wejściowych w ramach wyjścia modeli. Głównym narzędziem pozwalającym na kreowanie tego typu reprezentacji są różne funkcje straty, minimalizowane przez model w trakcie treningu. Jednym z podejść są funkcje oparte na metrykach określających jakość wyszukiwania. Specyficznym reprezentantem tego nurtu jest strata trójkowa (\textit{triplet loss}), wymieniona w Rozdziale 3, stanowiąca problem rankingu między przykładem bazowym, pozytywnym i negatywnym. Wadą tych metryk jest konieczność odpowiedniego przygotowania zbioru danych, który wymaga dostarczenia pewnej listy przykładów podobnych i różnych dla każdego elementu zbioru. Kolejnym rodzajem funkcji są metody operujące w ramach pewnej paczki danych (\textit{mini batch}). Szeroko przyjętym przykładem takiej funkcji jest \textit{InfoNCE}, maksymalizująca podobieństwo między dwoma podobnymi przykładami, jednocześnie oddalając w przestrzeni pozostałe przykłady \cite{radford2021learning}. Funkcje te nadal wymagają oznaczenia podobnych przykładów, lecz nie wymagają one pełnych list rankingowych jak w przypadku poprzedniej rodziny metod operujących na metrykach wyszukiwania.
+
+\subsubsection{Modele multimodalne}
+Znanym ograniczeniem modeli uczenia głębokiego jest ich specyficzność, model trenowany jest w pewnym konkretnym celu na specyficznie reprezentowanych danych. Modele multimodalne stanowią pewną odpowiedź na ten problem, poprzez wspieranie różnego rodzaju modalności danych wejściowych, operując jednak nadal w ramach zadania stanowiącego cel treningu.
+
 
 \subsection{Metodologia}
 \subsubsection{Model agregujący atencję \textit{Attention Pool Model} wykorzystujacy uczenie nadzorowane}
-Omówienie architektury, motywacja, przebieg treningu
-\todo{@Krystian pro tip - Jinav5 gelato, robią prawie to samo, tylko że chyba lorą + matrioshka}
 
+Mając na uwadzę sukcesy metod wykorzystujących mapowanie przestrzeni latentnych między modelami, pierwsza proponowana w tej pracy architektura wykorzystuje istniejące modele embeddingowe operujące w ramach modalności tekstu i pretrenowane modele ASR, w celu osadzenia sygnału mowy w przestrzeni właściwej dla modelu semantycznie enkodującego dane tekstowe. W tym celu, reprezentacje wyjściowe enkodera mowy poddawane są operacji \textit{poolingu}, po czym liniowa warstwa projekcji odpowiedzialna jest za dopasowanie ich do reprezentacji wyjściowych modelu embeddingowego dla transkrypcji odpowiadającym przetwarzanym nagraniom mowy.
 
-\subsubsection{Model oparty o translację reprezentacji latentnych \textit{Embedding Alignment Model} wykorzystujący uczenie nienadzorowane}
-Potencjalnym problemem modelu \textit{Attention Pool Model} jest brak dostosowania istniejącego modelu embeddingowego do naszej docelowej domeny -- tekstów i transkrypcji rozmów w języku polskim o tematyce medycznej. Zaradzić temu ma druga proponowana architektura \textit{Embedding Alignment Model}. Zakłada ona wykorzystanie pretrenowanych modeli ASR i tekstowych jako enkodery wyodrębniające pewne cechy danych wejściowych dla swoich własnych modalności, dalsze przetwarzanie danych w ramach mechanizmu \textit{self attention}, poprzedzonego opcjonalnie blokami TransformerEncoder, a następnie połączenie ich w ramach wspólnej warstwy projekcji. Diagram struktury proponowanego modelu przedstawiono na Rysunku \ref{fig:eamArchitecture}.
-
-\begin{figure}
-    \input{tikz/eam}
-    \label{fig:eamArchitecture}
-    \caption{Architektura modelu \textit{Embedding Alignment Model}. Bloki \textit{TransformerEncoder} są opcjonalne i reprezentują modele poddane treningowi wstępnemu za pomocą uczenia nienadzorowanego.}
+\begin{figure}[htbp]
+    \input{tikz/apm}
+    \caption{Architektura modelu \textit{Attention Pool Model}. Enkodery tekstu i mowy są zamrożone podczas treningu.}
+    \label{fig:apmArchitecture}
 \end{figure}
+
+Diagram architektury modelu \textit{Attention Pool Model} znajduje się na Rysunku \ref{fig:apmArchitecture}. Przed rozpocząciem treningu wszystkie transkrypcje i nagrania mowy obecne w zbiorze danych są przetwarzane przez odpowiednie enkodery i zapisywane na dysku, zmniejszając pamięć wykorzystywaną przez cały model -- są one niezmienne, ponieważ enkodery nie biorą czynnego udziału w treningu. Następnie, w trakcie treningu, każda paczka danych reprezentowana przez trójwymiarowy tensor poddawana jest operacji agregacji (\textit{pooling}). Wykorzystane mogą zostać 2 rodzaje tej operacji, \textit{mean pooling} i \textit{attention pooling}, wyrażone wzorami:
+
+\begin{equation}
+\begin{aligned}
+P_{\mathrm{mean}}(x) &= \frac{1}{T}\sum_{t=1}^{T}x_t, \\
+P_{\mathrm{attn}}(x) &= \sum_{t=1}^{T}\alpha_{t}x_t,
+\end{aligned}
+\end{equation}
+
+gdzie $\alpha_t$ jest maską atencji otrzymaną z enkodera audio. Następnie, reprezentacje przetwarzane są za pomocą warstwy liniowej poprzez ich projekcję do przestrzeni embeddingowej dla tekstu. Celem treningu jest maksymalizacja podobieństwa kosinusowego między uzyskanymi reprezentacjami mowy a wzorcowymi reprezentacjami ich transkrypcji. W tym celu minimalizowana jest następująca funkcja straty:
+
+\begin{equation}
+    \begin{aligned}
+        S(x_1, x_2) &= \frac{x_1^\top x_2} {\lVert x_1\rVert_2 \lVert x_2\rVert_2}.\\
+        \mathcal{L}_{\mathrm{cos}}(x_1, x_2) &= 1 - S(x_1, x_2),
+    \end{aligned}
+\end{equation}
+
+Dodatkowo, warty sprawdzenia jest wpływ metod przetwarzania embeddingów uzyskanych poprzez przetwarzanie sygnału audio za pomocą enkodera audio opisanych w Rozdziale 3, tj. \textit{All But the Top} i wybielania, na stabilność treningu modelu i końcowe zachowanie w ramach systemu wyszukiwania informacji. Dlatego, w ramach dopełnienia tego eksperymentu, zdecydowano się poddać ewaluacji 3 rodzaje modelu \textit{APM} -- model bazowy bez postprocessingu embeddingów wykorzystujący mechanizm \textit{attention pooling} i modele operujące na reprezentacjach poddanych przetwarzaniu \textit{ABTT} i wybielaniu, oba wykorzystujące mechanizm \textit{mean pooling}.
+
+\textit{Attention Pool Model} pełni rolę swoistego adaptera między modalnościami. Podobne podejście zostało wykorzystane w multimodalnym modelu embeddingowym Jina v5 \cite{Jina5} pod nazwą \textit{GELATO} - zamrożone enkodery obrazu i mowy zostały uzupełnione o niewielkie adaptery, dopasowując swoje reprezentacje do modelu tekstowego, po czym podlegały one dalszemu przetwarzaniu. Jednakże, w świetle całościowego wyszukiwania informacji w bazach specjalistycznych, prostota tego modelu ujawnia jego pewną wadę -- jeśli sam bazowy model embeddingowy cechuje się niską dokładnością w ramach wyszukiwania danych tekstowych, model \textit{APM} wykaże się tendencją do propagacji tych samych błędów, spowodowaną przez wykorzystanie identycznej przestrzeni embeddingowej. Innymi słowami, celem treningu jest dopasowanie przestrzeni latentnej uzyskanej z enkodera audio do przestrzeni latentnej modelu embeddingowego, nie dodając nowej wiedzy o semantycznym znaczeniu przykładów obecnych w zbiorze treningowym.
+
+\subsubsection{Model oparty o translację reprezentacji latentnych \textit{Embedding Alignment Model}}
+\begin{figure}[h]
+    \input{tikz/eam}
+    \caption{Architektura modelu \textit{Embedding Alignment Model}. Bloki \textit{TransformerEncoder} są opcjonalne i reprezentują modele poddane treningowi wstępnemu za pomocą uczenia nienadzorowanego.}
+    \label{fig:eamArchitecture}
+\end{figure}
+Potencjalnym problemem modelu \textit{Attention Pool Model} jest brak dostosowania istniejącego modelu embeddingowego do naszej docelowej domeny -- tekstów i transkrypcji rozmów w języku polskim o tematyce medycznej. Zaradzić temu ma druga proponowana architektura \textit{Embedding Alignment Model}. Zakłada ona wykorzystanie pretrenowanych modeli ASR i tekstowych jako enkodery wyodrębniające pewne cechy danych wejściowych dla swoich własnych modalności, dalsze przetwarzanie danych w ramach mechanizmu \textit{self attention}, poprzedzonego opcjonalnie blokami TransformerEncoder, a następnie połączenie ich w ramach wspólnej warstwy projekcji. Diagram struktury proponowanego modelu przedstawiono na Rysunku \ref{fig:eamArchitecture}.
 
 Wykorzystanie równoległego przetwarzania modalności jest techniką wykorzystywaną z powodzeniem w multimodalnych modelach embeddingowych. Autorzy modelu JinaV4 zauważyli znaczne zmniejszenie efektu stożka, zawdzięczone właśnie zastosowaniu osobnych enkoderów dla modalności tekstu i obrazu \cite{jina_v4}. Trudnością w ramach treningu tego modelu jest jednak wypracowanie zupełnie nowej geometrii przestrzeni wyjściowej modelu. W przypadku modelu APM, jest ona definiowana przez stabilny w ramach enkodowania semantyki danych pretrenowany model embeddingowy, co oznacza wyłącznie translację do pewnej wzorcowej, izotropicznej, semantycznie nacechowanej przestrzeni. Dla modelu EAM, celem treningu jest ukształtowanie takiej przestrzeni z pewnego punktu wyjścia, co wymaga bardziej skomplikowanej architektury i dopasowania funkcji straty.
 
@@ -57,8 +87,8 @@ Drugi czynnik zainspirowany treningiem modeli CONST opiera się również na fun
 
 \begin{figure}[h]
     \input{tikz/eamloss}
-    \ref{fig:eamLoss}
     \caption{Diagram przebiegu treningu wraz z funkcjami straty. Wykorzystanie mechanizmu \textit{cross-attention} jest opcjonalne w ramach treningu i nie bierze on udziału w ramach procesu inferencji.}
+    \label{fig:eamLoss}
 \end{figure}
 
 Podczas treningu, monitorowany musi być szereg parametrów, w celu rzetelnej oceny stabilności treningu. Poza poszczególnymi wartościami czynników składających się na funkcję straty, ogromne znaczenie mają wartości podobieństw kosinusowych między różnymi parami reprezentacji próbek. Pierwszą z nich jest podobieństwo między reprezentacją tekstu i reprezentacją audio dla jednego przykładu i wnosi ona informacje o tym, jak dobrze model przypisuje znaczenie semantyczne tym samym danym w ramach różnych modalności. Kolejną metryką jest podobieństwo między przykładem tekstowym lub audio a drugim najbardziej podobnym przykładem w ramach innej modalności, tzw. \textit{hard negative}, wraz z marginesem stanowiącym różnicę między bazowym podobieństwem a podobieństwem do \textit{hard negative}. Wysoki margines oznacza dobrą separację między nawet znaczeniowo podobnymi próbkami, natomiast niska wartość tej metryki wskazuje na niską zdolność dyskryminacji modelu (dla niskich wartości podobieństwa kosinusowego dla przykładów pozytywnych) lub na powstanie wysoce anizotropowej przestrzeni embeddingowej (dla wysokich wartości bazowego podobieństwa kosinusowego). Ostatnią z nych jest średnie podobieństwo kosinusowe do wszystkich przykładów innych niż pozytywny, które dla zdrowego modelu zazwyczaj oscyluje wokół zera \cite{infonceUnderstanding}.
@@ -118,9 +148,23 @@ Podczas treningów modeli wykorzystaliśmy 2 różne zbiory danych. Pierwszym i 
 W ramach implementacji proponowanych modeli wykorzystany został framework PyTorch w wersji 2.8. Modele trenowane były na serwerze obliczeniowym z czterema kartami graficznymi Nvidia RTX A5000. Modele ASR i embeddingowe wraz z ich wagami zostały pobrane ze strony HuggingFace za pomocą bibliotek \textit{transformers} i \textit{sentence-transformers}. Do wizualacji i monitorowania treningu wykorzystaliśmy aplikację TensorBoard.
 \subsubsection{Analiza wyników}
 \paragraph{Attention Pool Model}
-\todo{Tabelka z final cosine sim z różnymi modelami}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{figures/models/apm_whisper.png}
+    \caption{Podobieństwo kosinusowe między parami audio-transkrypcja dla treningu modelu APM wykorzystującego model Whisper. Różna liczba epok spowodowana jest zastosowaniem zatrzymania treningu w przypadku braku znaczących zmian dla funkcji straty na zbiorze walidacyjnym.}
+    \label{fig:models:apmWhisper}
+\end{figure}
+Rysunek \ref{fig:models:apmWhisper} przedstawia zmianę wartości podobieństwa kosinusowego na zbiorze walidacyjnym w trakcie treningu modelu \textit{Attention Pool Model} wykorzystującego model Whisper. Widoczne są na nim dane pochodzące z trzech różnych wariantów \textit{APM}, korzystające z różnego rodzaju przetwarzania embeddingów uzyskanych za pomocą procesowania nagrań mowy przez zamrożony enkoder modelu ASR. Widoczna jest tutaj wyraźna porażka wybielania jako metody postprocessingu embeddingów audio w ramach treningu modelu (maksymalna wartość podobieństwa kosinusowego: $0.68$). Jest to zachowanie niezwykle ciekawe w świetle wniosków z eksperymentów z Rozdziału 3 (tabela \ref{tab:latent:compProb}), które wykazały poprawę w enkodowaniu semantyki przez bazowy model Whisper w ramach tego zabiegu. Prawdopodobnym wyjaśnieniem jest wykorzystanie zbioru danych o dosyć wąskiej tematyce, w języku polskim, co doprawadziło do pewnego załamania przestrzeni latentnej modelu. Wykorzystanie przetwarzania \textit{All But the Top} pozwoliło modelowi rozpocząć proces treningu z lepszego punktu startowego ($\approx 0.80$ dla modelu \textit{ABTT}, $\approx 0.68$ dla modelu bazowego), lecz ostatecznie nie poprawiło końcowego rezultatu (maksymalne podobieństwo kosinusowe dla modelu wykorzystującego przetwarzanie \textit{All But the Top} $=0.92$, dla modelu bazowego $=0.97$). Możliwe, że mimo początkowo lepszych warunków i w pewnym sensie uproszczonej i uporządkowanej przestrzeni embeddingowej, adapter posiadający większą ilość informacji otrzymanych przez bezpośrednie przetwarzanie sygnału mowy przez enkoder modelu Whisper był w stanie lepiej enkodować reprezentacje, dzięki czemu zaobserwowano ciągłą poprawę metryk i lepszy wynik końcowy dla modelu nie korzystającego z przetwarzania wstępnego embeddingów.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{figures/models/apm_m4t.png}
+    \caption{Podobieństwo kosinusowe między parami audio-transkrypcja dla treningu modelu APM wykorzystującego model SeamlessM4T. Różna liczba epok spowodowana jest zastosowaniem zatrzymania treningu w przypadku braku znaczących zmian dla funkcji straty na zbiorze walidacyjnym.}
+    \label{fig:models:apmM4T}
+\end{figure}
+\todo{Dodać bazowy}
+Rysunek \ref{fig:models:apmM4T} przedstawia analogicze metryki dla wariantów \textit{Attention Pool Model} wykorzystujących enkoder modelu SeamlessM4T. Widoczna jest tutaj większa stabilność modelu względem wykorzystanej metody przetwarzania embeddingów audio. Zarówno \textit{All But the Top}, jak i wybielanie zachowały się podobnie, z lekką przewagą metody \textit{ABTT} (maksymalne podobieństwo kosinusowe $=0.943$, dla wybielania $=0.937$). Są to wartości większe od modelu korzystającego z Whisper i przetwarzania wstępnego embeddingów, lecz nie poprawiły one wyników bazowych dla tego wariantu. Po raz kolejny, jest to zachowanie częściowo rozbieżne z właściwościami zaobserwowanymi w eksperymentach z Rozdziału 3 (tabela \ref{tab:latent:compProb}), które wskazywałby na znaczne pogorszenie możliwości enkodowania relacji semantycznych przez model po wybieleniu embeddingów wynikowych.
+\todo{Omówić model bazowy}
 \paragraph{Embedding Alignment Model}
-W ramach treningu modeli \textit{EAM}, wytrenowano 3 warianty modeli z wykorzystaniem modelu ASR SeamlessM4T i enkodera tekstu dla tego modelu. Pierwszym, bazowym modelem był wariant \textit{Embedding Alignment Model} nie korzystający z dodatkowych bloków \textit{TransformerEncoder} poddanych treningowi wstępnemu. Wykresy przedstawiające wybrane metryki monitorowane podczas jego treningu znajdują się na Rysunkach \ref{fig:models:eamBaseTraining} i \ref{fig:models:eamBaseCosine}.
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/models/model_base_final_training.png}
@@ -133,6 +177,7 @@ W ramach treningu modeli \textit{EAM}, wytrenowano 3 warianty modeli z wykorzyst
     \caption{Przebieg wartości podobieństwa kosinusowego między parą audio-tekst i różnicy między drugim najbardziej podobnym przykładem (marginesu) dla modelu EAM, wykorzystującego model SeamlessM4T i enkoder tekstu z tej samej rodziny. Wykorzystano mechanizm cross attention, brak enkoderów poddanych treningowi wstępnemu.}
     \label{fig:models:eamBaseCosine}
 \end{figure}
+W ramach treningu modeli \textit{EAM}, wytrenowano 3 warianty modeli z wykorzystaniem modelu ASR SeamlessM4T i enkodera tekstu dla tego modelu. Pierwszym, bazowym modelem był wariant \textit{Embedding Alignment Model} nie korzystający z dodatkowych bloków \textit{TransformerEncoder} poddanych treningowi wstępnemu. Wykresy przedstawiające wybrane metryki monitorowane podczas jego treningu znajdują się na Rysunkach \ref{fig:models:eamBaseTraining} i \ref{fig:models:eamBaseCosine}.
 
 Rysunek \ref{fig:models:eamBaseTraining} uwidacznia zachowanie przypominające zjawisko nadmiernego dopasowania powstałe około 30 epoki treningu, na co wskazuje brak tendencji spadkowej dla wartości funkcji straty dla zbioru walidacyjnego, jak i brak tendencji wzrostowej dla podobieństwa kosinusowego między parami mowa-transkrypcja. Jest to również moment punktu przegięcia widoczny na Rysunku \ref{fig:models:eamBaseCosine}, gdzie model zaczyna tracić zdolność silnej dyskryminacji między modalnościami (podobieństwo między odpowiadającymi sobie przykładami spada, podobieństwo między negatywnymi pozostaje na podobnym poziomie). Jedną z możliwych interpretacji jest próba uproszczenia reprezentacji i stopniowe zmniejszanie izotropicznej przestrzeni wypracowanej w początkowych etapach treningu, przez układające się w ten sposób minimum funkcji straty. Trening mógł zostać zakończony z powodzeniem w 30 epoce (podobieństwo kosinusowe na zbiorze walidacyjnym równe $0.81$) i ta właśnie wersja modelu poddana była późniejszej ewaluacji.
 \begin{figure}[h]
