@@ -24,7 +24,7 @@ gdzie $\mathbf{u}$ i $\mathbf{v}$ są wektorami embeddingów porównywanych obie
 
 Duże modele językowe (ang. \textit{Large Language Models}, LLM), takie jak GPT \cite{brown2020language} czy LLaMA \cite{touvron2023llama}, pomimo imponujących zdolności generacyjnych, charakteryzują się istotnymi ograniczeniami w kontekście zastosowań specjalistycznych. Wiedza tych modeli jest zamrożona w momencie zakończenia treningu, co uniemożliwia uwzględnienie informacji aktualnych lub wysoce specjalistycznych. Ponadto modele te są podatne na zjawisko halucynacji - generowania treści brzmiących wiarygodnie, lecz niezgodnych z faktami \cite{ji2023survey}.
 
-Architektura RAG (ang. \textit{Retrieval-Augmented Generation}) \cite{lewis2020retrieval} stanowi rozwiązanie tych problemów poprzez integrację komponentu wyszukiwania informacji z modelem generacyjnym. System RAG składa się z trzech głównych faz: indeksowania, wyszukiwania oraz generacji.
+Architektura RAG (ang. \textit{Retrieval-Augmented Generation}) \cite{lewis2020retrieval} stanowi rozwiązanie tych problemów poprzez integrację komponentu wyszukiwania informacji z modelem generacyjnym. System RAG składa się z trzech głównych faz: indeksowania, wyszukiwania oraz generacji. Schemat architektury przedstawiono na Rysunku \ref{fig:ragArchitecture}.
 
 W fazie indeksowania dokumenty źródłowe są przetwarzane i dzielone na fragmenty (ang. \textit{chunks}) o określonej długości. Każdy fragment jest następnie przekształcany przez model embeddingowy w reprezentację wektorową i zapisywany w wektorowej bazie danych wraz z metadanymi umożliwiającymi identyfikację źródła \cite{johnson2019billion}.
 
@@ -34,9 +34,12 @@ W fazie generacji model językowy otrzymuje kontekst składający się z wyszuka
 
 Architektura RAG oferuje szereg zalet w kontekście zastosowań specjalistycznych. Po pierwsze, umożliwia aktualizację bazy wiedzy bez konieczności ponownego trenowania modelu językowego - wystarczy dodanie nowych dokumentów do indeksu wektorowego. Po drugie, zapewnia wyjaśnialność poprzez możliwość wskazania konkretnych fragmentów dokumentów wykorzystanych do wygenerowania odpowiedzi. Po trzecie, redukuje ryzyko halucynacji poprzez zakotwiczenie generowanej treści w dostarczonym kontekście \cite{shuster2021retrieval}.
 
-% Opis diagramu: Architektura RAG
-% Diagram powinien przedstawiać przepływ danych: Zapytanie użytkownika → Model embeddingowy → Wektor zapytania → Wyszukiwanie w bazie wektorowej → Top-k dokumentów → Augmentacja kontekstu → LLM → Wygenerowana odpowiedź. Równolegle pokazana faza indeksowania: Dokumenty źródłowe → Chunking → Model embeddingowy → Wektory dokumentów → Baza wektorowa.
-\todo{tu diagram}
+\begin{figure}[htbp]
+    \centering
+    \input{tikz/rag}
+    \caption{Architektura RAG (\textit{Retrieval-Augmented Generation}) z podziałem na fazy indeksowania, wyszukiwania i generacji. Zapytanie użytkownika trafia zarówno do modelu embeddingowego, jak i -- wraz z wyszukanymi fragmentami -- do kontekstu modelu językowego.}
+    \label{fig:ragArchitecture}
+\end{figure}
 
 
 % ---------------------------------------------------
@@ -46,7 +49,7 @@ Architektura RAG oferuje szereg zalet w kontekście zastosowań specjalistycznyc
 
 Automatyczne rozpoznawanie mowy (ang. \textit{Automatic Speech Recognition}, ASR) stanowi jedno z klasycznych zagadnień przetwarzania języka naturalnego, którego historia sięga lat siedemdziesiątych XX wieku. Wczesne systemy ASR opierały się na ukrytych modelach Markowa (ang. \textit{Hidden Markov Models}, HMM), które modelowały sygnał mowy jako sekwencję dyskretnych stanów akustycznych \cite{rabiner1989tutorial}. W podejściu tym zakłada się, że obserwowany sygnał akustyczny jest generowany przez ukryty proces stochastyczny, którego stany odpowiadają jednostkom fonetycznym.
 
-Rozszerzeniem modeli HMM były systemy hybrydowe GMM-HMM, łączące ukryte modele Markowa z mieszankami gaussowskimi (ang. \textit{Gaussian Mixture Models}) \cite{gales2008application}. Mieszanki gaussowskie służyły do modelowania rozkładu prawdopodobieństwa emisji w poszczególnych stanach HMM, co pozwalało na lepsze uchwycenie zmienności akustycznej sygnału mowy. Systemy te wymagały jednak znacznej wiedzy eksperckiej. Konieczne było ręczne projektowanie cech akustycznych (np. współczynników MFCC), tworzenie słowników wymowy oraz definiowanie modeli fonologicznych dla danego języka.
+Rozszerzeniem modeli HMM były systemy hybrydowe GMM-HMM, łączące ukryte modele Markowa z mieszaninami gaussowskimi (ang. \textit{Gaussian Mixture Models}) \cite{gales2008application}. Mieszaniny gaussowskie służyły do modelowania rozkładu prawdopodobieństwa emisji w poszczególnych stanach HMM, co pozwalało na lepsze uchwycenie zmienności akustycznej sygnału mowy. Systemy te wymagały jednak znacznej wiedzy eksperckiej. Konieczne było ręczne projektowanie cech akustycznych (np. współczynników MFCC), tworzenie słowników wymowy oraz definiowanie modeli fonologicznych dla danego języka.
 
 Przełom w dziedzinie ASR nastąpił wraz z zastosowaniem głębokich sieci neuronowych. Początkowo sieci te zastępowały komponent GMM w systemach hybrydowych DNN-HMM \cite{hinton2012deep}, zachowując strukturę modelowania sekwencji opartą na HMM. Wprowadzenie mechanizmu uwagi (ang. \textit{attention mechanism}) \cite{bahdanau2014neural} oraz architektur typu sekwencja-do-sekwencji (ang. \textit{sequence-to-sequence}) \cite{sutskever2014sequence} umożliwiło bezpośrednie modelowanie zależności między sekwencją akustyczną a sekwencją tekstową bez konieczności jawnego definiowania wyrównania czasowego.
 
@@ -58,21 +61,24 @@ Współczesne modele ASR można podzielić na dwie główne kategorie ze względ
 
 \subsubsection*{Wav2Vec 2.0}
 
-Model Wav2Vec 2.0 \cite{baevski2020wav2vec} reprezentuje podejście oparte na uczeniu samonadzorowanym. Architektura składa się z trzech głównych komponentów: enkodera konwolucyjnego (ang. \textit{Convolutional Neural Network}, CNN), transformera oraz modułu kwantyzacji. Enkoder konwolucyjny przetwarza surowy sygnał audio (próbkowany typowo z częstotliwością 16 kHz) i przekształca go w sekwencję wektorów cech o niższej rozdzielczości czasowej. Następnie transformer przetwarza tę sekwencję, generując kontekstowe reprezentacje uwzględniające zależności długozasięgowe.
+Model Wav2Vec 2.0 \cite{baevski2020wav2vec} reprezentuje podejście oparte na uczeniu samonadzorowanym. Architektura składa się z trzech głównych komponentów: enkodera konwolucyjnego (ang. \textit{Convolutional Neural Network}, CNN), transformera oraz modułu kwantyzacji. Enkoder konwolucyjny przetwarza surowy sygnał audio (próbkowany typowo z częstotliwością 16 kHz) i przekształca go w sekwencję wektorów cech o niższej rozdzielczości czasowej. Następnie transformer przetwarza tę sekwencję, generując kontekstowe reprezentacje uwzględniające zależności długozasięgowe. Schemat architektury przedstawiono na Rysunku \ref{fig:wav2vecArchitecture}.
 
-Proces uczenia samonadzorowanego w modelu Wav2Vec 2.0 opiera się na maskowaniu fragmentów sekwencji wejściowej oraz uczeniu kontrastywnym (ang. \textit{contrastive learning}). Model jest trenowany do identyfikacji prawidłowych kwantyzowanych reprezentacji zamaskowanych segmentów spośród zbioru negatywnych przykładów. Podejście to pozwala na wykorzystanie ogromnych ilości nieetykietowanych nagrań audio do uczenia semantycznie bogatych reprezentacji akustycznych, bez konieczności korzystania z dużych ilości transkrybowanych nagrań.
+Proces uczenia samonadzorowanego w modelu Wav2Vec 2.0 opiera się na maskowaniu fragmentów sekwencji wejściowej oraz uczeniu kontrastywnym (ang. \textit{contrastive learning}). Model jest trenowany do identyfikacji prawidłowych kwantyzowanych reprezentacji zamaskowanych segmentów ze zbioru negatywnych przykładów. Podejście to pozwala na wykorzystanie ogromnych ilości nieetykietowanych nagrań audio do uczenia semantycznie bogatych reprezentacji akustycznych, bez konieczności korzystania z dużych ilości transkrybowanych nagrań.
 
 Adaptacja modelu do zadania transkrypcji wymaga etapu dostrajania (ang. \textit{fine-tuning}) z wykorzystaniem stosunkowo niewielkiego zbioru danych etykietowanych. Eksperymenty wykazały, że model Wav2Vec 2.0 osiąga konkurencyjne wyniki przy użyciu zaledwie kilkudziesięciu minut transkrybowanych nagrań \cite{baevski2020wav2vec}. Stanowi to istotną zaletę w kontekście języków i domen o ograniczonych zasobach etykietowanych. Dzięki temu podejściu Wav2Vec 2.0 znacząco zredukował zapotrzebowanie na dane z etykietami, jednocześnie poprawiając jakość rozpoznawania mowy w warunkach szumu, zmienności mówców i zróżnicowanego otoczenia akustycznego.
 
-% Opis diagramu: Architektura Wav2Vec 2.0
-% Diagram powinien przedstawiać przepływ: Surowy sygnał audio → Enkoder CNN → Sekwencja wektorów cech → Maskowanie → Transformer Encoder → Reprezentacje kontekstowe → Moduł kontrastywny (podczas pretrainingu) / Warstwa klasyfikacji (podczas fine-tuningu) → Tekst
-\todo{tu diagram}
+\begin{figure}[htbp]
+    \centering
+    \input{tikz/wav2vec}
+    \caption{Architektura modelu Wav2Vec 2.0. Podczas pretreningu zamaskowane reprezentacje kontekstowe są porównywane z kwantyzowanymi reprezentacjami cech w ramach zadania kontrastywnego. Etap dostrajania dodaje warstwę klasyfikacji generującą transkrypcję.}
+    \label{fig:wav2vecArchitecture}
+\end{figure}
 
 \subsubsection*{HuBERT}
 
 Model HuBERT (ang. \textit{Hidden-Unit BERT}) \cite{hsu2021hubert} stanowi rozwinięcie koncepcji uczenia samonadzorowanego dla reprezentacji mowy. Podobnie jak Wav2Vec 2.0, HuBERT wykorzystuje architekturę składającą się z enkodera konwolucyjnego oraz transformera. Zasadnicza różnica dotyczy jednak metody uczenia.
 
-W modelu Wav2Vec 2.0 uczenie opiera się na zadaniu kontrastywnym, w którym model rozróżnia prawdziwe reprezentacje zamaskowanych segmentów od negatywnych przykładów. HuBERT natomiast wykorzystuje podejście inspirowane modelem BERT \cite{devlin2019bert} z dziedziny przetwarzania języka naturalnego. Model jest trenowany do przewidywania dyskretnych pseudoetykiet przypisanych zamaskowanym fragmentom sygnału audio.
+W modelu Wav2Vec 2.0 uczenie opiera się na zadaniu kontrastywnym, w którym model rozróżnia prawdziwe reprezentacje zamaskowanych segmentów od negatywnych przykładów. HuBERT natomiast wykorzystuje podejście inspirowane modelem BERT \cite{devlin2019bert} z dziedziny przetwarzania języka naturalnego. Model jest trenowany do przewidywania dyskretnych pseudoetykiet przypisanych zamaskowanym fragmentom sygnału audio. Schemat architektury przedstawiono na Rysunku \ref{fig:hubertArchitecture}.
 
 Pseudoetykiety generowane są w procesie iteracyjnym. W pierwszej iteracji stosuje się algorytm k-średnich (ang. \textit{k-means clustering}) do cech MFCC surowego sygnału audio, uzyskując początkowy zbiór klastrów. Model HuBERT jest następnie trenowany do przewidywania przypisań klastrowych dla zamaskowanych segmentów. W kolejnych iteracjach pseudoetykiety są aktualizowane poprzez zastosowanie algorytmu k-średnich do reprezentacji cech ukrytych wytrenowanego modelu, co prowadzi do coraz bardziej semantycznych grupowań.
 
@@ -80,35 +86,44 @@ Zaletą tego podejścia jest możliwość uczenia bez konieczności definiowania
 
 Wariantem modelu HuBERT jest mHuBERT, przystosowany do przetwarzania wielojęzycznego, co rozszerza zastosowania oryginalnego modelu na języki o ograniczonych zasobach.
 
-% Opis diagramu: Architektura HuBERT
-% Diagram powinien przedstawiać: (1) Fazę generowania pseudoetykiet: Audio → Cechy MFCC / Reprezentacje ukryte → k-means → Pseudoetykiety. (2) Fazę uczenia: Audio → Enkoder CNN → Maskowanie → Transformer → Predykcja pseudoetykiet zamaskowanych segmentów.
-\todo{tu diagram}
+\begin{figure}[htbp]
+    \centering
+    \input{tikz/hubert}
+    \caption{Architektura modelu HuBERT. Pseudoetykiety powstają przez grupowanie $k$-średnich cech MFCC (pierwsza iteracja), a w kolejnych iteracjach -- reprezentacji ukrytych wytrenowanego modelu. Model uczy się przewidywać pseudoetykiety zamaskowanych segmentów.}
+    \label{fig:hubertArchitecture}
+\end{figure}
 
 \subsubsection*{Whisper}
 
 Model Whisper \cite{whisper} reprezentuje odmienne podejście, oparte na uczeniu nadzorowanym w dużej skali. Model został wytrenowany na zbiorze 680 tysięcy godzin transkrybowanych nagrań audio pozyskanych z internetu, obejmujących 99 języków. Architektura Whisper składa się z enkodera i dekodera, oba oparte na transformerze.
 
-W przeciwieństwie do modelu Wav2Vec 2.0, Whisper operuje na melspektrogramach. Stanowią one reprezentację częstotliwościową sygnału audio uwzględniającą charakterystykę ludzkiego słuchu. Takie podejście umożliwia normalizację dynamiki i redukcję szumu na etapie ekstrakcji cech, a jednocześnie przenosi ciężar modelowania z niskopoziomowych cech akustycznych na wyższe zależności językowe i kontekstowe. Enkoder przetwarza melspektrogram i generuje sekwencję reprezentacji ukrytych. Dekoder, działający w sposób autoregresyjny, generuje kolejne tokeny tekstu na podstawie reprezentacji z enkodera oraz wcześniej wygenerowanych tokenów.
+W przeciwieństwie do modelu Wav2Vec 2.0, Whisper operuje na spektogramach w skali melowej. Stanowią one reprezentację częstotliwościową sygnału audio uwzględniającą charakterystykę ludzkiego słuchu. Takie podejście umożliwia normalizację dynamiki i redukcję szumu na etapie ekstrakcji cech, a jednocześnie przenosi ciężar modelowania z niskopoziomowych cech akustycznych na wyższe zależności językowe i kontekstowe. Enkoder przetwarza melspektrogram i generuje sekwencję reprezentacji ukrytych. Dekoder, działający w sposób autoregresyjny, generuje kolejne tokeny tekstu na podstawie reprezentacji z enkodera oraz wcześniej wygenerowanych tokenów. Schemat architektury przedstawiono na Rysunku \ref{fig:whisperArchitecture}.
 
 Istotną cechą modelu Whisper jest uczenie wielozadaniowe (ang. \textit{multitask learning}). Model jest trenowany równocześnie do realizacji kilku zadań: transkrypcji mowy, detekcji języka, znaczników czasowych oraz tłumaczenia mowy na język angielski. Zadanie jest specyfikowane poprzez specjalne tokeny kontrolne umieszczane na początku sekwencji wyjściowej.
 
 Zaletą modelu Whisper jest gotowość do użycia bez konieczności dostrajania (ang. \textit{zero-shot}). Dzięki treningowi na zróżnicowanym zbiorze danych model wykazuje odporność na szum, różne warunki akustyczne oraz akcenty. Wielojęzyczność modelu pozwala na transkrypcję nagrań w wielu językach, w tym w języku polskim, bez dodatkowej adaptacji.
 
-% Opis diagramu: Architektura Whisper
-% Diagram powinien przedstawiać przepływ: Sygnał audio → Ekstrakcja melspektrogramu → Enkoder Transformer → Reprezentacje ukryte → Dekoder Transformer (autoregresyjny) → Tokeny wyjściowe (tekst/znaczniki czasowe/język)
-\todo{tu diagram}
+\begin{figure}[htbp]
+    \centering
+    \input{tikz/whisper}
+    \caption{Architektura modelu Whisper. Enkoder przetwarza melspektrogram, a autoregresyjny dekoder generuje kolejne tokeny na podstawie reprezentacji enkodera, tokenów kontrolnych określających zadanie oraz wcześniej wygenerowanych tokenów.}
+    \label{fig:whisperArchitecture}
+\end{figure}
 
 \subsubsection*{Data2Vec}
 
 Model Data2Vec \cite{data2vec} stanowi uogólnienie podejść do uczenia samonadzorowanego, oferując zunifikowaną architekturę zdolną do przetwarzania różnych modalności: mowy, obrazów oraz tekstu. Kluczową innowacją jest rezygnacja z przewidywania celów specyficznych dla modalności na rzecz predykcji kontekstowych reprezentacji latentnych.
 
-Architektura Data2Vec opiera się na mechanizmie samodestylacji z wykorzystaniem modelu nauczyciela (ang. \textit{teacher}) oraz ucznia (ang. \textit{student}). Model nauczyciela przetwarza pełne dane wejściowe i generuje reprezentacje latentne. Model ucznia, otrzymując zamaskowane dane, przewiduje reprezentacje wygenerowane przez nauczyciela dla zamaskowanych fragmentów. Wagi nauczyciela są aktualizowane jako wykładnicza średnia krocząca (EMA) wag ucznia, co zapewnia stabilność procesu uczenia.
+Architektura Data2Vec opiera się na mechanizmie samodestylacji z wykorzystaniem modelu nauczyciela (ang. \textit{teacher}) oraz ucznia (ang. \textit{student}). Model nauczyciela przetwarza pełne dane wejściowe i generuje reprezentacje latentne. Model ucznia, otrzymując zamaskowane dane, przewiduje reprezentacje wygenerowane przez nauczyciela dla zamaskowanych fragmentów. Wagi nauczyciela są aktualizowane jako wykładnicza średnia krocząca (EMA) wag ucznia, co zapewnia stabilność procesu uczenia. Schemat architektury przedstawiono na Rysunku \ref{fig:data2vecArchitecture}.
 
 W przypadku mowy Data2Vec wykorzystuje architekturę transformera analogiczną do Wav2Vec 2.0. Eksperymenty na zbiorze LibriSpeech wykazały, że model osiąga niższy wskaźnik WER niż Wav2Vec 2.0 i HuBERT, szczególnie przy ograniczonej ilości danych etykietowanych \cite{data2vec}. Zunifikowane podejście do uczenia upraszcza rozwój modeli multimodalnych i umożliwia transfer wiedzy między modalnościami.
 
-% Opis diagramu: Architektura Data2Vec
-% Diagram powinien przedstawiać: Gałąź nauczyciela (Teacher): Pełne dane wejściowe (audio/obraz/tekst) → Encoder → Kontekstowe reprezentacje latentne (cel predykcji). Gałąź ucznia (Student): Zamaskowane dane wejściowe → Encoder (ten sam typ architektury) → Predykcja reprezentacji zamaskowanych fragmentów. Strzałka EMA (Exponential Moving Average) od wag ucznia do nauczyciela. Funkcja straty porównuje predykcje ucznia z reprezentacjami nauczyciela.
-\todo{tu diagram}
+\begin{figure}[htbp]
+    \centering
+    \input{tikz/data2vec}
+    \caption{Architektura modelu Data2Vec. Nauczyciel przetwarza pełne dane wejściowe i wyznacza kontekstowe reprezentacje latentne stanowiące cel predykcji, natomiast uczeń otrzymuje dane zamaskowane. Wagi nauczyciela są wykładniczą średnią kroczącą (EMA) wag ucznia.}
+    \label{fig:data2vecArchitecture}
+\end{figure}
 
 \subsubsection{Adaptacja do domeny specjalistycznej}
 
@@ -129,7 +144,57 @@ Otwartym pytaniem pozostaje, czy reprezentacje ukryte generowane przez modele AS
 
 % ---------------------------------------------------
 \subsection{Wyjaśnialność modeli wykorzystujących uczenie głębokie}
-\todo{Semantyczność reprezentacji, historia, podejścia jakościowe oparte o rzadkie autoenkodery, ilościowe w ramach NLP i nie tylko.}
+
+Modele oparte na uczeniu głębokim realizują odwzorowanie danych wejściowych na wyjściowe poprzez sekwencję nieliniowych transformacji, których pojedyncze parametry nie mają bezpośredniej interpretacji. Nurt badań określany jako wyjaśnialność (ang. \textit{explainability}) obejmuje szerokie spektrum metod, od atrybucji cech dla pojedynczej predykcji po analizę własności całych przestrzeni reprezentacji. Z perspektywy niniejszej pracy istotny jest wyłącznie ten drugi obszar. Pytanie badawcze nie dotyczy bowiem uzasadnienia konkretnej transkrypcji, lecz tego, jaka informacja jest zakodowana w reprezentacjach ukrytych enkodera modelu ASR oraz w jaki sposób można tę informację zmierzyć.
+
+\subsubsection{Semantyczność reprezentacji}
+
+Pojęcie semantycznej reprezentacji wywodzi się z hipotezy dystrybucyjnej sformułowanej przez Harrisa, zgodnie z którą znaczenie słowa wynika z kontekstów jego występowania \cite{harris1954distributional}. Hipoteza ta stanowiła podstawę modeli generujących statyczne osadzenia wektorowe, takich jak Word2Vec \cite{mikolov2013efficient, mikolov2013distributed}, w których relacje semantyczne odwzorowywane są przez zależności geometryczne między wektorami. Wprowadzenie architektury transformera \cite{vaswani2017attention} i modeli takich jak BERT \cite{devlin2019bert} pozwoliło na generowanie reprezentacji kontekstowych, a modele typu Sentence-BERT \cite{reimers2019sentence} rozszerzyły to podejście na poziom całych zdań.
+
+Zasadniczą trudnością jest fakt, że semantyczność nie jest wielkością obserwowalną bezpośrednio. Reprezentacja wektorowa nie posiada etykiety opisującej zakodowane w niej znaczenie, wobec czego jej ocena wymaga metod pośrednich. W literaturze wyróżnić można trzy grupy takich metod: analizę geometrycznych własności przestrzeni reprezentacji, zadania probingowe wykorzystujące dodatkowy model nadzorowany oraz dekompozycję reprezentacji na interpretowalne komponenty.
+
+\subsubsection{Geometria przestrzeni reprezentacji}
+
+Analiza geometryczna opiera się na założeniu, że rozkład reprezentacji w przestrzeni wielowymiarowej odzwierciedla jakość zakodowanej w nich informacji. Ethayarajh wykazał, że reprezentacje kontekstowe modeli BERT, ELMo i GPT-2 zajmują wąski stożek przestrzeni, przez co podobieństwo kosinusowe dowolnych dwóch losowych reprezentacji przyjmuje wartości znacząco dodatnie \cite{cone}. Zjawisko to, określane jako anizotropia przestrzeni, ogranicza zdolność miar podobieństwa do rozróżniania przykładów. Gao et al. wskazali, że degeneracja reprezentacji stanowi systematyczną konsekwencję treningu modeli generatywnych z funkcją straty opartą na wiarygodności \cite{gao2019representation}.
+
+W odpowiedzi na to zjawisko opracowano metody przetwarzania końcowego przywracające izotropię przestrzeni. Metoda \textit{All-but-the-Top} usuwa z reprezentacji rzut na główne składowe odpowiadające za dominującą wariancję \cite{abtt}, natomiast wybielanie przekształca rozkład reprezentacji do postaci o zerowej średniej i jednostkowej macierzy kowariancji \cite{whiteningbert}. Odmienny wariant tej koncepcji stanowi \textit{concept whitening}, w którym transformacja wbudowana jest w architekturę modelu, dzięki czemu poszczególne osie przestrzeni odpowiadają zadanym pojęciom \cite{whitening}.
+
+Analiza geometryczna znajduje zastosowanie również w kontekście modeli wielomodalnych i wielojęzycznych. Liang et al. opisali zjawisko \textit{modality gap}, polegające na tym, że reprezentacje różnych modalności w modelach uczonych kontrastywnie zajmują rozłączne obszary wspólnej przestrzeni \cite{liang2022mind}. Chang et al. wykazali natomiast, że w modelach wielojęzycznych wyodrębnić można podprzestrzenie specyficzne dla poszczególnych języków oraz podprzestrzeń wspólną, kodującą informację niezależną od języka \cite{chang2022geometry}. Do porównywania reprezentacji generowanych przez różne warstwy lub różne modele wykorzystywane są miary oparte na analizie korelacji kanonicznej, takie jak SVCCA \cite{raghu2017svcca}, oraz miara CKA \cite{pmlr-v97-kornblith19a}.
+
+Metody opisane w tej części stanowią bezpośrednią podstawę metodologii ewaluacji przyjętej w rozdziale \ref{sec:latent}, w którym reprezentacje modeli ASR poddane zostały analizie pod kątem anizotropii, wpływu przetwarzania końcowego oraz separacji przykładów semantycznie podobnych i odległych.
+
+\subsubsection{Podejścia probingowe i dekompozycja reprezentacji}
+
+Metody sondujące (ang. \textit{probing}) opierają się na prostym rozumowaniu: jeżeli w reprezentacji wytworzonej przez daną warstwę modelu zakodowana jest pewna informacja, powinna ona dać się z niej odczytać za pomocą nieskomplikowanego klasyfikatora. Skuteczność takiego klasyfikatora, najczęściej liniowego, staje się wówczas miarą tego, na ile badana własność jest w reprezentacji dostępna \cite{alain2017probes}. Conneau et al. przenieśli tę ideę na poziom całych zdań, opracowując zestaw zadań pozwalających sprawdzić, które własności lingwistyczne -- od długości zdania po głębokość drzewa składniowego -- zachowują osadzenia zdaniowe \cite{conneau2018cram}. Belinkov i Glass zwracają jednak uwagę na zasadnicze ograniczenie tego podejścia: powodzenie sondy świadczy wyłącznie o tym, że informacja w reprezentacji się znajduje, nie zaś o tym, że model rzeczywiście się nią posługuje \cite{belinkov2019analysis}.
+
+W domenie mowy najistotniejszym przykładem analizy probingowej jest praca Pasada et al., w której zbadano kolejne warstwy modelu Wav2Vec 2.0 \cite{pasad2021layer}. Wykazano, że model wykazuje charakterystykę zbliżoną do autoenkodera, przy czym warstwy środkowe kodują informację fonetyczną i leksykalną w stopniu najwyższym, natomiast warstwy końcowe wracają w kierunku reprezentacji zbliżonych do wejściowych. Obserwacja ta ma bezpośrednie znaczenie dla doboru warstwy wykorzystywanej jako źródło reprezentacji w architekturze proponowanej w niniejszej pracy. Pokrewny kierunek badań zakłada wymuszenie interpretowalności już na poziomie architektury, poprzez dyskretyzację reprezentacji do skończonego inwentarza jednostek, który można zestawiać z kategoriami fonetycznymi. Zhou et al. porównali stosowane w tym celu warianty kwantyzacji wektorowej, analizując ich wpływ na jakość reprezentacji mowy \cite{Zhou2020ACO}.
+
+Podejścia jakościowe koncentrują się na rozkładzie reprezentacji na komponenty poddające się interpretacji. Punktem wyjścia jest obserwacja, że pojedyncze neurony sieci są zazwyczaj polisemantyczne, to znaczy aktywują się w odpowiedzi na wiele niepowiązanych ze sobą zjawisk, co wynika ze zjawiska superpozycji cech w przestrzeni o ograniczonej wymiarowości. Bricken et al. wykazali, że rzadkie autoenkodery (ang. \textit{sparse autoencoders}, SAE) trenowane na aktywacjach modelu językowego pozwalają na rozłożenie ich na słownik cech znacznie bliższych monosemantyczności \cite{bricken2023monosemanticity}. Wyniki te zostały potwierdzone i rozszerzone w pracy Hubena et al., w której wykazano wyższą interpretowalność cech uzyskanych metodą SAE w porównaniu z alternatywnymi metodami dekompozycji \cite{huben2024sparse}.
+
+Podejście to znajduje coraz szersze zastosowanie w domenie audio. Paek et al. zastosowali rzadkie autoenkodery do przestrzeni cech ukrytych modeli audio, wyodrębniając składowe odpowiadające interpretowalnym zjawiskom akustycznym i muzycznym \cite{paek2025learninginterpretablefeaturesaudio}. Varshavsky-Hassid et al. wykazali natomiast obecność semantycznie nacechowanych kierunków w przestrzeni cech ukrytych dyfuzyjnych modeli syntezy mowy \cite{varshavskyhassid2024semanticlatentspacediffusionbased}. Prace te wskazują, że przestrzenie cech ukrytych modeli przetwarzających mowę zawierają strukturę wykraczającą poza poziom akustyczny, co stanowi bezpośrednią motywację dla badań prowadzonych w niniejszej pracy.
+
+\subsubsection{Wyjaśnialność w systemach wyszukiwania opartych na mowie}
+
+W architekturze kaskadowej transkrypcja stanowi pośredni artefakt umożliwiający kontrolę działania systemu przez użytkownika. Architektura pomijająca etap transkrypcji tej możliwości nie oferuje, co stanowi jej istotne ograniczenie. Analiza reprezentacji stanowi częściową rekompensatę tego ograniczenia. Pozwala ona na uzasadniony dobór modelu ASR i warstwy stanowiącej źródło reprezentacji, a także na diagnostykę własności przestrzeni wejściowej przed treningiem warstwy projekcji. Zestawienie metod omówionych w tej sekcji przedstawiono w Tabeli \ref{tab:xaiMetody}.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{@{}L{4.0cm}L{6.6cm}L{3.2cm}@{}}
+\toprule
+\textbf{Metoda} & \textbf{Mierzona własność} & \textbf{Charakter} \\
+\midrule
+Klasyfikator probingowy & liniowa dostępność informacji w danej warstwie & ilościowy, nadzorowany \\
+CKA, SVCCA & podobieństwo reprezentacji między warstwami i modelami & ilościowy \\
+MMD na trypletach & separacja przykładów pozytywnych i negatywnych & ilościowy \\
+Podobieństwo kosinusowe, efekt stożka & izotropia przestrzeni, dystans międzymodalny & ilościowy, geometryczny \\
+ABTT, wybielanie & wpływ przetwarzania końcowego na zachowanie semantyki & ilościowy \\
+Rzadkie autoenkodery (SAE) & interpretowalne składowe przestrzeni cech ukrytych & jakościowy \\
+\bottomrule
+\end{tabular}
+\caption{Metody analizy reprezentacji wykorzystywane do oceny ich semantyczności.}
+\label{tab:xaiMetody}
+\end{table}
 
 
 % ---------------------------------------------------
@@ -141,17 +206,45 @@ W odpowiedzi na te ograniczenia powstały dwa główne nurty badawcze. Pierwszy 
 
 \subsubsection{Podejścia end-to-end}
 
-\textbf{SpeechDPR.} Model SpeechDPR (ang. \textit{Speech Dense Passage Retriever}) \cite{lin2024speechdprendtoendspokenpassage} stanowi pierwsze rozwiązanie typu end-to-end dla problemu wyszukiwania fragmentów mowy w zadaniach odpowiadania na pytania. Model uczy się semantycznych reprezentacji na poziomie zdaniowym poprzez destylację wiedzy z systemu kaskadowego składającego się z nienadzorowanego ASR oraz tekstowego retriever'a opartego na gęstych reprezentacjach. Proces ten nie wymaga ręcznie transkrybowanych danych mowy, co stanowi istotną zaletę w kontekście języków o ograniczonych zasobach.
+\textbf{SpeechDPR.} Model SpeechDPR (ang. \textit{Speech Dense Passage Retriever}) \cite{lin2024speechdprendtoendspokenpassage} stanowi pierwsze rozwiązanie typu end-to-end dla problemu wyszukiwania fragmentów mowy w zadaniach odpowiadania na pytania. Model uczy się semantycznych reprezentacji na poziomie zdaniowym poprzez destylację wiedzy z systemu kaskadowego składającego się z nienadzorowanego ASR oraz tekstowego retriever'a opartego na gęstych reprezentacjach. Proces ten nie wymaga ręcznie transkrybowanych danych mowy, co stanowi istotną zaletę w kontekście języków o ograniczonych zasobach. Schemat procesu treningu przedstawiono na Rysunku \ref{fig:speechdprArchitecture}.
 
-\textbf{SpeechRAG.} SpeechRAG \cite{min2025speechretrievalaugmentedgenerationautomatic} rozszerza architekturę RAG o bezpośrednie przetwarzanie audio. System składa się z retriever'a audio oraz generatora opartego na modelu języka mowy (SLM, ang. \textit{Speech Language Model}). Kluczową innowacją jest dostrojenie pretrenowanego enkodera mowy do roli adaptera podłączonego do zamrożonego retriever'a tekstowego. Dzięki wyrównaniu przestrzeni embeddingów retriever audio może wyszukiwać fragmenty na podstawie zapytań tekstowych. W fazie generacji model SLM otrzymuje jako kontekst oryginalne fragmenty audio, eliminując straty informacyjne wynikające z konwersji mowa-tekst.
+\begin{figure}[htbp]
+    \centering
+    \input{tikz/speechdpr}
+    \caption{Schemat treningu modelu SpeechDPR. Kaskadowy nauczyciel, złożony z nienadzorowanego modelu ASR i tekstowego retrievera, dostarcza ocen podobieństwa stanowiących cel destylacji dla enkodera mowy uczonego bezpośrednio na sygnale audio.}
+    \label{fig:speechdprArchitecture}
+\end{figure}
+
+\textbf{SpeechRAG.} SpeechRAG \cite{min2025speechretrievalaugmentedgenerationautomatic} rozszerza architekturę RAG o bezpośrednie przetwarzanie audio. System składa się z retriever'a audio oraz generatora opartego na modelu języka mowy (SLM, ang. \textit{Speech Language Model}). Kluczową innowacją jest dostrojenie pretrenowanego enkodera mowy do roli adaptera podłączonego do zamrożonego retriever'a tekstowego. Dzięki wyrównaniu przestrzeni embeddingów retriever audio może wyszukiwać fragmenty na podstawie zapytań tekstowych. W fazie generacji model SLM otrzymuje jako kontekst oryginalne fragmenty audio, eliminując straty informacyjne wynikające z konwersji mowa-tekst. Architekturę systemu przedstawiono na Rysunku \ref{fig:speechragArchitecture}.
+
+\begin{figure}[htbp]
+    \centering
+    \input{tikz/speechrag}
+    \caption{Architektura systemu SpeechRAG. Enkoder mowy pełniący rolę adaptera jest dostrajany tak, aby fragmenty audio trafiały do przestrzeni wektorowej zamrożonego enkodera tekstu. Wyszukane fragmenty audio stanowią bezpośredni kontekst modelu języka mowy.}
+    \label{fig:speechragArchitecture}
+\end{figure}
 
 \subsubsection{Podejścia multimodalne}
 
 Budowa systemów wyszukiwania opartych na wspólnej przestrzeni reprezentacji dla audio i tekstu jest ułatwiona dzięki modelom takim jak Data2Vec (opisany w sekcji 2.2), które oferują zunifikowane podejście do uczenia reprezentacji różnych modalności.
 
-\textbf{WavRAG.} WavRAG \cite{wavRAG} umożliwia reprezentowanie sygnałów audio w tej samej przestrzeni semantycznej co dane tekstowe. Pozwala to na pełną integrację informacji mówionej i pisanej w ramach jednego systemu. Zapytania głosowe są kodowane jako wektory w przestrzeni latentnej, a wyszukiwanie opiera się na bezpośrednim dopasowywaniu embeddingów akustycznych i tekstowych za pomocą podobieństwa kosinusowego.
+\textbf{WavRAG.} WavRAG \cite{wavRAG} umożliwia reprezentowanie sygnałów audio w tej samej przestrzeni semantycznej co dane tekstowe. Pozwala to na pełną integrację informacji mówionej i pisanej w ramach jednego systemu. Zapytania głosowe są kodowane jako wektory w przestrzeni cech ukrytych, a wyszukiwanie opiera się na bezpośrednim dopasowywaniu embeddingów akustycznych i tekstowych za pomocą podobieństwa kosinusowego. Architekturę systemu przedstawiono na Rysunku \ref{fig:wavragArchitecture}.
 
-\textbf{Wyszukiwanie multimodalne dla ASR.} Kolehmainen et al. \cite{kolehmainen2024multimodalretrievallargelanguage} zbadali zastosowanie wyszukiwania multimodalnego do poprawy jakości rozpoznawania mowy. Zaproponowany system wykorzystuje dwie techniki: kNN-LM (ang. \textit{k-Nearest Neighbors Language Model}) oraz mechanizmy cross-attention. Wyszukiwanie oparte na mowie prowadzi do redukcji WER o nawet 50\% w porównaniu z bazowym modelem. System osiągnął wyniki state-of-the-art w zadaniu rozpoznawania mowy na zbiorze Spoken-Squad.
+\begin{figure}[htbp]
+    \centering
+    \input{tikz/wavrag}
+    \caption{Architektura systemu WavRAG. Ten sam enkoder multimodalny obsługuje obie modalności, dzięki czemu dokumenty tekstowe i nagrania audio trafiają do wspólnej przestrzeni wektorowej, a wyszukane fragmenty obu typów stanowią kontekst modelu generacyjnego.}
+    \label{fig:wavragArchitecture}
+\end{figure}
+
+\textbf{Wyszukiwanie multimodalne dla ASR.} Kolehmainen et al. \cite{kolehmainen2024multimodalretrievallargelanguage} zbadali zastosowanie wyszukiwania multimodalnego do poprawy jakości rozpoznawania mowy. Zaproponowany system wykorzystuje dwie techniki: kNN-LM (ang. \textit{k-Nearest Neighbors Language Model}) oraz mechanizmy cross-attention. Wyszukiwanie oparte na mowie prowadzi do redukcji WER o nawet 50\% w porównaniu z bazowym modelem. System osiągnął wyniki state-of-the-art w zadaniu rozpoznawania mowy na zbiorze Spoken-Squad. Sposób włączenia wyszukanych fragmentów do procesu rozpoznawania przedstawiono na Rysunku \ref{fig:multimodalAsrArchitecture}.
+
+\begin{figure}[htbp]
+    \centering
+    \input{tikz/multimodalasr}
+    \caption{Wyszukiwanie multimodalne wspierające rozpoznawanie mowy. Wyszukane fragmenty oddziałują na model ASR dwiema drogami: poprzez mechanizm uwagi krzyżowej w dekoderze oraz poprzez interpolację rozkładu prawdopodobieństwa tokenów z rozkładem wyznaczonym metodą $k$-NN.}
+    \label{fig:multimodalAsrArchitecture}
+\end{figure}
 
 %\subsubsection{Porównanie podejść}
 

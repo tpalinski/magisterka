@@ -1,0 +1,72 @@
+\begin{tikzpicture}[
+    scale=0.6,
+    transform shape,
+    font=\small,
+    block/.style={
+        draw,
+        rounded corners=2pt,
+        thick,
+        minimum width=2.8cm,
+        minimum height=1.0cm,
+        align=center
+    },
+    data/.style={block, fill=gray!12},
+    embm/.style={block, fill=purple!20},
+    store/.style={block, fill=orange!25},
+    ann/.style={block, fill=yellow!25},
+    gen/.style={block, fill=green!20},
+    arrow/.style={-{Stealth[]}, thick},
+    phase/.style={draw=gray, dashed, rounded corners=4pt, inner sep=0.4cm}
+]
+
+% ============================================================
+% FAZA WYSZUKIWANIA
+% ============================================================
+\node[data] (query) {Zapytanie\\głosowe};
+\node[embm, right=1.8cm of query] (encq) {Enkoder\\multimodalny};
+\node[data, right=1.8cm of encq] (qvec) {Wektor\\zapytania};
+\node[ann, right=1.8cm of qvec] (search) {Wyszukiwanie ANN\\(podobieństwo kosinusowe)};
+
+\draw[arrow] (query) -- (encq);
+\draw[arrow] (encq) -- (qvec);
+\draw[arrow] (qvec) -- (search);
+
+% ============================================================
+% FAZA INDEKSOWANIA
+% ============================================================
+\node[data, above=4.4cm of query] (docs) {Dokumenty\\tekstowe};
+\node[data, below=0.7cm of docs] (recs) {Nagrania\\audio};
+\node[embm, above=3.6cm of encq] (enci) {Enkoder\\multimodalny};
+\node[store, above=3.6cm of search] (db) {Wspólna przestrzeń\\wektorowa};
+
+\draw[arrow] (docs.east) -- ++(0.5,0) |- (enci.west);
+\draw[arrow] (recs.east) -- ++(0.5,0) |- (enci.west);
+\draw[arrow] (enci) -- (db);
+\draw[arrow] (db) -- node[right, font=\scriptsize] {indeks} (search);
+
+% wspólne wagi enkodera dla obu faz
+\draw[{Stealth[]}-{Stealth[]}, dotted, thick, gray] (encq.north) --
+    node[left, pos=0.4, font=\scriptsize\itshape, text=gray] {wspólne wagi} (enci.south);
+
+% ============================================================
+% FAZA GENERACJI
+% ============================================================
+\node[data, below=2.6cm of query] (topk) {Fragmenty tekstowe\\i audio};
+\node[gen, right=2.6cm of topk] (gen) {Model\\generacyjny};
+\node[data, right=1.8cm of gen] (ans) {Odpowiedź};
+
+\draw[arrow] (search.south) -- ++(0,-0.8) -| (topk.north);
+\draw[arrow] (topk) -- node[above, font=\scriptsize] {kontekst mieszany} (gen);
+\draw[arrow] (gen) -- (ans);
+
+% ============================================================
+% RAMKI FAZ
+% ============================================================
+\node[phase, fit=(docs)(recs)(enci)(db),
+      label={[font=\small\itshape, gray]above:Faza indeksowania}] {};
+\node[phase, fit=(query)(search),
+      label={[font=\small\itshape, gray]above left:Faza wyszukiwania}] {};
+\node[phase, fit=(topk)(ans),
+      label={[font=\small\itshape, gray]below left:Faza generacji}] {};
+
+\end{tikzpicture}

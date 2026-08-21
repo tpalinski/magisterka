@@ -31,15 +31,19 @@ W pierwszym etapie sygnał audio jest przetwarzany przez model ASR, taki jak Whi
 
 Uzyskany wektor zapytania jest porównywany z wektorami dokumentów zindeksowanych w wektorowej bazie danych. Systemy takie jak FAISS \cite{johnson2019billion} czy Milvus \cite{wang2021milvus} umożliwiają efektywne wyszukiwanie przybliżonych najbliższych sąsiadów (ang. \textit{approximate nearest neighbor search}) w przestrzeniach wielowymiarowych. Na podstawie miary podobieństwa system zwraca $k$ dokumentów najbardziej zbliżonych semantycznie do zapytania.
 
-Opcjonalnie architektura może być rozszerzona o komponent generacyjny zgodnie ze wzorcem RAG \cite{lewis2020retrieval}. W takim przypadku wyszukane dokumenty stanowią kontekst dla dużego modelu językowego, który generuje odpowiedź w języku naturalnym, syntetyzując informacje z wielu źródeł.
+Opcjonalnie architektura może być rozszerzona o komponent generacyjny zgodnie ze wzorcem RAG \cite{lewis2020retrieval}. W takim przypadku wyszukane dokumenty stanowią kontekst dla dużego modelu językowego, który generuje odpowiedź w języku naturalnym, syntetyzując informacje z wielu źródeł. Schemat opisanej architektury przedstawiono na Rysunku \ref{fig:kaskadaArchitecture}.
 
-% Opis diagramu: Architektura systemu opartego na transkrypcji
-% Diagram blokowy powinien przedstawiać przepływ: Nagranie audio → Model ASR (Whisper/ADMEDVoice) → Tekst transkrypcji → Model embeddingowy (Jina v4) → Wektor zapytania → Wyszukiwanie w bazie wektorowej (FAISS/Milvus) → Top-k dokumentów → [opcjonalnie] LLM → Odpowiedź. Równolegle: faza indeksowania dokumentów tekstowych.
-\todo{tu diagram}
+\begin{figure}[htbp]
+    \centering
+    \input{tikz/kaskada}
+    \caption{Architektura kaskadowa systemu wyszukiwania informacji na podstawie zapytań głosowych. Faza indeksowania dokumentów przebiega niezależnie od fazy zapytania. Komponent generacyjny (RAG) jest opcjonalnym rozszerzeniem architektury.}
+    \label{fig:kaskadaArchitecture}
+\end{figure}
 
 Architektura kaskadowa oferuje szereg zalet praktycznych. Transkrypcja tekstowa stanowi dodatkowy produkt przetwarzania, który może być wykorzystany do celów dokumentacyjnych lub archiwalnych. Użytkownik ma możliwość weryfikacji i ewentualnej korekty rozpoznanego tekstu przed wykonaniem wyszukiwania, co zwiększa kontrolę nad procesem. Transparentność systemu ułatwia debugowanie. Każdy etap może być analizowany niezależnie, co pozwala na identyfikację źródła ewentualnych błędów. Ponadto architektura ta wykorzystuje sprawdzone, dostępne komponenty, które mogą być wymieniane niezależnie w miarę postępu technologicznego.
 
-Podejście kaskadowe wiąże się jednak z istotnymi ograniczeniami. Dwuetapowe przetwarzanie wprowadza dodatkową latencję, co może być problematyczne w zastosowaniach wymagających odpowiedzi w czasie rzeczywistym. Błędy popełnione na etapie transkrypcji propagują się do kolejnych etapów. Niepoprawnie rozpoznany termin specjalistyczny skutkuje generacją błędnego embeddingu, a w konsekwencji nieadekwatnymi wynikami wyszukiwania.
+Podejście kaskadowe wiąże się jednak z istotnymi ograniczeniami. Dwuetapowe przetwarzanie wprowadza dodatkową latencję, co może być problematyczne w zastosowaniach wymagających odpowiedzi w czasie rzeczywistym. Błędy popełnione na etapie transkrypcji propagują się do kolejnych etapów. Niepoprawnie rozpoznany termin specjalistyczny skutkuje generacją błędnego osadzenia (ang. embedding), a w konsekwencji nieadekwatnymi wynikami wyszukiwania. 
+W tym miejscu autorzy niniejszej pracy chcieliby się odnieść się do pojęcia embedding, tj. osadzenie, reprezentacja wektorowa, ale też osadzenie słów czy wektoryzacja tekstu w zależności od kontekstu, w którym się to pojęcie pojawia. Warto również zauważyć, że termin ten został spolszczony (embedding) i obecnie jest wykorzystywany w pracach związanych ze sztuczną inteligencją. Dlatgeo autorzy przyjęli, że taka właśnie forma zostanie wykorzystana w opisie prowadzonych eksperymentów.  
 
 Ponadto redukcja sygnału audio do tekstu prowadzi do utraty informacji. Cechy prozodyczne, takie jak intonacja, tempo mowy czy wahania, mogą nieść informację o pewności lub intencji mówiącego. Informacje te są tracone w procesie transkrypcji. Przykładowo, termin medyczny wymówiony z wahaniem może wskazywać na niepewność diagnostyczną, jednak po transkrypcji jest nieodróżnialny od tego samego terminu wymówionego z pewnością.
 
@@ -49,13 +53,16 @@ Alternatywnym podejściem jest bezpośrednie wykorzystanie reprezentacji ukrytyc
 
 Modele takie jak Wav2Vec 2.0 \cite{baevski2020wav2vec}, HuBERT \cite{hsu2021hubert} czy enkoder modelu Whisper generują w warstwach pośrednich reprezentacje wektorowe segmentów audio. Reprezentacje te, będące wynikiem przetwarzania przez głębokie sieci neuronowe, kodują informację na różnych poziomach abstrakcji. Warstwy bliższe wejściu reprezentują cechy akustyczne niskiego poziomu, podczas gdy warstwy głębsze mogą kodować informację fonologiczną, leksykalną, a potencjalnie również semantyczną \cite{pasad2021layer}.
 
-Architektura proponowanego systemu składa się z enkodera ASR, warstwy projekcji oraz wektorowej bazy danych. Sygnał audio jest przetwarzany przez enkoder, który generuje sekwencję reprezentacji ukrytych. Sekwencja ta jest następnie agregowana (np. przez uśrednienie lub mechanizm uwagi) i przekształcana przez warstwę projekcji do przestrzeni wektorowej zgodnej z embeddingami tekstowymi dokumentów. Uzyskany wektor służy do wyszukiwania w bazie wektorowej analogicznie jak w architekturze kaskadowej.
+Architektura proponowanego systemu składa się z enkodera ASR, warstwy projekcji oraz wektorowej bazy danych. Sygnał audio jest przetwarzany przez enkoder, który generuje sekwencję reprezentacji ukrytych. Sekwencja ta jest następnie agregowana (np. przez uśrednienie lub mechanizm uwagi) i przekształcana przez warstwę projekcji do przestrzeni wektorowej zgodnej z embeddingami tekstowymi dokumentów. Uzyskany wektor służy do wyszukiwania w bazie wektorowej analogicznie jak w architekturze kaskadowej. Schemat proponowanej architektury przedstawiono na Rysunku \ref{fig:s2rArchitecture}.
 
-% Opis diagramu: Architektura systemu opartego na reprezentacji latentnej
-% Diagram blokowy powinien przedstawiać przepływ: Nagranie audio → Enkoder ASR → Reprezentacja ukryta (latent) → Agregacja sekwencji → Warstwa projekcji/Adapter → Wektor zapytania (w przestrzeni Jina v4) → Wyszukiwanie w bazie wektorowej → Top-k dokumentów → [opcjonalnie] LLM → Odpowiedź. Baza dokumentów pozostaje zindeksowana tekstowo.
-\todo{tu diagram}
+\begin{figure}[htbp]
+    \centering
+    \input{tikz/s2r}
+    \caption{Architektura systemu wyszukiwania opartego na reprezentacji cech ukrytych modelu ASR (\textit{Speech-to-Retrieval}). Etap transkrypcji tekstowej zostaje pominięty, a warstwa projekcji odwzorowuje reprezentację audio do przestrzeni wektorowej modelu embeddingowego, w której zindeksowane są dokumenty tekstowe.}
+    \label{fig:s2rArchitecture}
+\end{figure}
 
-Kluczowym elementem architektury jest warstwa projekcji (adapter), której zadaniem jest mapowanie reprezentacji z przestrzeni enkodera ASR do przestrzeni embeddingów tekstowych. Trening tego komponentu wymaga zbioru par (audio, tekst) wraz z odpowiadającymi im embeddingami tekstowymi. Celem optymalizacji jest minimalizacja odległości między projekcją reprezentacji audio a embeddingiem odpowiadającego tekstu.
+Kluczowymi elementami architektury są agregacja sekwencji oraz warstwa projekcji (adapter). Zadaniem agregacji jest wydobycie najistotniejszych informacji z sekwencji reprezentacji ukrytych i sprowadzenie jej do pojedynczego wektora, czyli spłaszczenie reprezentacji o wymiar czasu ($T \times d \rightarrow 1 \times d$). Warstwa projekcji odwzorowuje następnie tak uzyskaną reprezentację z przestrzeni enkodera ASR do przestrzeni embeddingów tekstowych. Trening tych komponentów wymaga zbioru par (audio, tekst) wraz z odpowiadającymi im embeddingami tekstowymi. Celem optymalizacji jest minimalizacja odległości między projekcją reprezentacji audio a embeddingiem odpowiadającego tekstu.
 
 Potencjalne zalety proponowanego podejścia obejmują redukcję latencji poprzez eliminację etapu dekodowania tekstu oraz możliwość wykorzystania informacji akustycznej niedostępnej w transkrypcji. Ponadto architektura end-to-end otwiera możliwość wspólnej optymalizacji komponentów retrieval i ASR, co może prowadzić do lepszego dostosowania reprezentacji do zadania wyszukiwania.
 

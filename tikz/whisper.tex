@@ -1,0 +1,44 @@
+\begin{tikzpicture}[
+    scale=0.6,
+    transform shape,
+    font=\small,
+    block/.style={
+        draw,
+        rounded corners=2pt,
+        thick,
+        minimum width=2.8cm,
+        minimum height=1.0cm,
+        align=center
+    },
+    data/.style={block, fill=gray!12},
+    feat/.style={block, fill=orange!25},
+    enc/.style={block, fill=blue!20},
+    dec/.style={block, fill=purple!20},
+    ctrl/.style={block, fill=teal!25},
+    arrow/.style={-{Stealth[]}, thick},
+    phase/.style={draw=gray, dashed, rounded corners=4pt, inner sep=0.4cm}
+]
+
+\node[data] (audio) {Sygnał\\audio};
+\node[feat, right=1.0cm of audio] (mel) {Melspektrogram};
+\node[enc, right=1.0cm of mel] (enc) {Enkoder\\(Transformer)};
+\node[data, right=1.0cm of enc] (hid) {Reprezentacje\\ukryte};
+\node[dec, right=2.8cm of hid] (dec) {Dekoder\\(autoregresyjny)};
+\node[data, right=1.6cm of dec] (out) {Tokeny wyjściowe\\(tekst)};
+
+\draw[arrow] (audio) -- (mel);
+\draw[arrow] (mel) -- (enc);
+\draw[arrow] (enc) -- (hid);
+\draw[arrow] (hid) -- node[above, font=\scriptsize] {\textit{cross-attention}} (dec);
+\draw[arrow] (dec) -- (out);
+
+% tokeny kontrolne zadania
+\node[ctrl, below=2.2cm of dec] (ctrl)
+    {Tokeny kontrolne\\(język, zadanie, znaczniki)};
+\draw[arrow] (ctrl) -- (dec);
+
+% sprzężenie autoregresyjne
+\draw[arrow, gray] (out.north) -- ++(0,1.0)
+    -| node[pos=0.25, above, font=\scriptsize, text=gray] {poprzednie tokeny (autoregresja)} (dec.north);
+
+\end{tikzpicture}

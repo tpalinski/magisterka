@@ -82,6 +82,8 @@
 \usepackage{ulem}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \usepackage{booktabs}
 \usepackage{csquotes}
 \usepackage{microtype}
@@ -142,6 +144,7 @@
 % Badanie latent space
 \newpage
 \section{Semantyczne reprezentacje wektorów cech modeli ASR}
+\label{sec:latent}
 \input{chapters/latent}
 
 \newpage
@@ -153,7 +156,7 @@
 \input{chapters/retrievalSystem}
 
 \newpage
-\section{Framework ewaluacyjny oparty o skierowany graf acykliczny}
+\section{Framework ewaluacyjny systemu wyszukiwania informacji}
 \input{chapters/frameworkEwaluacji}
 
 % --- Część Praktyczna ---

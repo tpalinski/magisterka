@@ -1,0 +1,74 @@
+\begin{tikzpicture}[
+    scale=0.65,
+    transform shape,
+    font=\small,
+    block/.style={
+        draw,
+        rounded corners=2pt,
+        thick,
+        minimum width=2.8cm,
+        minimum height=1.0cm,
+        align=center
+    },
+    data/.style={block, fill=gray!12},
+    embm/.style={block, fill=purple!20},
+    store/.style={block, fill=orange!25},
+    ann/.style={block, fill=yellow!25},
+    gen/.style={block, fill=green!20},
+    ctx/.style={block, fill=teal!25},
+    arrow/.style={-{Stealth[]}, thick},
+    phase/.style={draw=gray, dashed, rounded corners=4pt, inner sep=0.4cm}
+]
+
+% ============================================================
+% FAZA INDEKSOWANIA
+% ============================================================
+\node[data] (docs) {Dokumenty\\źródłowe};
+\node[data, right=2.0cm of docs] (chunks) {Podział na\\fragmenty};
+\node[embm, right=2.0cm of chunks] (demb) {Model\\embeddingowy};
+\node[store, right=2.0cm of demb] (db) {Wektorowa\\baza danych};
+
+\draw[arrow] (docs) -- (chunks);
+\draw[arrow] (chunks) -- (demb);
+\draw[arrow] (demb) -- node[below, font=\scriptsize, text=gray] {$1\times d_{\mathrm{emb}}$} (db);
+
+% ============================================================
+% FAZA WYSZUKIWANIA
+% ============================================================
+\node[data, below=2.6cm of docs] (query) {Zapytanie\\użytkownika};
+\node[embm, right=2.0cm of query] (qemb) {Model\\embeddingowy};
+\node[data, right=2.0cm of qemb] (qvec) {Wektor\\zapytania};
+\node[ann, right=2.0cm of qvec] (search) {Wyszukiwanie ANN};
+
+\draw[arrow] (query) -- (qemb);
+\draw[arrow] (qemb) -- node[below, font=\scriptsize, text=gray] {$1\times d_{\mathrm{emb}}$} (qvec);
+\draw[arrow] (qvec) -- (search);
+\draw[arrow] (db) -- node[right, font=\scriptsize] {indeks} (search);
+
+% ============================================================
+% FAZA GENERACJI
+% ============================================================
+\node[data, below=2.6cm of query] (topk) {Top-$k$\\fragmentów};
+\node[ctx, right=2.0cm of topk] (aug) {Augmentacja\\kontekstu};
+\node[gen, right=2.0cm of aug] (llm) {LLM};
+\node[data, right=2.0cm of llm] (ans) {Wygenerowana\\odpowiedź};
+
+\draw[arrow] (search.south) -- ++(0,-0.8) -| (topk.north);
+\draw[arrow] (topk) -- (aug);
+\draw[arrow] (aug) -- (llm);
+\draw[arrow] (llm) -- (ans);
+
+% zapytanie użytkownika trafia również do kontekstu promptu
+\draw[arrow, gray] (query.south east) -- node[sloped, above, font=\scriptsize, text=gray] {zapytanie} (aug.north west);
+
+% ============================================================
+% RAMKI FAZ
+% ============================================================
+\node[phase, fit=(docs)(db),
+      label={[font=\small\itshape, gray]above:Faza indeksowania}] {};
+\node[phase, fit=(query)(search),
+      label={[font=\small\itshape, gray]above left:Faza wyszukiwania}] {};
+\node[phase, fit=(topk)(ans),
+      label={[font=\small\itshape, gray]below left:Faza generacji}] {};
+
+\end{tikzpicture}
