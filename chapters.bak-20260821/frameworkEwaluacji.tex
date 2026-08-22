@@ -3,15 +3,7 @@ niniejszej pracy. Jego zadaniem jest zestawianie ze sobą konfiguracji przetwarz
 głosowego, od transkrypcji po wyszukiwanie, w warunkach, w których jedyną różnicą między
 porównywanymi przebiegami jest badany czynnik. Opisano kolejno model danych, algebrę węzłów,
 budowę i wykonanie grafu oraz aparat statystyczny, na którym opiera się weryfikacja hipotezy
-pracy. Dwa ostatnie podrozdziały przedstawiają ścieżkę wyszukiwania zestawioną z opisanych węzłów
-oraz interfejs, przez który system jest obsługiwany.
-
-Wyszukiwanie i jego ewaluacja nie są w tej pracy dwoma osobnymi programami. Ścieżka wyszukiwania
-jest jedną z konfiguracji grafu opisanego w dalszej części rozdziału, a wykonuje ją ten sam
-rdzeń, co konfiguracje mierzące jakość transkrypcji czy jakość odpowiedzi. Nie istnieje zatem
-odrębny potok produkcyjny, którego graf ewaluacyjny byłby przybliżeniem. To, co bywa rozdzielane
-na aplikację oraz środowisko jej ewaluacji, jest tutaj jednym komponentem. Ma to znaczenie dla wniosków z rozdziału \ref{sec:eksperymenty}: mierzone
-jest dokładnie to przetwarzanie, które system wykonuje, a nie jego uproszczony zastępnik.
+pracy.
 
 Do ewaluacji wyszukiwania istnieją ustalone narzędzia. Zbiory porównawcze wraz z referencyjnymi
 implementacjami metryk rankingowych oceniają listę wyników wobec dokumentów istotnych
@@ -177,7 +169,6 @@ wykonujące operacje na artefaktach bez użycia modelu.}
 \end{table}
 
 \subsection{Wyszukiwanie i zawężanie wyników}
-\label{sec:wyszukiwanie}
 Wyszukiwanie działa w trybie gęstym, rzadkim albo hybrydowym \cite{manning2008introduction}. Tryb
 gęsty wybiera $k$ najbliższych sąsiadów według iloczynu skalarnego znormalizowanych wektorów, tryb
 rzadki na dopasowaniu leksykalnym BM25 \cite{robertson2009probabilistic,
@@ -293,7 +284,6 @@ losowego osobno dla każdego elementu, więc wariant jest odtwarzalny niezależn
 zrównoleglenia, a użyte ziarno jest zapisywane w proweniencji.
 
 \subsection{Metryki jako węzły}
-\label{sec:metryki}
 Węzeł metryki czyta artefakty i zwraca wyniki, nie zmieniając danych, a wynik opatruje
 proweniencją ocenianego węzła lub gałęzi. Rejestr deklaruje dla każdej metryki wymagane artefakty, a budowa grafu wstawia jej węzeł wszędzie tam,
 gdzie te artefakty są dostępne. Liczy się więc wszystko, co da się policzyć, a tryb ewaluacji
@@ -336,7 +326,7 @@ przepływie danych i steruje cyklem życia oraz przydziałem urządzenia oblicze
 źródła, modele, przekształcenia, metryki i ujścia. Dziedzina wskazuje obszar funkcjonalny i służy
 grupowaniu oraz kolorowaniu diagramu (por.\ tabela~\ref{tab:wezly}).
 
-\subsubsection{Wykonanie wielkoskalowe i odporność na błędy}
+\subsubsection{Wykonanie wielkoskalowe i odporność}
 Korpusy, które nie mieszczą się w pamięci, przetwarzane są oknami: kosztowne osadzenie i indeks
 korpusu liczone są raz, a węzły obsługujące zapytania przechodzą zbiór oknami, z zachowaniem
 kolejności elementów. Niezależne gałęzie tego samego poziomu wykonywane są równolegle, a stan
@@ -416,7 +406,6 @@ wynikami zapisywana jest pełna konfiguracja przebiegu, czyli lista węzłów i 
 parametrami, więc sam raport wystarcza do powtórzenia eksperymentu.
 
 \subsection{Konfiguracja oraz rejestry modeli}
-\label{sec:rejestry}
 Pełną konfigurację, zapisaną jako drzewo struktur danych, wczytuje jeden wspólny moduł,
 niezależnie od sposobu uruchomienia. Konfiguracja opisuje źródła danych, listę węzłów i krawędzi,
 parametry węzłów, zbiór gałęzi oraz środowisko uruchomieniowe. Graf można stworzytć w tekstowym
@@ -453,81 +442,6 @@ Korektor zapytań          & \texttt{rule} (regułowy), \texttt{kb} (baza wiedzy
 wartość konfiguracyjną; dodanie modelu sprowadza się do rejestracji w odpowiednim
 rejestrze.}
 \end{table}
-
-\subsection{Ścieżka wyszukiwania jako konfiguracja grafu}
-\label{sec:sciezka}
-Opisane dotąd węzły są elementami, z których buduje się konkretną ścieżkę przetwarzania. Ścieżka
-wyszukiwania badana w niniejszej pracy powstaje właśnie w ten sposób i to ona stanowi przedmiot
-pomiarów z rozdziału \ref{sec:eksperymenty}. Jej schemat przedstawiono na
-Rysunku~\ref{fig:grafWyszukiwania}.
-
-\begin{figure}[htbp]
-    \centering
-    \input{tikz/grafWyszukiwania}
-    \caption{Ścieżka wyszukiwania złożona z węzłów systemu. Gałąź korpusu przebiega niezależnie
-    od gałęzi zapytania i jest współdzielona przez porównywane warianty. 
-    Węzły rysowane linią przerywaną są opcjonalne.}
-    \label{fig:grafWyszukiwania}
-\end{figure}
-
-Gałąź korpusu jest wspólna dla wszystkich porównywanych wariantów. Węzeł osadzania korpusu
-przekształca dokumenty w wektory i publikuje je wraz ze znacznikiem przestrzeni osadzeń oraz
-z dokumentami źródłowymi, przyporządkowanymi wektorom jeden do jednego. Wynik trafia do pamięci
-podręcznej pod kluczem wyprowadzonym z treści korpusu, a więc niezależnym od tego, gdzie wektory
-zostaną następnie umieszczone. O miejscu ich przechowywania rozstrzyga dopiero kolejny węzeł, który
-buduje indeks w sposób opisany w podrozdziale \ref{sec:wyszukiwanie}. Kilka korpusów łączy jawny węzeł
-scalający, który odrzuca niezgodne przestrzenie i wymiary, zamiast zestawiać je bez ostrzeżenia.
-Gdy dwie gałęzie różnią się wyłącznie miejscem przechowywania wektorów, ich początkowe fragmenty
-pozostają identyczne, więc mechanizm wykrywający powtarzające się poddrzewa grafu sprowadza
-osadzanie korpusu do jednego wykonania.
-
-Gałąź zapytania rozdziela się na dwa warianty, które różnią się układem węzłów, nie zaś
-wartościami parametrów. Wariant kaskadowy prowadzi nagranie przez węzeł transkrypcji, a
-powstały tekst przez węzeł osadzania tekstu. Wariant latentny pomija transkrypcję i kieruje
-nagranie wprost do węzła osadzania audio, w którym działa adapter reprezentacji latentnych
-opisany w rozdziale \ref{sec:latentTranslation}. Ma to praktyczną konsekwencję dla sposobu
-prowadzenia eksperymentów. Mechanizm gałęzi powiela ten sam zestaw węzłów i nadpisuje jedynie ich
-parametry, więc porównanie obu wariantów wymaga dwóch osobnych konfiguracji, podczas gdy
-porównanie modeli wewnątrz jednego wariantu mieści się w jednej.
-
-Węzeł wyszukiwania pobiera indeks z gałęzi korpusu oraz wektory zapytania z jednego z dwóch
-opisanych wariantów. Oba wejścia są zwykłymi artefaktami, więc podmiana wariantu nie wymaga żadnej zmiany
-w samym węźle. Dalej może następować łańcuch zawężania wyników oraz węzeł generacji odpowiedzi,
-opisane w podrozdziałach \ref{sec:wyszukiwanie} i \ref{sec:rag}. Konfiguracja nie wymienia
-natomiast metryk, ponieważ ich węzły dostawiane są samoczynnie wszędzie tam, gdzie ich
-wejścia są obecne.
-
-\subsection{Interfejs użytkownika}
-\label{sec:interfejs}
-Systemem można sterować za pomocą wiersza poleceń, interfejsu programistycznego oraz interfejsu
-webowego, przy czym wszystkie trzy wejścia uruchamiają ten sam rdzeń wykonania na tej samej
-konfiguracji. Interfejs webowy zbudowano jako aplikację renderowaną po stronie serwera, w której
-interaktywność ogranicza się do wymiany fragmentów strony, dzięki czemu nie wymaga ona osobnego
-procesu budowania warstwy klienckiej.
-
-Podstawowym narzędziem jest edytor wizualny, w którym graf powstaje z węzłów przeciąganych na
-obszar roboczy. Edytor sterowany jest w całości rejestrami opisanymi
-w podrozdziale \ref{sec:rejestry}: gniazda węzła opisane są nazwami artefaktów, które węzeł
-przyjmuje i wytwarza, wejścia opcjonalne są oznaczone, a formularz parametrów powstaje z listy
-zarejestrowanych modeli danej rodziny oraz ze schematu parametrów wybranego modelu. Po stronie
-webowej nie ma zatem zapisanej na stałe listy modeli ani zestawienia ich parametrów, więc rejestracja
-nowego modelu wystarcza, by stał się on dostępny do wyboru.
-
-Autor eksperymentu widzi przy tym graf uproszczony, obejmujący wyłącznie operacje właściwe.
-Graf wykonawczy zawiera dodatkowo węzły pomocnicze: metryki porównawcze, węzeł raportu, węzeł
-śladów zapytań, agregację oraz węzły zapisu. Rozdzielenie to dotyczy wyłącznie warstwy edycyjnej
-i sposobu wyświetlania, ponieważ rdzeń otrzymuje w obu przypadkach tę samą postać grafu.
-Uzasadnia je proporcja: typowy potok obejmuje około dziesięciu operacji, a graf wykonawczy dokłada
-do nich niemal drugie tyle węzłów, których użytkownik nigdy nie konfiguruje.
-
-Typowy przebieg pracy zaczyna się od złożenia grafu w edytorze i jego walidacji, która
-sygnalizuje braki, nie blokując dalszej edycji. Powstałą konfigurację można obejrzeć w postaci
-tekstowej, a sam graf zapisać do ponownego użycia. Uruchomienie zlecane jest jako zadanie
-wykonywane w osobnym procesie, którego postęp i stan są widoczne w interfejsie. Wyniki
-udostępniane są w dwóch widokach: jako raport pojedynczego przebiegu oraz jako tabela zestawiająca
-przebiegi.
-
-\todo{Uzupełnić zrzuty ekranu: edytor wizualny, formularz uruchomienia, tabela zestawiająca przebiegi}
 
 \subsection{Ograniczenia i kod źródłowy}
 Przyjęte założenia wyznaczają trzy granice zastosowania. Graf jest ustalony w chwili budowy, więc

@@ -4,7 +4,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[hyphens]{url} % Must be loaded before biblatex
 \usepackage{tikz}
-\usetikzlibrary{positioning,fit,arrows.meta,calc}
+\usetikzlibrary{positioning,fit,arrows.meta}
 
 \usepackage[
     backend=biber,
@@ -149,22 +149,20 @@
 
 \newpage
 \section{Ewaluacja architektur dopasowania reprezentacji latentnych modeli ASR i modeli embeddingowych}
-\label{sec:latentTranslation}
 \input{chapters/latentTranslation}
 
-% --- Część praktyczna: zbudowany system ---
 \newpage
-\section{System ewaluacji wyszukiwania informacji na podstawie zapytania głosowego}
-\label{sec:implementacja}
-\label{sec:system}
-\label{sec:framework}
+\section{System wyszukiwania informacji z wykorzystaniem architektury dopasowania reprezentacji latentnych modeli ASR i modeli embeddingowych}
+\input{chapters/retrievalSystem}
+
+\newpage
+\section{Framework ewaluacyjny systemu wyszukiwania informacji}
 \input{chapters/frameworkEwaluacji}
 
-% --- Eksperymenty ---
-\newpage
-\section{Eksperymenty i wyniki}
-\label{sec:eksperymenty}
-\input{chapters/eksperymenty}
+% --- Część Praktyczna ---
+% \newpage
+% \section{Praktyka}
+% \input{chapters/praktyka}
 
 % --- Podsumowanie ---
 \newpage

@@ -1,0 +1,57 @@
+\subsection{Systemy rozpoznawania mowy (ASR)}
+
+Systemy automatycznego rozpoznawania mowy (ang. Automatic Speech Recognition ASR) stanowią kluczowy komponent w przetwarzaniu języka mówionego. Ich zadaniem jest konwersja sygnału akustycznego na tekst przy zachowaniu maksymalnej dokładności semantycznej. Tradycyjnie modele ASR opierały się na wiedzy eksperckiej i kombinacji metod akustycznych i językowych, takich jak ukryte modele Markowa (ang. Hidden Markov Models HMM) czy oparte na mieszankach Gaussowskich (ang. Hidden Markov model with Gaussian mixture emission GMM-HMM). Wraz z rozwojem uczenia głębokiego nastąpiło przejściu w kierunku end-to-end ASR, w którym sieć neuronowa bezpośrednio mapuje sygnał mowy na sekwencję znaków lub tokenów tekstowych.
+
+%\subsubsection{Wav2Vec 2.0}
+Jednym z przełomowych rozwiązań w tym obszarze był model \textbf{Wav2Vec 2.0}\cite{baevski2020wav2vec}, który w efektywny sposób zastosował samo-nadzorowane uczenie kontrastowe do przetwarzania surowego sygnału mowy. Model ten składa się z enkodera opartego o sieci splotowe (ang. Convoluted Neural Network CNN), który przekształca falę akustyczną w gęste wektory cech. Oraz z transformera, który uczy się reprezentacji kontekstowych na podstawie maskowanych fragmentów sygnału. Podczas treningu model uczy się przewidywać prawidłowe wektory kontekstowe spośród zestawu negatywnych przykładów, co pozwalala mu wyodrębniać semantycznie bogate rprezentacje akustyczne, bez konieczności korzystania z dużych ilości transkrybowanych nagrań.
+Po zakończeniu etapu samo-nadzorowanego treningu model poddawany jest fine-tuningowi z wykorzystaniem ograniczonego zbioru danych z transkrypcjami, co umożliwia dostowanie jego reprezentacji do konkretnego zadania rozpoznania mowy. Dzięki temu podejściu \textbf{Wav2Vec 2.0} znacząco zredukował zapotrzebowanie na danie z etykietami, jednocześnie poprawiając jakość rozpoznawania mowy w warunkach szumu, zmienności mówców i zróżnicowanego otoczenia akustycznego. 
+
+%\subsubsection{Whisper}
+Kolejnym istotnym krokiem w rozwoju systemów rozpoznawania mowy był model \textbf{Whisper}\cite{whisper}. W przeciwieństwie do modelu \textbf{Wav2Vec 2.0}, który uczy się reprezentacji bezpośrednio z surowego sygnału dźwiękowego. Whisper operuje na melspektrogramach (\todo{cytowanie melspektrogram?})- przetworzonych reprezentacjach częstotliwościowych sygnału audio. Takie podejście umożliwia wykorzystanie wcześniejszego przetwarzania sygnału (CNN) do ekstrakcji cech, normalizacji dynamiki i redukcji szumu, a jednocześnie przenosi ciężar modelowania z niskopoziomowych cech akustycznych na wyższe zależności językowo-konekstowo-dźwiękowe \todo{Jakoś lepiej to napisać}.
+
+Whisper został wytenowany w nadzorowany sposób na dużym, zróżnicowanym zbiorze danych obejmującym 680 tyś. godziń nagrań z transkrypcjami. Dane te zawierały wiele języków, akcentów i warunków akustycznych, co pozwoliło modelowi osiągnąć wysoką odporność na szum, zniekształcenia i błędy artykulacyjne. Architektura modelu opeira się na układzie enkoder-dekoder zbudowoanym z bloków transformera, w którym enkoder przekształca sygnał z wartswy splotowej w wektory reprezentacji, a dekoder generuje sekwencję tokenów tekstowych w zadanym języku.
+
+Dzięki zastosowaniu treningu wielozadaniowego \textbf{Whisper} nie tylko uczy się transkrypcji, ale również rozpoznaje język nagrania i może bezpośrednio wykonywać tłumaczenie na język docelowy, generując tekst w innym języku podczas procesu dekodowania. W odróżnieniu od \textbf{Wav2Vec 2.0}, którego samo-nadzorowany pretrening wymaga późniejszego fine-tuningu, \textbf{Whisper} jest modelem gotowym do użycia \"Out of the box\" do transkrypcji i tłumaczeń.
+
+Ze względu na charakter danych treningowych adaptacja do domen specjalistycznych, takich jak medycyna, często wymaga dodatkowego fine-tuningu. W odpowiedzi na zapotrzebowanie na systemy ASR w języku polskim w kontekście medycznym opracowano zestaw danych \textbf{ADMEDVoice}\cite{ADMEDVoice}. Zawiera on nagrania mowy od 28 mówców, obejmujące różne scenariusze akustyczne, co pozwala na lepsze odwzorowanie rzeczywistych warunków klinicznych. W ramach tego projektu przeprowadzano fine-tuning modelu Whisper Medium na tym zbiorze danych, obniżając WER (ang. Word Error Rate) z 24\% do 9.5\%. 
+
+\subsection{Semantyczne reprezentacje wektorów cech modeli ASR }
+
+\subsection{Modele embeddingowe i przestrzenie wektorowe}
+Początkowo wykorzystywano modele typu \textbf{Word2Vec}\cite{mikolov2013efficient}. które tworzyły embeddingi pojedyńczych słów. Wraz z rozwojem głębokichg sieci neuronowych pojawiły się modele kontekstowe, takie jak \textbf{BERT}\cite{devlin2019bert}, które generują embeddingi dla całych zdań lub dokumentów, uwzględnijąc zależności między słowami. Takie podejście znacząco zwiększa trafność wyszukiwania semantycznego w porównaniu do klasycznych metod leksykalnych.
+
+Obecnie \textbf{Jina Embeddings v4}\cite{jina_v4} jest jednym z wiodących modeli w dziedzinie zaawansowanego wyszukiwania semantycznego. Zbudowany na architekturze \textbf{Qwen2.5-VL-3B-Instruct}\cite{qwen2.5-VL}, model ten wyróżnia się prawdziwie multimodalnym podejściem, pozwalającym na jednoczesne przetwarzanie tekstu i obrazów w ramach wspólnego, zunifikowanego procesu. Obrazy są tokenizowane przez specjalny enkoder wizyjny, a następnie — jako sekwencja „tokenów wizyjnych” — przetwarzane razem z tokenami tekstowymi przez główny model językowy. Dzięki oknu kontekstowemu o rozmiarze 8192 tokenów, \textbf{Jina v4} efektywnie radzi sobie z długimi dokumentami. Model transformuje dane wejściowe w wektory numeryczne w wysokowymiarowej przestrzeni ukrytej (latent space), gdzie podobieństwo semantyczne jest kwantyfikowane za pomocą miary podobieństwa cosinusowego lub odległości euklidesowej L2.
+
+\textbf{Jina v4}\cite{jina_v4} została zaprojektowana z myślą o integracji różnych modalności. Oprócz bezpośredniego przetwarzania tekstu i obrazów, model może współpracować z danymi audio, które są wstępnie transkrybowane na tekst (np. za pomocą modeli ASR, takich jak Whisper), a następnie embedowane w tej samej, wspólnej przestrzeni semantycznej. Dzięki treningowi opartemu na kontrastywnym uczeniu, Jina v4 uczy się tworzyć reprezentacje, w których obiekty o podobnym znaczeniu — niezależnie od ich pierwotnej modalności — są mapowane blisko siebie w przestrzeni ukrytej. Ta właściwość umożliwia precyzyjne, wielomodalne wyszukiwanie informacji, znajdujące zastosowanie nawet w wymagających, specjalistycznych bazach danych, takich jak zbiory dokumentów medycznych czy naukowych.
+
+
+
+\subsection{Zintegrowane systemy przetwarzania mowy i wyszukiwania informacji}
+Współczesne systemy przetwarzania mowy coraz częściej stanowią integralny komponent złożonych architektur wyszukiwania informacji, w których kluczową rolę odgrywa łączenie automatycznego rozpoznawania mowy (ASR) z modelami embeddingowymi i mechanizmami wyszukiwania semantycznego. Integracja tych technologii umożliwia bezpośrednie przetwarzanie danych audio oraz ich mapowanie do wspólnej przestrzeni semantycznej, co pozwala na tworzenie systemów typu speech-to-retrieval — zdolnych do wyszukiwania wiedzy na podstawie zapytań głosowych lub nagrań dźwiękowych.
+
+W klasycznym podejściu sygnał audio podlega wstępnemu przetwarzaniu przez model ASR, taki jak Whisper lub jego wariant dostosowany do języka specjalistycznego, np. ADMEDVoice. Wynikowa transkrypcja tekstowa stanowi następnie wejście do modelu embeddingowego (np. Jina v4), który przekształca ją w wektor reprezentujący znaczenie semantyczne wypowiedzi. Takie wektory mogą być następnie porównywane z reprezentacjami dokumentów znajdujących się w bazie wiedzy przy użyciu miar takich jak cosinusowe podobieństwo lub odległość euklidesowa, co pozwala na precyzyjne wyszukiwanie treści odpowiadających intencji zapytania.
+
+W nowszych rozwiązaniach dane akustyczne mogą być przetwarzane bezpośrednio — z pominięciem etapu transkrypcji. Podejścia takie jak WavRAG umożliwiają reprezentowanie sygnałów audio w tej samej przestrzeni semantycznej co dane tekstowe, co pozwala na pełną integrację informacji mówionej i pisanej w ramach jednego systemu. W takich architekturach zapytania głosowe są kodowane jako wektory w przestrzeni cech ukrytych, a proces wyszukiwania opiera się na bezpośrednim dopasowywaniu embeddingów akustycznych i tekstowych.
+
+Zintegrowane systemy RAG (Retrieval-Augmented Generation) wykorzystujące komponenty ASR i embeddingowe stanowią obecnie kluczowy kierunek rozwoju technologii informacyjnych. Łącząc zdolność rozumienia treści mówionej z mechanizmami generatywnymi, umożliwiają one tworzenie aplikacji, które nie tylko odnajdują właściwe informacje w bazie danych, lecz także generują kontekstowe i językowo poprawne odpowiedzi. Przykładowo, system mógłby przetwarzać zapytanie głosowe lekarza, zidentyfikować jego intencję semantyczną, a następnie zwrócić streszczenie odpowiednich dokumentów klinicznych w postaci tekstowej lub głosowej
+
+Dzięki synergii między modelami ASR, embeddingowymi oraz architekturami RAG, możliwe staje się budowanie w pełni multimodalnych ekosystemów wiedzy, w których informacje akustyczne, tekstowe i wizualne współistnieją w jednej, wspólnej przestrzeni semantycznej. Takie systemy stanowią fundament przyszłych aplikacji głosowych o wysokim stopniu kontekstualizacji.
+
+
+
+\subsection{Proponowane rozwiązanie}
+Proponowane rozwiązanie ma na celu opracowanie modelu umożliwiającego bezpośrednie mapowanie sygnału mowy do przestrzeni semantycznej wyszukiwania informacji, eliminując konieczność pośredniej transkrypcji tekstowej. W odróżnieniu od klasycznych architektur typu ASR + embedding + retrieval, w których konwersja głosu na tekst stanowi odrębny etap przetwarzania, system Speech-to-Retrieval uczy się translacji reprezentacji ukrytej z modelu rozpoznawania mowy bezpośrednio do przestrzeni wektorowej modelu embeddingowego (Jina v4).
+
+Celem jest umożliwienie bezpośredniego wyszukiwania semantycznego na podstawie mowy, przy zachowaniu precyzji porównywalnej z metodami tekstowymi, przy jednoczesnym skróceniu ścieżki przetwarzania i ograniczeniu błędów wynikających z transkrypcji.
+
+\subsection{Metodologia}
+
+\subsubsection{Metody oceny modeli ASR}
+
+\subsubsection{Metody oceny modeli embeddingowych}
+
+\subsubsection{Metody oceny systemu wyszukiwania informacji E2E}
+
+\subsubsection{Specjalistyczne metody oceny w bazach medycznych}
+
+%\subsubsection{Porównanie podejścia }
