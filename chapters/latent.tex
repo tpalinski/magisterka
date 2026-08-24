@@ -1,39 +1,40 @@
+%LTex: language=pl
 \subsection{Założenia teorytyczne}
 \subsubsection{Semantyczne a syntaktyczne reprezentacje audio w wektorach cech}
-Dla proponowanego przez nas rozwiązanie, potencjalnie najważniejszą charakterystyką, którą wykazują się dostępne modele ASR jest postać ukrytej (latentnej) reperezentacji enkodowanej przez nie na podstawie danych wejściowych. Potencjalnie, większa wierność semantycznemu znaczeniu wypowiedzianego zdania doprowadzi do dokładniejszej translacji wyjścia enkodera na współdzielną przestrzeń embeddingów, czego konsekwencją będą lepsze osiągi systemu wyszukiwania dla użytkownika końcowego.
+Dla proponowanego w tej pracy rozwiązania, potencjalnie najważniejszą charakterystyką, którą wykazują się dostępne modele ASR jest postać ukrytej (latentnej) reperezentacji enkodowanej przez nie na podstawie danych wejściowych. Potencjalnie, większa wierność semantycznemu znaczeniu wypowiedzianego zdania doprowadzi do dokładniejszej translacji wyjścia enkodera na współdzielną przestrzeń embeddingów, czego konsekwencją będą lepsze osiągi systemu wyszukiwania dla użytkownika końcowego.
 \subsubsection{Wpływ charakterystyki wektorów cech na jakość embeddingów w modelach wielojęzykowych}
-Kolejnym aspektem ewaluowanym przez nas w ramach eksperymentu są podobieństwa wyników modeli dla zdań o tym samym znaczeniu w kilku językach. Dla modeli enkodujących semantykę danych, reprezentacje dla dwóch znaczeniowo identycznych zdań w dwóch różnych językach powinny być do siebie podobne według przyjętej metryki podobieństwa. Przykładowo, miara podobieństwa dla reprezentacji latentnych dla zdań "Kocham zwiedzać włoskie miasta" i "I love sightseeing Italian cities", dla modelu semantycznego, powinna mieć jak największą wartość.
+Kolejnym aspektem ewaluowanym w ramach tego eksperymentu są podobieństwa wyników modeli dla zdań o tym samym znaczeniu w kilku językach. Dla modeli enkodujących semantykę danych, reprezentacje dla dwóch znaczeniowo identycznych zdań w dwóch różnych językach powinny być do siebie podobne według przyjętej metryki podobieństwa. Przykładowo, miara podobieństwa dla reprezentacji latentnych dla zdań "Kocham zwiedzać włoskie miasta" i "I love sightseeing Italian cities", dla modelu semantycznego, powinna mieć jak największą wartość.
 
-Należy mieć na uwadze, że różnice w historii języka, jego strukturze i alfabecie istotnie wpływają na otrzymane wyniki podobieństwa dla takich zdań. Zróżnicowanie to zostało zbadane przez Aleshinę et. al w ich pracy ewaluującej rozkłady embeddingów zdań dla dziesięciu różnych języków \cite{multilanguageEmbeddingDifferences}. Korzystając z modelu MUSE \cite{museModel} operującego na pojedynczych słowach, wykazali oni znaczące pokrycie klastrów embeddingów dla języków o podobnej historii (arabski i hiszpański) jak i o podobnie prostej morfologii i częściowo współdzielonym słownictwie (angielski, chiński, indonezyjski), i izolację klastrów dla wybranych języków (rosyjski, o innym alfabecie i bardziej skomplikowanej morfologii w świetle inflekcji języka). Najbardziej interesującym dla nas wnioskiem są podobieństwa dla słów zapożyczonych z innych języków -- wiele terminów medycznych wywodzi się z języka łacińskiego, co oznacza potencjalnie wysokie podobieństwo dla takich zwrotów w języku angielskim i polskim, jak i w innych językach \cite{latinMedical}.
+Należy mieć na uwadze, że różnice w historii języka, jego strukturze i alfabecie istotnie wpływają na otrzymane wyniki podobieństwa dla takich zdań. Zróżnicowanie to zostało zbadane przez Aleshinę et. al w ich pracy ewaluującej rozkłady embeddingów zdań dla dziesięciu różnych języków \cite{multilanguageEmbeddingDifferences}. Korzystając z modelu MUSE \cite{museModel} operującego na pojedynczych słowach, wykazali oni znaczące pokrycie klastrów embeddingów dla języków o podobnej historii (arabski i hiszpański) jak i o podobnie prostej morfologii i częściowo współdzielonym słownictwie (angielski, chiński, indonezyjski), i izolację klastrów dla wybranych języków (rosyjski, o innym alfabecie i bardziej skomplikowanej morfologii w świetle inflekcji języka). Najbardziej interesującym w kontekście tej pracy wnioskiem są podobieństwa dla słów zapożyczonych z innych języków -- wiele terminów medycznych wywodzi się z języka łacińskiego, co oznacza potencjalnie wysokie podobieństwo dla takich zwrotów w języku angielskim i polskim, jak i w innych językach \cite{latinMedical}.
 
-Wysoka miara podobieństwa dla modelu ASR ewaluowanego dla danych wielojęzykowych oznaczałaby nie tylko dobre radzenie sobie z samą semantyką wypowiedzianych zdań, lecz także potencjalnie wysoki potencjał do przeprowadzenia treningu modelu na specjalistycznych danych dostępnych w innych językach. Model wykazujący się taką cechą byłby niezwykle cenny dla poprawienia jakości wyszukiwania informacji dla nie tylko polskojęzycznych, ale również innych języków wspieranych przez ten model. Właśnie taki proces destylacji wiedzy zbadali w swojej pracy Piperno et. al \cite{multilingualDomainTranslation}, z powodzeniem korzystając z anglojęzycznych zbiorów słownictwa o tematyce medycznej do poprawienia osiągów modeli dla danych w językach hiszpańskim, niemieckim i francuskim. Przeprowadzony w ten sposób dodatkowy trening pozwoliłaby nam na znaczące polepszenie naszego całościowego rozwiązania, umożliwiając skorzystanie z większej ilości danych dostępnych w języku angielskim i przełożenia zdobytej przez model wiedzy na język polski dla zbioru ADMEDVoice \cite{ADMEDVoice}.
+Wysoka miara podobieństwa dla modelu ASR ewaluowanego dla danych wielojęzykowych oznaczałaby nie tylko dobre radzenie sobie z samą semantyką wypowiedzianych zdań, lecz także potencjalnie wysoki potencjał do przeprowadzenia treningu modelu na specjalistycznych danych dostępnych w innych językach. Model wykazujący się taką cechą byłby niezwykle cenny dla poprawienia jakości wyszukiwania informacji dla nie tylko polskojęzycznych, ale również innych języków wspieranych przez ten model. Właśnie taki proces destylacji wiedzy zbadali w swojej pracy Piperno et. al \cite{multilingualDomainTranslation}, z powodzeniem korzystając z anglojęzycznych zbiorów słownictwa o tematyce medycznej do poprawienia osiągów modeli dla danych w językach hiszpańskim, niemieckim i francuskim. Przeprowadzony w ten sposób dodatkowy trening pozwoliłby na znaczące polepszenie całościowego rozwiązania opracowywanego w tej pracy, umożliwiając skorzystanie z większej ilości danych dostępnych w języku angielskim i przełożenia zdobytej przez model wiedzy na język polski dla zbioru ADMEDVoice \cite{ADMEDVoice}.
 
 
 \subsection{Metodologia}
 \subsubsection{Ocena jakości embeddingów}
-W celu rzetelenej weryfikacji powyższej hipotezy dotyczącej semantyki w reprezentacjach latentnych modeli ASR, sformułowaliśmy eksperyment wykorzystujący istniejące modele embeddingowe dla tekstu wspierające wiele języków. Wykorzystując istniejące zbiory danych zawierające zarówno audio wypowiedzianego zdania, jak i jego transkrypcję, za ich pomocą wygenerowaliśmy przykłady treningowe dla każdego zdania inspirowane metodą \textit{triplet loss} \cite{tripletLoss}.
+W celu rzetelenej weryfikacji powyższej hipotezy dotyczącej semantyki w reprezentacjach latentnych modeli ASR, sformułowany został eksperyment wykorzystujący istniejące modele embeddingowe dla tekstu wspierające wiele języków. Wykorzystując istniejące zbiory danych zawierające zarówno audio wypowiedzianego zdania, jak i jego transkrypcję, wygenerowane zostały przykłady treningowe dla każdego zdania inspirowane metodą funkcji straty trójkowej (\textit{triplet loss}) \cite{tripletLoss}.
 
 \begin{equation}
     \mathcal{L}_{\text{triplet}} = \max \Big( 0, \; \| f(x^a) - f(x^p) \|_2^2 - \| f(x^a) - f(x^n) \|_2^2 + \alpha \Big)
     \label{eq:tripletloss}
 \end{equation}
 
-Na początku dla transkrypcji każdego zdania w zbiorze danych wygenerowaliśmy jego embeddingi za pomocą każdego z ewaluowanych modeli embeddingowych. Następnie, dla każdego zdania (oznaczonego jako $x^a$ -- \textit{anchor}), wyliczyliśmy dystans (norma L2) do każdego z pozostałych zdań dla każdego modelu embeddingowego:
+Na początku dla transkrypcji każdego zdania w zbiorze danych wygenerowane zostały jego embeddingi za pomocą każdego z ewaluowanych modeli embeddingowych. Następnie, dla każdego zdania (oznaczonego jako $x^a$ -- \textit{anchor}), wyliczono dystans (norma L2) do każdego z pozostałych zdań dla każdego modelu embeddingowego:
 
 \begin{equation}
     D(x_{emb}^a, x_{emb}) = \| x_{emb}^a - x_{emb} \|_2^2 = \sqrt{(x_{emb}^a - x_{emb})^2}
 \end{equation}
 
-Następnie, na podstawie wygenerowanych w ten sposób zbiorów odległości, wybraliśmy losowo przykłady pozytywne $x^p$ i negatywne $x^n$. Przykłady pozytywne stanowiły losowe zdanie spośród najbliższych (najbardziej podobnych) dziesięciu przykładów, z kolei przykłady negatywne spośród najmniej podobnych czterdziestu procent zdań. Losowość miała na celu zapewnić stosunkowo równomierny rozkład przykładów negatywnych spośród całego zbioru danych.
+Następnie, na podstawie wygenerowanych w ten sposób zbiorów odległości, wybrano losowo przykłady pozytywne $x^p$ i negatywne $x^n$. Przykłady pozytywne stanowiły losowe zdanie spośród najbliższych (najbardziej podobnych) dziesięciu przykładów, z kolei przykłady negatywne spośród najmniej podobnych czterdziestu procent zdań. Losowość miała na celu zapewnić stosunkowo równomierny rozkład przykładów negatywnych spośród całego zbioru danych.
 
-Posiadając trzy przykłady $x^a$, $x^n$ i $x^p$ dla każdego unikalnego zdania w zbiorze, następnym krokiem było wygenerowanie embeddingów dla każdego z ewaluowanych modeli ASR. Następnie, porównywaliśmy je za pomocą metryki $m(x_1, x_2)$, otrzymując w rezultacie ewaluacje relatywnego podobieństwa między $x^a$ i kolejno $x^p$ i $x^n$:
+Posiadając trzy przykłady $x^a$, $x^n$ i $x^p$ dla każdego unikalnego zdania w zbiorze, następnym krokiem było wygenerowanie embeddingów dla każdego z ewaluowanych modeli ASR. Następnie, były one porównywane ze sobą za pomocą metryki $m(x_1, x_2)$, otrzymując w rezultacie ewaluacje relatywnego podobieństwa między $x^a$ i kolejno $x^p$ i $x^n$:
 
 \begin{equation}
     S(x_{emb, asr}) = m(x_{emb, asr}^a, x_{emb, asr}^n) - m(x_{emb, asr}^a, x_{emb, asr}^p)
     \label{eq:tripletDiff}
 \end{equation}
 
-Metryka, którą wykorzystaliśmy podczas tej ewaluacji to \textit{Maximum Mean Discrepancy} (MMD) \cite{mmd}. Jest ona przeznaczona do porównywania różnicy między dwoma dwuwymiarowymi tensorami, które stanowią w naszym przypadku embeddingi wygenerowane przez modele ASR. Jest ona wyrażana wzorem:
+Metryką, wykorzystaną podczas tej ewaluacji to \textit{Maximum Mean Discrepancy} (MMD) \cite{mmd}. Jest ona przeznaczona do porównywania różnicy między dwoma dwuwymiarowymi tensorami, które stanowią w tym eksperymencie embeddingi wygenerowane przez modele ASR. Jest ona wyrażana wzorem:
 \begin{equation}
 \widehat{\text{MMD}}^2(X,Y) =
 \frac{1}{m^2} \sum_{i=1}^{m} \sum_{i'=1}^{m} k(x_i, x_{i'})
@@ -44,7 +45,7 @@ Metryka, którą wykorzystaliśmy podczas tej ewaluacji to \textit{Maximum Mean 
 
 Z racji określania różnicy zamiast podobieństwa między dwoma reprezentacjami, w ramach porównania opisanego równaniem \ref{eq:tripletDiff}, wartość ewaluacji $S(x_{emb, asr})$ będzie dodatnia, jeśli model poprawnie uchwycił relatywne podobieństwa semantyczne przykładów $x^a$, $x^n$ i $x^p$. W ten sposób możliwe jest ilościowe podejście do ewaluacji jakości w semantyczności reprezentacji modelu w ramach danego zbioru danych.
 
-Ponadto, w celu zbadania rozkładu wartości ewaluacji $S(x_{emb, asr})$, dla zagregowanych w ramach modeli embeddingowych wyników dopasowaliśmy rozkład Student-t, dla którego funkcja gęstości prawdopodobieństwa jest wyrażana wzorem:
+Ponadto, w celu zbadania rozkładu wartości ewaluacji $S(x_{emb, asr})$, dla zagregowanych w ramach modeli embeddingowych wyników dopasowany został rozkład Student-t, dla którego funkcja gęstości prawdopodobieństwa jest wyrażana wzorem:
 
 \begin{equation}
 f(t; \nu, \mu, \sigma) =
@@ -54,7 +55,7 @@ f(t; \nu, \mu, \sigma) =
 \label{eq:studentT}
 \end{equation}
 
-Pozwala on na analizę statystyczną zachowania modeli w ramach naszego podejścia ilościowego, dostarczając informacji na temat stabilności i zdolności modelu do separacji przykładów pozytywnych i negatywnych, które są niezwykle cennymi czynnikami przy doborze właściwego modelu do dalszych eksperymentów.
+Pozwala on na analizę statystyczną zachowania modeli w ramach proponowanego podejścia ilościowego, dostarczając informacji na temat stabilności i zdolności modelu do separacji przykładów pozytywnych i negatywnych, które są niezwykle cennymi czynnikami przy doborze właściwego modelu do dalszych eksperymentów.
 
 \subsubsection{Analiza rozkładu embeddingów w przestrzeni}
 Kolejnym krokiem analizy ilościowej jakości embeddingów generowanych przez modele ASR jest zbadanie obecności "efektu stożka \textit(cone effect)", opisanego w pracy \textit{Mind the Gap: Understanding the Modality Gap in Multi-modal Contrastive Representation Learning} \cite{liang2022mind}. Oryginalna praca skupia się na metodach badania różnicy w reprezentacji danych o różnej modalności w modelach embeddingowych. Głównym narzędziem proponowanym przez autorów jest badanie podobieństwa kosinusowego między embeddingami dla każdej z obsługiwanej przez model modalności. Niech $x^{(i)}$ oznacza dane wejściowe dla modalności $i$, $f_i$ model dla modalności $i$, $z^i$ znormalizowany embedding dla modalności $i$ i $s(x^{(i)}, x^{(j)})$ podobieństwo kosinusowe dla porównywanych modalności $i$ i $j$, wtedy:
@@ -77,11 +78,11 @@ Z racji natury reprezentacji danych przez enkodery modeli ASR, będacych tensora
 
 Wyliczenia te pozwalają na zbadanie właściwości n-wymiarowego stożka, w którym znajdują się embeddingi wygenerowane przez model. Różnice między podobieństwem wewnątrz modalności a podobieństwem inter-modalnym pozwalają na analizę różnicy, według której model reaguje na różne rodzaje danych wejściowych.
 
-Analiza ta nie jest przydatna tylko dla proponowanych przez nas modeli z rodziny speech-to-retrieval. W pracy \textit{The Geometry of Multilingual Language Model Representations}, autorzy badali również podobieństwo między reprezentacjami danych dla różnych języków obsługiwanych przez model językowy XLM-R \cite{chang2022geometry}. Rezultaty przedstawione przez autorów udowodniły, że podprzestrzenie zajmowane przez embeddingi poszczególnych języków są podobne do siebie, lecz przesunięte w hiperprzestrzeni.
+Analiza ta nie jest przydatna tylko dla proponowanych w tej pracy modeli z rodziny speech-to-retrieval. W pracy \textit{The Geometry of Multilingual Language Model Representations}, autorzy badali również podobieństwo między reprezentacjami danych dla różnych języków obsługiwanych przez model językowy XLM-R \cite{chang2022geometry}. Rezultaty przedstawione przez autorów udowodniły, że podprzestrzenie zajmowane przez embeddingi poszczególnych języków są podobne do siebie, lecz przesunięte w hiperprzestrzeni.
 
 Mając na uwadzę obie te prace, jak i cel naszej analizy, postanowiliśmy połączyć oba podejścia. Poprzez traktowanie języków jako modalności w świetle efektu stożka i mając na uwadzę potencjalne przesunięcia podprzestrzeni dla różnych języków w ramach dziedziny przetwarzania tekstu, zbadana została umiejętność kodowania znaczenia semantycznego mowy przez modele ASR w ramach przetwarzania danych wielojęzycznych.
 
-W celu bardziej kompleksowego wpływu, jaki ma język danych na końcowy rozkład embeddingów modelu, zastosowaliśmy również zabieg wybielania \textit{(whitening)}, zaadaptowany z pracy \textit{Concept whitening for interpretable image recognition} \cite{whitening}. W tej pracy autorzy zaproponowali metodę wybielania w modelach, mającą zastąpić warstwę \textit{Batch Normalization}. Jest to metoda wymuszenia takiej struktury przestrzeni latentnej modelu, aby wektory jednostkowe w przestrzeni ukrytej stanowiły reperezentację pewnego konceptu, który stanowi część dodatkowego zbioru treningowego wykorzystanego przy uczeniu takiego modelu. O ile oryginalne zastosowanie wybielania odbywa się w trakcie samego treningu, w pracy \textit{WhiteningBERT: An Easy Unsupervised Sentence Embedding Approach}, wykorzystana ona została do poprawy jakości embeddingów tekstowych z modeli z rodziny BERT \cite{whiteningbert}. Poprzez dekorelację wynikowej przestrzeni reprezentacji danych wejściowych za pomocą wybielania, jakość wyszukiwania informacji zdecydowanie wzrosła. Nasza adaptacja tej metody polega na samej ewaluacji końcowej przestrzeni embeddingowej za pomocą ewaluacji efektu stożka po przeprowadzeniu zabiegu wybielania. Pozwoli to na zbadanie, czy dany model ASR traktuje różne języki jako swoiste "koncepty", co oznaczałoby rozdzielenie reprezentacji danych na poszczególne języki w wybielonej już przestrzeni i potencjalne trudności z transferem wiedzy pozyskanej ze zbiorów specjalistycznych w języku angielskim na taką wiedzę w języku polskim.
+W celu bardziej kompleksowego wpływu, jaki ma język danych na końcowy rozkład embeddingów modelu, zastosowany został również zabieg wybielania \textit{(whitening)}, zaadaptowany z pracy \textit{Concept whitening for interpretable image recognition} \cite{whitening}. W tej pracy autorzy zaproponowali metodę wybielania w modelach, mającą zastąpić warstwę \textit{Batch Normalization}. Jest to metoda wymuszenia takiej struktury przestrzeni latentnej modelu, aby wektory jednostkowe w przestrzeni ukrytej stanowiły reperezentację pewnego konceptu, który stanowi część dodatkowego zbioru treningowego wykorzystanego przy uczeniu takiego modelu. O ile oryginalne zastosowanie wybielania odbywa się w trakcie samego treningu, w pracy \textit{WhiteningBERT: An Easy Unsupervised Sentence Embedding Approach}, wykorzystana ona została do poprawy jakości embeddingów tekstowych z modeli z rodziny BERT \cite{whiteningbert}. Poprzez dekorelację wynikowej przestrzeni reprezentacji danych wejściowych za pomocą wybielania, jakość wyszukiwania informacji zdecydowanie wzrosła. Wykorzystana w tym eksperymencie adaptacja tej metody polega na samej ewaluacji końcowej przestrzeni embeddingowej za pomocą ewaluacji efektu stożka po przeprowadzeniu zabiegu wybielania. Pozwoli to na zbadanie, czy dany model ASR traktuje różne języki jako swoiste "koncepty", co oznaczałoby rozdzielenie reprezentacji danych na poszczególne języki w wybielonej już przestrzeni i potencjalne trudności z transferem wiedzy pozyskanej ze zbiorów specjalistycznych w języku angielskim na taką wiedzę w języku polskim.
 
 Wybielenie wynikowej przestrzeni embeddingowej modelu ASR wyrażane jest następującym wzorem \ref{eq:whiten_cone}:
 
@@ -94,10 +95,10 @@ E_{\mathrm{wyb}} &= (E-\mu)\,U\,(\Lambda+\varepsilon I)^{-1/2}.
 \end{aligned}
 \end{equation}
 
-gdzie $E \in \mathbb{R}^{N \times d}$ oznacza macierz embeddingów z $N$ próbkami o wymiarze $d$, a $\mu \in \mathbb{R}^{d}$ jest średnią embeddingów po poolingu na podstawie średniej. Macierz kowariancji $\frac{1}{N-1}(E-\mu)^\top(E-\mu)$ jest poddawana dekompozycji do postaci $U \Lambda U^\top$, gdzie $U$ zawiera wektory własne \textit{(eigenvectors)}, a $\Lambda$ odpowiadające im wartości własne \textit{(eigenvalues)} (posortowane malejąco). Wybielone embeddingi $E_{\mathrm{wyb}}$ otrzymywane poprzez centrowanie, rotację oraz skalowanie każdej składowej głównej przez $(\lambda_i + \varepsilon)^{-1/2}$, gdzie $\varepsilon > 0$ zapewnia stabilność numeryczną (w naszych eksperymentach $\varepsilon = 10^{-5}$).
+gdzie $E \in \mathbb{R}^{N \times d}$ oznacza macierz embeddingów z $N$ próbkami o wymiarze $d$, a $\mu \in \mathbb{R}^{d}$ jest średnią embeddingów po poolingu na podstawie średniej. Macierz kowariancji $\frac{1}{N-1}(E-\mu)^\top(E-\mu)$ jest poddawana dekompozycji do postaci $U \Lambda U^\top$, gdzie $U$ zawiera wektory własne \textit{(eigenvectors)}, a $\Lambda$ odpowiadające im wartości własne \textit{(eigenvalues)} (posortowane malejąco). Wybielone embeddingi $E_{\mathrm{wyb}}$ otrzymywane poprzez centrowanie, rotację oraz skalowanie każdej składowej głównej przez $(\lambda_i + \varepsilon)^{-1/2}$, gdzie $\varepsilon > 0$ zapewnia stabilność numeryczną (w tych eksperymentach $\varepsilon = 10^{-5}$).
 
 
-Kolejną transformacją, w świetle której zbadaliśmy powyższe zjawisko, jest przekształcenie \textit{All But the Top} \cite{abtt}, które również używane jest w celu poprawienia końcowej jakości embeddingów generowanych przez modele. Polega ono na zgromadzeniu embeddingów wokół początku układu współrzędnych, usunięcia pierwszego komponentu na podstawie analizy PCA i normalizacji L2. ABTT pozwala na sprawdzenie, czy informacje o języku mają wpływ na rozkład danych w przestrzeni embeddingowej, podobnie jak w przypadku wybielania. Może być ono jednak interpretowane jako mniej destruktywne dla oryginalnego rozkładu embeddingów, ponieważ nie dekoreluje ono danych.
+Kolejną transformacją, w świetle której zbadano powyższe zjawisko, jest przekształcenie \textit{All But the Top} \cite{abtt}, które również używane jest w celu poprawienia końcowej jakości embeddingów generowanych przez modele. Polega ono na zgromadzeniu embeddingów wokół początku układu współrzędnych, usunięcia pierwszego komponentu na podstawie analizy PCA i normalizacji L2. ABTT pozwala na sprawdzenie, czy informacje o języku mają wpływ na rozkład danych w przestrzeni embeddingowej, podobnie jak w przypadku wybielania. Może być ono jednak interpretowane jako mniej destruktywne dla oryginalnego rozkładu embeddingów, ponieważ nie dekoreluje ono danych.
 
 Proces transformacji danych metodą ABTT wyrażany jest wzorem \ref{eq:abtt}:
 
@@ -138,7 +139,7 @@ W celu pełnej analizy, zbadane zostały również surowe embeddingi po zastosow
 
 
 \subsubsection{Ewaluowane modele ASR}
-W ramach kompleksowej ewaluacji różnych modeli ASR wybraliśmy pięć dostępnych modeli stanowiących state-of-the-art w ramach dziedziny transkrypcji audio. Modele te trenowane były w celu maksymalizacji dokładności transkrypcji, bez narzuconych ograniczeń dotyczącym maksymalizacji podobieństwa między reprezentacjami dla semantycznie podobnego sygnału audio, lecz ich osiągi dla transkrypcji dla wielu języków wskazują na częściowo semantyczne osadzenie ich reprezentacji.
+W ramach kompleksowej ewaluacji różnych modeli ASR wybrano pięć dostępnych modeli stanowiących state-of-the-art w ramach dziedziny transkrypcji audio. Modele te trenowane były w celu maksymalizacji dokładności transkrypcji, bez narzuconych ograniczeń dotyczącym maksymalizacji podobieństwa między reprezentacjami dla semantycznie podobnego sygnału audio, lecz ich osiągi dla transkrypcji dla wielu języków wskazują na częściowo semantyczne osadzenie ich reprezentacji.
 
 Pierwszym z nich jest Whisper autorstwa OpenAI, wspierający ponad 90 języków \cite{whisper}. Jak wykazały badania Rao et. al \cite{whispaSemanticAlign}, wykazuje się on stosunkową łatwością do przekształcenia jego reprezentacji do reprezentacji semantycznej, co jest częściowym celem naszego systemu. Ponadto, został on wykorzystany z powodzeniem do ASR na zbiorze ADMEDVoice \cite{ADMEDVoice}, co wykazuje jego zdolność do radzenia sobie na specjalistycznych danych medycznych w języku polskim po odpowiednim dotrenowaniu.
 
@@ -149,7 +150,7 @@ Następnym z ewaluowanych modeli jest HuBERT autorstwa Mety \cite{hsu2021hubert}
 Ostatnim z analizowanych modeli jest SeamlessM4T, również autorstwa Mety \cite{m4t}. Jest to model wspierający wiele języków i trybów działania - text to text, text to speech, speech to text i speech to speech. Dzięki uniwersalności jego enkoderów tekstowego i audio, które wspierają tłumaczenia w ramach jednej modalności, oferować on może najbardziej skuteczne modelowanie semantycznego znaczenia danych wejściowych.
 
 \subsubsection{Ewaluowane modele embeddingowe}
-W celu przeprowadzenia rzetelnej analizy możliwości modeli ASR w świetle enkodowania informacji semantycznych, do naszych eksperymentów wykorzystaliśmy trzy różne modele embeddingowe.
+W celu przeprowadzenia rzetelnej analizy możliwości modeli ASR w świetle enkodowania informacji semantycznych, do eksperymentów wykorzystaliśmy trzy różne modele embeddingowe.
 
 Pierwszym z nich był model LaBSE autorstwa Google Research \cite{feng-etal-2022-language}. Jest to model embeddingowy, którego celem jest jednolita reprezentacja danych wejściowych w jednej przestrzeni, bez względu na ich język. Jest on oparty na architekturze transformer inspirowanej modelem BERT i produkuje embeddingi o jednolitej długości dla różnych zdań. Podczas treningu, zdania o tej samej semantyce, lecz w różnych językach, osadzane były w przestrzeni jak najbliżej siebie. W ten sposób model osiąga bardzo dobre wyniki w wyszukiwaniu informacji w różnych językach (metryka accuracy rzędu 95\% na zbiorze Tatoeba \cite{tiedemann-2020-tatoeba}).
 
@@ -159,21 +160,21 @@ Ostatnim z modeli jest model Jinav4, autorstwa JinaAI \cite{jina_v4}. Jest model
 
 \subsection{Eksperymenty}
 \subsubsection{Założenia projektowe}
-W ramach eksperymentu poddaliśmy ewaluacji działanie powyższych modeli dla dwóch zbiorów danych. Pierwszym z nich był anglojęzyczny zbiór danych \textit{Medical Speech, Transcription, and Intent} \cite{generalMedicalDataset}. Zawiera on 8,5 godzin audio wraz z transkrypcjami dotyczącymi powszechnych objawów chorób, takich jak gorączka i ból gardła. Został on wybrany przez nas ze względu na połączenie tematyki powiązanej z docelowym zbiorem danych dla naszego modelu, jak i brakiem ściśle specjalistycznego języka medycznego, w ramach którego modele ASR i embeddingowe powinny poradzić sobie dobrze bez dodatkowego treningu. Drugim wybranym przez nas zbiorem był zbiór FLEURS \cite{fleurs}, zawierający szereg zdań wypowiedzianych w 102 językach. Wykorzystaliśmy podzbiory zdań dla języka polskiego i angielskiego, każdy mający około 12 godzin nagrań wraz z ich transkrypcjami, w celu ewaluacji modeli w ramach ich dokładności dla wielu języków.
+W ramach eksperymentu poddano ewaluacji działanie powyższych modeli dla dwóch zbiorów danych. Pierwszym z nich był anglojęzyczny zbiór danych \textit{Medical Speech, Transcription, and Intent} \cite{generalMedicalDataset}. Zawiera on 8,5 godzin audio wraz z transkrypcjami dotyczącymi powszechnych objawów chorób, takich jak gorączka i ból gardła. Został on wybrany ze względu na połączenie tematyki powiązanej z docelowym zbiorem danych dla proponowanych w tej pracy modeli, jak i brakiem ściśle specjalistycznego języka medycznego, w ramach którego modele ASR i embeddingowe powinny poradzić sobie dobrze bez dodatkowego treningu. Drugim wybranym przez nas zbiorem był zbiór FLEURS \cite{fleurs}, zawierający szereg zdań wypowiedzianych w 102 językach. Wykorzystaliśmy podzbiory zdań dla języka polskiego i angielskiego, każdy mający około 12 godzin nagrań wraz z ich transkrypcjami, w celu ewaluacji modeli w ramach ich dokładności dla wielu języków.
 
-W ramach obliczania metryki MMD (\ref{eq:MMD}), skorzystaliśmy z liniowej funkcji jądra $k(x_1, x_2)$:
+W ramach obliczania metryki MMD (\ref{eq:MMD}), skorzystano z liniowej funkcji jądra $k(x_1, x_2)$:
 \begin{equation}
     k_{\text{lin}}(x, y) = x^y
 \end{equation}
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/labse_output.png}
     \caption{Ilości reprezentacji przykładów jako pozytywne i negatywne dla modelu Labse w ramach zbioru \textit{Medical Speech, Transcription, and Intent}. Kolorem pomarańczowym oznaczono ilość zdań, dla których dany przykład jest przykładem negatywnym, niebieskim -- pozytywnym}
     \label{fig:latent:labseDistribution}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/fleurs_labse_output.png}
     \caption{Ilości reprezentacji przykładów jako pozytywne i negatywne dla modelu Labse w ramach zbioru FLEURS. Kolorem pomarańczowym oznaczono ilość zdań, dla których dany przykład jest przykładem negatywnym, niebieskim -- pozytywnym}
@@ -183,7 +184,7 @@ W ramach obliczania metryki MMD (\ref{eq:MMD}), skorzystaliśmy z liniowej funkc
 Rozkłady przykładów $x^n$ i $x^p$, dzięki zastosowaniu losowego wyboru były dosyć równomierne dla obu zbiorów danych, co przedstawiono na rysunkach \ref{fig:latent:labseDistribution} i \ref{fig:latent:labseDistributionFleurs}.
 
 \subsubsection{Implementacja}
-Eksperymenty zostały przeprowadzone z wykorzystaniem języka Python w wersji 3.12. Modele ASR i embeddingowe wraz z ich wagami zostały pobrane ze strony HuggingFace za pomocą bibliotek \textit{transformers} i \textit{sentence-transformers}. Do szybkiego obliczenia odległości między embeddingami wraz z wyłonieniem najbliższych i najdalszych embeddingów wykorzystaliśmy biblioteki \textit{Pytorch} i \textit{keOps}. Do obliczeń pomocniczych wykorzystaliśmy bibliotekę \textit{numpy}, natomiast do wizualicji -- \textit{matplotlib}. Eksperyment przeprowadzony został na serwerze obliczeniowym przy użyciu karty graficznej Nvidia RTX A5000.
+Eksperymenty zostały przeprowadzone z wykorzystaniem języka Python w wersji 3.12. Modele ASR i embeddingowe wraz z ich wagami zostały pobrane ze strony HuggingFace za pomocą bibliotek \textit{transformers} i \textit{sentence-transformers}. Do szybkiego obliczenia odległości między embeddingami wraz z wyłonieniem najbliższych i najdalszych embeddingów wykorzystano biblioteki \textit{Pytorch} i \textit{keOps}. Do obliczeń pomocniczych wykorzystaliśmy bibliotekę \textit{numpy}, natomiast do wizualicji -- \textit{matplotlib}. Eksperyment przeprowadzony został na serwerze obliczeniowym przy użyciu karty graficznej Nvidia RTX A5000.
 \subsubsection{Analiza wyników}
 
 \paragraph{Analiza enkodowania znaczenia semantycznego mowy}
@@ -271,21 +272,21 @@ Warto zwrócić uwagę na parametr $\nu$ opisujący stabilność rozkładu, któ
 %
 \paragraph{Analiza efektu stożka dla wybranych wielojęzycznych modeli ASR}
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/mhubert_cone.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla mHuBERT w ramach zbioru \textit{Fleurs}}
     \label{fig:latent:coneMHubert}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/m4t_cone.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla M4T w ramach zbioru \textit{Fleurs}}
     \label{fig:latent:coneM4T}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/whisper_cone.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla Whisper w ramach zbioru \textit{Fleurs}}
@@ -297,21 +298,21 @@ Wykresy gęstości podobieństwa kosinusowego dla zbioru \textit{Fleurs} w zale�
 
 Widoczny jest tutaj wyraźnie fenomen stożka, zgodny z zależnością zaobserwowaną w pracy \textit{How Contextual are Contextualized Word Representations? Comparing the Geometry of BERT, ELMo, and GPT-2 Embeddings}, w której autor zauważył wzrost anizotropi przestrzeni ukrytych modeli językowych wraz ze wzrostem ilości warstw \cite{cone} -- wraz ze wzrostem liczby parametrów i warstw, reprezentacje latentne zajmują coraz to mniejszy fragment przestrzeni (rozkład dla mHuBERT -- 94.4 miliona parametrów [rysunek \ref{fig:latent:coneMHubert}] a ten sam rozkład dla SeamlessM4T -- 2 miliardy parametrów [rysunek \ref{fig:latent:coneM4T}]). W celu stwierdzenia czy reprezentacje mowy wymawianej w różnych językach tworzą osobne klastry w przestrzeni embeddingowej należy spojrzeć na odległość między wykresami gęstości dla podobieństw kosinusowych wewnątrz języków i między językami. Modele mHuBERT i SeamlessM4T wydają się enkodować informacje agnostycznie od języka, z separacją między grupami językowymi będącą wyraźnie najmniejszą dla pierwszego modelu (częściowe pokrycie i niewielkie przesunięcie gęstości między grupami a wewnątrz grup na rysunkach \ref{fig:latent:coneMHubert} i \ref{fig:latent:coneM4T}). Model Whisper wykazuje dosyć dużą separację między grupami językowymi w ramach reprezentacji latentnych (rysunek \ref{fig:latent:coneWhisper}). Właściwość ta może prowadzić do mniej dokładnego wyszukiwania informacji między językami polskim i angielskim, a także do gorszego transferu wiedzy pozyskanej w ramach treningu na specjalistycznych zbiorach w języku angielskim do analogicznej wiedzy w języku polskim.
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/mhubert_cone_abtt.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla MHuBERT w ramach zbioru \textit{Fleurs} po transformacji ABTT}
     \label{fig:latent:coneMhubertAbtt}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/m4t_cone_abtt.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla M4T w ramach zbioru \textit{Fleurs} po transformacji ABTT}
     \label{fig:latent:coneM4TAbtt}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/whisper_cone_abtt.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla Whisper w ramach zbioru \textit{Fleurs} po transformacji ABTT}
@@ -320,21 +321,21 @@ Widoczny jest tutaj wyraźnie fenomen stożka, zgodny z zależnością zaobserwo
 
 Rysunki \ref{fig:latent:coneMhubertAbtt}, \ref{fig:latent:coneM4TAbtt} i \ref{fig:latent:coneWhisperAbtt} przedstawiają rozkłady gęstości podobieństwa kosinusowego między embeddingami po przekształceniu \textit{All But the Top}. Dla wszystkich modeli, badane reprezentacje latentne zajęły większą część dostępnej przestrzeni. Jest to spowodowane usunięciem pierwszej głównej składowej po analizie PCA, dzięki czemu pewne wspólne informacje przechowywane przez reprezentacje latentne zostały odrzucone, pozostawiając wyłącznie cechy własne charakteryzujące dane wejściowe. Model mHuBERT (rysunek \ref{fig:latent:coneMhubertAbtt}) zachował prawie identyczne rozkłady w ramach grup językowych, z gęstością podobieństwa lekko przesuniętą. Wskazuje to na większą separację grup językowych niż w ramach danych nieprzetworzonych (rysunek \ref{fig:latent:coneMHubert}). Może być to spowodowane tendencją modelu do enkodowania informacji dotyczących języka, w niewielkim stopniu, na przykład informacji prozodycznych. Seamless M4T wykazuje się podobną charakterystyką co do przesunięcia podobieństwa między grupami, które było obecne również dla danych nieprzetworzonych (rysunki \ref{fig:latent:coneM4TAbtt} i \ref{fig:latent:coneM4T}). Warto zwrócić uwagę na różnicę rozkładów wewnątrz grup językowych -- embeddingi dla języka polskiego zajmują o wiele większą część przestrzeni niż embeddingi dla języka angielskiego. Naszą hipotezą jest obecność pewnego meta-języka opisującego dane dla modelu M4T, który podobny jest najbardziej do języka angielskiego. O ile autorzy modelu nie podali dokładnego balansu danych między różnymi językami w ramach danych treningowych modelu \cite{m4t}, można przypuszczać dominację danych w języku angielskim, stąd też bardziej dokładne reprezentacje danych w języku angielskim. Charakterystyka modelu Whisper (rysunek \ref{fig:latent:coneWhisperAbtt}) zaobserwowana dla danych nieprzetworzonych (rysunek \ref{fig:latent:coneWhisper}) została potwierdzona przez rozkłady dla embeddingów po przetworzeniu \textit{All But the Top}. Widoczna jest o wiele bardziej wyraźna separacja na pewne klastry reprezentujące języki polski i angielski. Jest to najprawdopodobniej spowodowane charakterystyką treningu, w ramach której funkcja straty nie wymusza w jakikolwiek sposób współdzielenia przestrzeni latentnej przez dane z różnych języków, dane treningowe dla transkrypcji precyzują język wypowiedzi \cite{whisper}.
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/mhubert_cone_whitened.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla MHuBERT w ramach zbioru \textit{Fleurs} po wybielaniu}
     \label{fig:latent:coneMhubertWhitened}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/m4t_cone_wnitened.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla M4T w ramach zbioru \textit{Fleurs} po wybielaniu}
     \label{fig:latent:coneM4TWhitened}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/whisper_cone_wnitened.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla Whisper w ramach zbioru \textit{Fleurs} po wybielaniu}
@@ -493,6 +494,6 @@ Analizując Tabelę \ref{tab:latent:compNu}, zauważyć można popwawę stabilno
 
 
 \subsection{Podsumowanie i wnioski}
-Wszystkie przeprowadzone przez nas eksperymenty wyraźnie wskazują na przewagę dwóch modeli ASR pod względem kodowania znaczenia semantycznego mowy -- SeamlessM4T i Whisper, dla których wyniki eksperymentów wskazują na kodowanie silnie nacechowanych semantycznie reprezentacji ukrytych. Pomimo potencjalnie bardziej stabilnego zachowania modeli z rodziny HuBERT, analiza ilościowa, jak i całościowa analiza parametrów dopasowanych rozkładów pokazały, że modele te nie są w stanie dorównać większym modelom w ramach wykorzystania ich jako enkoderów semantycznych cech mowy. Ponadto, wyniki wykazują pewną degradację semantyczności reprezentacji, nawet w ramach porównania na zbiorze wielojęzycznym, dla modelu mHuBERT w porównaniu z bazowym modelem HuBERT. Badając metody przetwarzania embeddingów, \textit{All But the Top} i wybielanie oparte na PCA, zauważyliśmy potencjalną poprawę reprezentacji, w szczególności dla modelów o wysokiej anizotropii przestrzeni, tj. SeamlessM4T i Whisper. Zmiany te jednak nadal nie podnoszą wyników mHuBERT i HuBERT na tyle, aby przewyższyć bazowe osiągi dwóch pozostałych modeli -- oznacza to, że dobór modelu ASR ma większe znaczenie niż dobór odpowiedniej metody przetwarzania embeddingów. Pokazaliśmy również poprawę reprezentacji względem grupowania reprezentacji danych wejściowych w języku polskim i angielskim, co umożliwi potencjalnie lepszy transfer wiedzy w ramach treningu na danych w obu tych językach.
+Wszystkie przeprowadzone w ramach tego rozdziału eksperymenty wyraźnie wskazują na przewagę dwóch modeli ASR pod względem kodowania znaczenia semantycznego mowy -- SeamlessM4T i Whisper, dla których wyniki eksperymentów wskazują na kodowanie silnie nacechowanych semantycznie reprezentacji ukrytych. Pomimo potencjalnie bardziej stabilnego zachowania modeli z rodziny HuBERT, analiza ilościowa, jak i całościowa analiza parametrów dopasowanych rozkładów pokazały, że modele te nie są w stanie dorównać większym modelom w ramach wykorzystania ich jako enkoderów semantycznych cech mowy. Ponadto, wyniki wykazują pewną degradację semantyczności reprezentacji, nawet w ramach porównania na zbiorze wielojęzycznym, dla modelu mHuBERT w porównaniu z bazowym modelem HuBERT. Badając metody przetwarzania embeddingów, \textit{All But the Top} i wybielanie oparte na PCA, zaobserwowano potencjalną poprawę reprezentacji, w szczególności dla modelów o wysokiej anizotropii przestrzeni, tj. SeamlessM4T i Whisper. Zmiany te jednak nadal nie podnoszą wyników mHuBERT i HuBERT na tyle, aby przewyższyć bazowe osiągi dwóch pozostałych modeli -- oznacza to, że dobór modelu ASR ma większe znaczenie niż dobór odpowiedniej metody przetwarzania embeddingów. Pokazano również poprawę reprezentacji względem grupowania reprezentacji danych wejściowych w języku polskim i angielskim, co umożliwi potencjalnie lepszy transfer wiedzy w ramach treningu na danych w obu tych językach.
 
-Mając na uwadzę powyższe odkrycia, naturalnym wyborem do dalszej pracy nad modelami z rodziny speech-to-retrieval wydaje się być SeamlessM4T. Nie tylko uzyskiwał on najwyższe wyniki we wszystkich eksperymentach, lecz dzięki jego wsparciu dla modalności tekstowej, posiada on również swój dedykowany enkoder dla tekstu, który może być potencjalnie wykorzystany przy dalszym rozwoju naszych architektur. Kolejnym modelem wartym użycia jest Whisper, który w większości eksperymentów plasował się na drugiej pozycji. Dzięki wybielaniu, oryginalna reprezentacja wykazująca separację grup językowych ulega znormalizowaniu, umożliwiając naukę w na danych wielojęzycznych, jak i poprawia jakość semantycznego enkodowania reprezentacji danych wejściowych. Ponadto, model Whisper został sprawdzony w oryginalnej pracy ADMEDVoice \cite{ADMEDVoice} i może stanowić dobry punkt odniesienia dla naszych architektur.
+Mając na uwadzę powyższe odkrycia, naturalnym wyborem do dalszej pracy nad modelami z rodziny speech-to-retrieval wydaje się być SeamlessM4T. Nie tylko uzyskiwał on najwyższe wyniki we wszystkich eksperymentach, lecz dzięki jego wsparciu dla modalności tekstowej, posiada on również swój dedykowany enkoder dla tekstu, który może być potencjalnie wykorzystany przy dalszym rozwoju architektur modeli. Kolejnym modelem wartym użycia jest Whisper, który w większości eksperymentów plasował się na drugiej pozycji. Dzięki wybielaniu, oryginalna reprezentacja wykazująca separację grup językowych ulega znormalizowaniu, umożliwiając naukę w na danych wielojęzycznych, jak i poprawia jakość semantycznego enkodowania reprezentacji danych wejściowych. Ponadto, model Whisper został sprawdzony w oryginalnej pracy ADMEDVoice \cite{ADMEDVoice} i może stanowić dobry punkt odniesienia dla proponowanych w tej pracy architektur.
