@@ -1,31 +1,14 @@
-\documentclass[12pt,a4paper]{article}
+\documentclass{szablonPG}
+\usepackage[style=numeric, language=polish, backend=biber, sorting=none]{biblatex}
+\usepackage{dirtree}
+\usepackage{listing_schemat}
 \usepackage{polski}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage[hyphens]{url} % Must be loaded before biblatex
 \usepackage{tikz}
 \usetikzlibrary{positioning,fit,arrows.meta}
 
-\usepackage[
-    backend=biber,
-    style=numeric,
-    sorting=nty,
-    maxnames=5,
-    minnames=4,
-    giveninits=true,
-    url=true,
-    doi=true,
-    eprint=false,
-    ]{biblatex}
 \addbibresource{references.bib}
-
-\AtBeginBibliography{
-    \raggedright
-    }
-
-% Bibliography formatting: commas between fields, no "In:" prefix
-\renewcommand*{\newunitpunct}{\addcomma\space}
-\renewbibmacro{in:}{}
 
 \newcommand{\transformerstack}[2]{%
     % Back layer
@@ -88,68 +71,37 @@
 \usepackage{placeins}
 
 % Configure URL breaking for bibliography
-\setcounter{biburlnumpenalty}{0}
-\setcounter{biburlucpenalty}{0}
-\setcounter{biburllcpenalty}{0}
 
 \newcommand{\todo}[1]{\textcolor{red}{TODO: #1}\PackageWarning{TODO:}{#1!}}
 
-\setcounter{tocdepth}{3}
-\setcounter{secnumdepth}{3}
-
-\geometry{a4paper, left=3cm, right=2.5cm, top=2.5cm, bottom=2.5cm}
-
-\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
-\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
-
-\title{Ocena jakości wyszukiwania informacji w bazach specjalistycznych za pomocą zapytania głosowego przetworzonego na tekst (speech-to-text) z wykorzystaniem uczenia głębokiego}
-\author{Krystian Chmielewski, Tymoteusz Paliński}
-\date{Luty 2026}
-
-
-
 \begin{document}
 
-\includepdf[pages=1, scale=1, offset=0mm 0mm, frame=false]{StronaTytulowa_pl.pdf}
+\includepdf{StronaTytulowa_pl.pdf}
 \newpage
-
-% Głębokość spisu treści
-\setcounter{tocdepth}{3}
-% Głębokość numerowania
-\setcounter{secnumdepth}{3}
-
 \thispagestyle{empty}
-\tableofcontents
+\mbox{}
 \newpage
 
-% --- Abstract ---
 \input{chapters/abstract.tex}
+\tableofcontents
 
 % --- Wprowadzenie ---
-\newpage
-\section{Wprowadzenie}
+\chapter{Wprowadzenie}
 % \input{wprowadzenie.tex}
 \input{chapters/wprowadzenie_przeglad}
 
 % --- Przegląd ---
-\newpage
-\section{Przegląd}
-% TODO: Cytowania do umieszczenia w tekście gdy sekcje będą gotowe:
-% devlin2019, lin2020, Athar_Sheikh_2025, leveragingwordembeddingandmedicalentity,
-% NFCorpus, MedQuAD, pubmed, medembed, wav2vecBERT
+\chapter{Przegląd}
 \input{chapters/przeglad_pogladow}
 
 % Badanie latent space
-\newpage
-\section{Semantyczne reprezentacje wektorów cech modeli ASR}
+\chapter{Semantyczne reprezentacje wektorów cech modeli ASR}
 \input{chapters/latent}
 
-\newpage
-\section{Ewaluacja architektur dopasowania reprezentacji latentnych modeli ASR i modeli embeddingowych}
+\chapter{Ewaluacja architektur dopasowania reprezentacji latentnych modeli ASR i modeli embeddingowych}
 \input{chapters/latentTranslation}
 
-\newpage
-\section{System wyszukiwania informacji z wykorzystaniem architektury dopasowania reprezentacji latentnych modeli ASR i modeli embeddingowych}
+\chapter{System wyszukiwania informacji z wykorzystaniem architektury dopasowania reprezentacji latentnych modeli ASR i modeli embeddingowych}
 \input{chapters/retrievalSystem}
 
 % --- Część Praktyczna ---
@@ -158,26 +110,19 @@
 % \input{chapters/praktyka}
 
 % --- Podsumowanie ---
-\newpage
-\section{Podsumowanie}
+\chapter{Podsumowanie}
 \input{chapters/summary}
 
 
 
 % --- Bibliografia ---
-\newpage
-\begingroup
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{0.5em}
-\raggedright
-\printbibliography[heading=bibintoc, title={WYKAZ LITERATURY}]
-\endgroup
+\printbibliography
 
 
 % --- Appendix ---
 \newpage
-\section*{Dodatki}
-\addcontentsline{toc}{section}{Dodatki}
+\chapter*{Dodatki}
+\addcontentsline{toc}{chapter}{Dodatki}
 \input{chapters/latent_appendix.tex}
 
 
