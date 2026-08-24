@@ -1,0 +1,71 @@
+\begin{tikzpicture}[
+    scale=0.65,
+    transform shape,
+    font=\small,
+    block/.style={
+        draw,
+        rounded corners=2pt,
+        thick,
+        minimum width=2.4cm,
+        minimum height=0.85cm,
+        align=center
+    },
+    enc/.style={block, fill=blue!20},
+    trans/.style={block, fill=purple!20},
+    attn/.style={block, fill=orange!25},
+    proj/.style={block, fill=green!20},
+    pool/.style={block, fill=yellow!20},
+    loss/.style={
+        draw,
+        rounded corners=2pt,
+        thick,
+        minimum width=2.5cm,
+        minimum height=0.85cm,
+        align=center,
+        fill=gray!15
+    },
+    arrow/.style={->, thick}
+]
+
+% Text
+\node[block] (text) {Tekst};
+
+\node[enc, right=1.2cm of text] (txtenc)
+    {Model Embeddingowy\\(Tekst)};
+
+
+% Audio
+\node[block, below=2cm of text] (audio)
+    {Nagrania Mowy};
+
+\node[enc, right=1.8cm of audio] (audenc)
+    {Enkoder \\ (Model ASR)};
+
+\node[pool, right=1.2cm of audenc] (pool)
+    {\textit{Pool}\\(Agregacja)};
+
+\node[
+    proj,
+    right=1.2cm of pool
+] (proj) {Warstwa Liniowa \\ (Projekcja)};
+
+\node[loss, right=1.2cm of proj] (loss) {$\mathcal{L}_\mathrm{cos}(x_\mathrm{text}, x_\mathrm{audio})$};
+
+% ============================================================
+% TEXT ARROWS
+% ============================================================
+
+\draw[arrow] (text) -- (txtenc);
+\draw[arrow] (txtenc.east) -| (loss.north);
+
+
+% ============================================================
+% AUDIO ARROWS
+% ============================================================
+
+\draw[arrow] (audio) -- (audenc);
+\draw[arrow] (audenc) -- (pool);
+\draw[arrow] (pool) -- (proj);
+\draw[arrow] (proj) -- (loss.west);
+
+\end{tikzpicture}
