@@ -56,7 +56,7 @@ Potencjalnym problemem modelu \textit{Attention Pool Model} jest brak dostosowan
 
 Wykorzystanie równoległego przetwarzania modalności jest techniką wykorzystywaną z powodzeniem w multimodalnych modelach embeddingowych. Autorzy modelu JinaV4 zauważyli znaczne zmniejszenie efektu stożka, zawdzięczone właśnie zastosowaniu osobnych enkoderów dla modalności tekstu i obrazu \cite{jina_v4}. Trudnością w ramach treningu tego modelu jest jednak wypracowanie zupełnie nowej geometrii przestrzeni wyjściowej modelu. W przypadku modelu APM, jest ona definiowana przez stabilny w ramach enkodowania semantyki danych pretrenowany model embeddingowy, co oznacza wyłącznie translację do pewnej wzorcowej, izotropicznej, semantycznie nacechowanej przestrzeni. Dla modelu EAM, celem treningu jest ukształtowanie takiej przestrzeni z pewnego punktu wyjścia, co wymaga bardziej skomplikowanej architektury i dopasowania funkcji straty.
 
-Głównym czynnikiem kształtującym przestrzeń wyjściową modelu \textit{Embedding Alignment Model} jest funkcja straty InfoNCE \cite{oord2018cpc}, wykorzystana m.in. w wielomodalnym modelu CLIP \cite{radford2021learning}. Wyrażana jest ona następującym wzorem:
+Głównym czynnikiem kształtującym przestrzeń wyjściową modelu \textit{Embedding Alignment Model} jest funkcja straty InfoNCE \cite{oord2018cpc}, wykorzystana m.in. w multimodalnym modelu CLIP \cite{radford2021learning}. Wyrażana jest ona następującym wzorem:
 \begin{equation}
 \begin{aligned}
 \mathcal{L}_{\mathrm{InfoNCE}}
