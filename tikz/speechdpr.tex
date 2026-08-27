@@ -1,0 +1,67 @@
+\begin{tikzpicture}[
+    scale=0.6,
+    transform shape,
+    font=\small,
+    block/.style={
+        draw,
+        rounded corners=2pt,
+        thick,
+        minimum width=2.8cm,
+        minimum height=1.0cm,
+        align=center
+    },
+    data/.style={block, fill=gray!12},
+    model/.style={block, fill=blue!20},
+    txt/.style={block, fill=purple!20},
+    stud/.style={block, fill=teal!25},
+    loss/.style={block, fill=yellow!25},
+    arrow/.style={-{Stealth[]}, thick},
+    phase/.style={draw=gray, dashed, rounded corners=4pt, inner sep=0.4cm}
+]
+
+% ============================================================
+% WSPÓLNE WEJŚCIE
+% ============================================================
+\node[data] (src) {Audio zapytań\\i fragmentów};
+
+% ============================================================
+% NAUCZYCIEL: SYSTEM KASKADOWY
+% ============================================================
+\node[model, above right=1.2cm and 1.4cm of src] (asr) {Nienadzorowany\\model ASR};
+\node[data, right=1.2cm of asr] (text) {Tekst};
+\node[txt, right=1.2cm of text] (dpr) {Tekstowy retriever\\(DPR)};
+\node[data, right=1.2cm of dpr] (scoret) {Oceny\\podobieństwa};
+
+\draw[arrow] (src.east) -- ++(0.6,0) |- (asr.west);
+\draw[arrow] (asr) -- (text);
+\draw[arrow] (text) -- (dpr);
+\draw[arrow] (dpr) -- (scoret);
+
+% ============================================================
+% UCZEŃ: SPEECHDPR
+% ============================================================
+\node[stud, below right=1.2cm and 1.4cm of src] (enc) {Enkoder mowy\\(SpeechDPR)};
+\node[data, right=1.2cm of enc] (rep) {Reprezentacje\\zdaniowe};
+\node[data, right=1.2cm of rep] (scores) {Podobieństwo\\kosinusowe};
+
+\draw[arrow] (src.east) -- ++(0.6,0) |- (enc.west);
+\draw[arrow] (enc) -- (rep);
+\draw[arrow] (rep) -- (scores);
+
+% ============================================================
+% STRATA DESTYLACYJNA
+% ============================================================
+\node[loss, right=1.4cm of scoret.east |- src] (loss) {Strata\\destylacyjna};
+
+\draw[arrow] (scoret.east) -| (loss.north);
+\draw[arrow] (scores.east) -| (loss.south);
+
+% ============================================================
+% RAMKI
+% ============================================================
+\node[phase, fit=(asr)(scoret),
+      label={[font=\small\itshape, gray]above:Nauczyciel -- system kaskadowy (bez ręcznych transkrypcji)}] {};
+\node[phase, fit=(enc)(scores),
+      label={[font=\small\itshape, gray]below:Uczeń -- model end-to-end}] {};
+
+\end{tikzpicture}

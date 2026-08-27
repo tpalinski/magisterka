@@ -1,0 +1,126 @@
+\section{Eksperymenty i wyniki}
+\label{sec:eksperymenty}
+Podrozdział przedstawia pomiary wykonane za pomocą opisanego wyżej systemu. Porównywane warianty
+są konfiguracjami tego samego grafu, przedstawionego w podrozdziale \ref{sec:sciezka}. Przedmiotem porównania są dwie architektury
+przetwarzania zapytania głosowego: klasyczna kaskada, w której nagranie jest najpierw
+transkrybowane, a dopiero powstały tekst embeddowany w przestrzeni wektorowej, oraz proponowane
+rozwiązanie, w którym reprezentacja latentna modelu ASR jest dopasowywana wprost do przestrzeni
+modelu embeddingowego. Obu towarzyszy trzecia konfiguracja, pozbawiona ścieżki głosowej i pełniąca rolę
+punktu odniesienia, a nie rozwiązania poddanego ocenie. Wszystkie przebiegi wykonano na tych
+samych pytaniach, więc różnice liczone są parami.
+
+\subsection{Metodologia}
+
+\subsubsection{Zbiory danych}
+Podstawą porównania jest zbiór PubMedQA \cite{jin2019pubmedqa}, w którym
+pytania mają przypisany artykuł źródłowy pełniący rolę dokumentu istotnego. Pytania
+przetłumaczono na język polski, a korpus przygotowano w trzech wariantach, aby rozdzielić dwa
+efekty, które w pojedynczym pomiarze pozostawałyby ze sobą splecione. Wariant pierwszy zestawia
+pytania polskie z korpusem angielskim i odpowiada sytuacji realnej, ponieważ literatura
+biomedyczna jest w przeważającej mierze anglojęzyczna. Wariant drugi zestawia pytania polskie
+z korpusem przetłumaczonym i pozwala zmierzyć, ile jakości traci samo przejście między językami.
+Wariant trzeci, w całości anglojęzyczny, pokazuje koszt użycia języka polskiego niezależnie od
+modalności. Podział ten odpowiada wprost ograniczeniom omówionym
+w podrozdziale \ref{sec:motywacja}.
+
+Ścieżka audio nie pochodzi z nagrań, lecz jest syntezowana w czasie wykonania przez węzeł syntezy
+mowy. Wybór ten zapewnia, że wszystkie porównywane konfiguracje pracują na identycznym sygnale
+wejściowym, więc różnice w wynikach nie mogą pochodzić z różnic między nagraniami. Ceną jest
+ograniczona zmienność mowy: sygnał syntetyczny nie obejmuje pełnego zakresu cech osobniczych
+mówcy, wad wymowy ani zakłóceń otoczenia. Wnioski o odporności należy zatem odnosić do zmienności
+wprowadzonej celowo, opisanej w podrozdziale \ref{sec:odpornosc}, a nie do zmienności naturalnej.
+
+\todo{Uzupełnić liczebności: pytania wykorzystane w części retrievalowej oraz podzbiór z pełnymi tekstami użyty w części generacyjnej}
+
+\subsubsection{Porównywane architektury}
+Porównaniu podlegają trzy konfiguracje. Pierwsza pomija ścieżkę głosową i kieruje do wyszukiwania
+tekst pytania. Nie jest ona rozwiązaniem poddanym ocenie, lecz wyznacza górną granicę jakości
+osiągalnej przy danym korpusie i danym modelu embeddingowym. Bez tego odniesienia nie sposób
+rozstrzygnąć, czy różnica między pozostałymi konfiguracjami wynika z architektury, czy z trudności
+samego zadania wyszukiwania. Druga konfiguracja to kaskada, w której nagranie przechodzi przez
+model ASR, a powstała transkrypcja przez model embeddingowy. Trzecia to dopasowanie reprezentacji
+latentnych, w którym wyjście enkodera ASR rzutowane jest wprost do przestrzeni modelu
+embeddingowego przez adapter wytrenowany w rozdziale \ref{sec:latentTranslation}.
+
+\todo{Uzupełnić listę wykorzystanych modeli ASR i embeddingowych wraz z uzasadnieniem doboru, opartym na wnioskach z rozdziałów \ref{sec:latent} i \ref{sec:latentTranslation}}
+
+\subsubsection{Metryki}
+Jakość wyszukiwania oceniana jest metrykami rankingowymi zdefiniowanymi w podrozdziale
+\ref{sec:metryki}: miarami Recall@k, Precision@k oraz NDCG@k dla kilku progów odcięcia, a także
+miarą MRR liczoną dla całej listy wyników. Metryki liczone są osobno dla każdego
+pytania, co jest warunkiem zastosowania testu sparowanego oraz analizy przedstawionej
+w podrozdziale \ref{sec:prog}.
+
+Jakość transkrypcji mierzona jest wskaźnikiem błędu na poziomie słów i znaków oraz wskaźnikiem
+błędu encji krytycznych. Wielkości te dotyczą wyłącznie konfiguracji kaskadowej, ponieważ
+pozostałe dwie transkrypcji nie wytwarzają. Nie są więc przedmiotem porównania między
+architekturami, lecz zmienną objaśniającą w analizie zależności między jakością transkrypcji
+a jakością wyszukiwania.
+
+\subsubsection{Aparat statystyczny}
+Każdą wielkość zbiorczą podaje się wraz z przedziałem ufności wyznaczonym metodą losowania ze
+zwracaniem (ang.\ \textit{bootstrap}), a różnice między konfiguracjami ocenia się testem
+sparowanym, ponieważ wszystkie konfiguracje przetwarzają ten sam zbiór pytań. Wybór testu
+sparowanego nie jest tu formalnością: zmienność między pytaniami jest znacznie większa niż
+różnice między architekturami, więc test dla prób niezależnych miałby na tych danych zbyt małą
+moc, by wykryć różnice, o które w porównaniu chodzi. Względy mocy testu przesądzają też o tym, że
+część wyszukiwawczą prowadzi się na pełnym zbiorze pytań. Część generacyjna ogranicza się do
+podzbioru z dostępnymi pełnymi tekstami, lecz decyduje o tym nie moc testu, a koszt obliczeniowy
+oceny odpowiedzi.
+
+\subsection{Porównanie architektur w warunkach czystych}
+\label{sec:czyste}
+Podrozdział przedstawia wyniki wyszukiwania dla nagrań niezakłóconych, osobno dla każdego wariantu
+językowego korpusu. Każdy wynik odniesiono do górnej granicy wyznaczonej przez konfigurację
+tekstową, dzięki czemu rozdzielone zostają dwa źródła utraty jakości: przejście na modalność mowy
+oraz wybór architektury przetwarzania. Osobnego omówienia wymaga różnica między wariantem
+jednojęzykowym a międzyjęzykowym, ponieważ to ona wskazuje, jaka część utraty jakości obciąża sam
+fakt zadania pytania po polsku.
+
+\todo{Uzupełnić tabelę wyników oraz ich omówienie po wykonaniu przebiegów}
+
+\subsection{Odporność na degradację sygnału}
+\label{sec:odpornosc}
+Podrozdział przedstawia jakość wyszukiwania jako funkcję stosunku sygnału do szumu, osobną krzywą
+dla każdej z porównywanych architektur, a ponadto wpływ zmiany tempa mowy oraz zmiany mówcy. Celem
+jest sprawdzenie hipotezy o odmiennym charakterze degradacji obu rozwiązań. W kaskadzie błąd
+transkrypcji usuwa termin z zapytania bezpowrotnie, ponieważ dalsze etapy nie mają już dostępu do
+sygnału, z którego termin powstał. W dopasowaniu reprezentacji latentnych sygnał nie przechodzi
+przez pośrednią postać dyskretną, więc oczekuje się degradacji łagodniejszej, rozłożonej na
+wszystkie wymiary reprezentacji zamiast skupionej w pojedynczym utraconym słowie.
+
+\todo{Uzupełnić wykresy jakości w funkcji stosunku sygnału do szumu oraz omówienie po wykonaniu przebiegów}
+
+\subsection{Zależność jakości wyszukiwania od jakości transkrypcji}
+\label{sec:prog}
+Podrozdział zestawia jakość wyszukiwania z jakością transkrypcji, pytanie po pytaniu, i na tej
+podstawie wyznacza próg jakości transkrypcji, poniżej którego kaskada przestaje przewyższać
+rozwiązanie proponowane. Ponieważ konfiguracja latentna transkrypcji nie wytwarza, jej wyniki
+przypisuje się wartości wskaźnika błędu osiągniętej przez kaskadę na tym samym pytaniu.
+Zestawienie takie jest możliwe wyłącznie dzięki temu, że obie konfiguracje przetwarzają ten sam
+zbiór, a ich wyniki pozostają powiązane identyfikatorem pytania.
+
+Próg ten jest jedynym wynikiem pracy, który przekłada się wprost na regułę doboru architektury.
+Znając spodziewaną jakość transkrypcji w danym zastosowaniu, można z niego odczytać, która ścieżka
+przetwarzania jest korzystniejsza, bez powtarzania całego porównania.
+
+\todo{Uzupełnić wykres zależności oraz wyznaczoną wartość progu wraz z przedziałem ufności}
+
+\subsection{Wykorzystanie zasobów i prędkość wyszukiwania}
+\label{sec:zasoby}
+Podrozdział przedstawia opóźnienie pełnej ścieżki przetwarzania, szczytowe zużycie pamięci karty
+graficznej, przepustowość oraz rozmiar indeksu. Oczekiwana przewaga konfiguracji latentnej wynika
+z pominięcia dekodowania autoregresyjnego: kaskada musi wytworzyć transkrypcję element po
+elemencie, podczas gdy ścieżka latentna wykonuje pojedyncze przejście w przód przez enkoder oraz
+adapter. Pomiary te są dla wyboru architektury równorzędne z jakością, ponieważ w zastosowaniu
+klinicznym o przydatności systemu decyduje nie tylko trafność wyników, lecz także czas oczekiwania
+na nie.
+
+\todo{Uzupełnić zestawienie pomiarów zasobów i opóźnień po wykonaniu przebiegów}
+
+\subsection{Wnioski}
+Podrozdział zestawia obie architektury wraz z ich osiągami, wskazując warunki, w których przewaga
+jednej z nich jest rozstrzygająca, oraz warunki, w których wybór pozostaje kompromisem między
+jakością a kosztem obliczeniowym.
+
+\todo{Uzupełnić wnioski po zebraniu wyników z podrozdziałów \ref{sec:czyste}--\ref{sec:zasoby}}

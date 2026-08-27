@@ -6,7 +6,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{tikz}
-\usetikzlibrary{positioning,fit,arrows.meta}
+\usetikzlibrary{positioning,fit,arrows.meta,calc}
 
 \addbibresource{references.bib}
 
@@ -65,6 +65,8 @@
 \usepackage{ulem}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \usepackage{booktabs}
 \usepackage{csquotes}
 \usepackage{microtype}
@@ -96,28 +98,24 @@
 
 % Badanie latent space
 \chapter{Semantyczne reprezentacje wektorów cech modeli ASR}
+\label{sec:latent}
 \input{chapters/latent}
 
 \chapter{Ewaluacja architektur dopasowania reprezentacji latentnych modeli ASR i modeli embeddingowych}
+\label{sec:latentTranslation}
 \input{chapters/latentTranslation}
 
-\chapter{System wyszukiwania informacji z wykorzystaniem architektury dopasowania reprezentacji latentnych modeli ASR i modeli embeddingowych}
-\input{chapters/retrievalSystem}
-
-% --- Część Praktyczna ---
-% \newpage
-% \section{Praktyka}
-% \input{chapters/praktyka}
+\chapter{System ewaluacji wyszukiwania informacji na podstawie zapytania głosowego}
+\label{sec:implementacja}
+\input{chapters/frameworkEwaluacji}
+\input{chapters/eksperymenty}
 
 % --- Podsumowanie ---
 \chapter{Podsumowanie}
 \input{chapters/summary}
 
-
-
 % --- Bibliografia ---
 \printbibliography
-
 
 % --- Appendix ---
 \newpage

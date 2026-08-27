@@ -1,0 +1,70 @@
+\begin{tikzpicture}[
+    scale=0.6,
+    transform shape,
+    font=\small,
+    block/.style={
+        draw,
+        rounded corners=2pt,
+        thick,
+        minimum width=2.8cm,
+        minimum height=1.0cm,
+        align=center
+    },
+    data/.style={block, fill=gray!12},
+    model/.style={block, fill=blue!20},
+    embm/.style={block, fill=purple!20},
+    store/.style={block, fill=orange!25},
+    ann/.style={block, fill=yellow!25},
+    opt/.style={block, fill=green!15, dashed},
+    arrow/.style={-{Stealth[]}, thick},
+    optarrow/.style={-{Stealth[]}, thick, dashed},
+    phase/.style={draw=gray, dashed, rounded corners=4pt, inner sep=0.4cm}
+]
+
+% ============================================================
+% FAZA ZAPYTANIA
+% ============================================================
+\node[data] (audio) {Nagranie\\audio};
+\node[model, right=1.0cm of audio] (asr) {Model ASR\\(Whisper)};
+\node[data, right=1.0cm of asr] (txt) {Tekst\\transkrypcji};
+\node[embm, right=1.0cm of txt] (qemb) {Model\\embeddingowy};
+\node[data, right=2.0cm of qemb] (qvec) {Wektor\\zapytania};
+\node[ann, right=2.0cm of qvec] (search) {Wyszukiwanie ANN};
+
+\draw[arrow] (audio) -- (asr);
+\draw[arrow] (asr) -- (txt);
+\draw[arrow] (txt) -- (qemb);
+\draw[arrow] (qemb) -- node[below, font=\scriptsize, text=gray] {$1\times d_{\mathrm{emb}}$} (qvec);
+\draw[arrow] (qvec) -- (search);
+
+% ============================================================
+% FAZA INDEKSOWANIA (równolegle, offline)
+% ============================================================
+\node[data, above=2.4cm of qemb] (docs) {Dokumenty\\tekstowe};
+\node[embm, above=2.4cm of qvec] (demb) {Model\\embeddingowy};
+\node[store, above=2.4cm of search] (db) {Wektorowa\\baza danych};
+
+\draw[arrow] (docs) -- (demb);
+\draw[arrow] (demb) -- node[below, font=\scriptsize, text=gray] {$1\times d_{\mathrm{emb}}$} (db);
+\draw[arrow] (db) -- node[right, font=\scriptsize] {indeks} (search);
+
+% ============================================================
+% WYNIKI + OPCJONALNY KOMPONENT GENERACYJNY (RAG)
+% ============================================================
+\node[data, below=1.2cm of search] (topk) {Top-$k$\\dokumentów};
+\node[opt, below=1.2cm of topk] (llm) {LLM\\(generacja)};
+\node[opt, below=1.2cm of llm] (ans) {Odpowiedź w\\języku naturalnym};
+
+\draw[arrow] (search) -- (topk);
+\draw[optarrow] (topk) -- node[left, font=\scriptsize\itshape] {opcjonalnie (RAG)} (llm);
+\draw[optarrow] (llm) -- (ans);
+
+% ============================================================
+% RAMKI FAZ
+% ============================================================
+\node[phase, fit=(docs)(db),
+      label={[font=\small\itshape, gray]above:Faza indeksowania (offline)}] {};
+\node[phase, fit=(audio)(search),
+      label={[font=\small\itshape, gray]above left:Faza zapytania}] {};
+
+\end{tikzpicture}
