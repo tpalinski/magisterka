@@ -108,18 +108,27 @@ Trening wstępny opiera się na metodyce Data2Vec \cite{data2vec}, która jest s
 \end{equation}
 gdzie $\mathcal{M}$ oznacza zbiór zamaskowanych kroków czasowych. Reprezentacje modelu nauczyciela są traktowane jako wartości docelowe, nie wymagające propagacji gradientu.
 
-Następnie aktualizowane są parametry modelu ucznia za pomocą propagacji wstecznej, po czym parametry modelu nauczyciela modyfikowane są na podstawie średniej kroczącej wykładniczej i parametrów modelu ucznia, skalowane za pomocą parametru wyżarzania $\theta$:
+Następnie aktualizowane są parametry modelu ucznia za pomocą propagacji wstecznej, po czym parametry modelu nauczyciela modyfikowane są na podstawie średniej kroczącej wykładniczej i parametrów modelu ucznia:
 \begin{equation}
-    \theta_{T}^{(t)} = \lambda_t \theta*{T}^{(t-1)} + (1-\lambda_t)\boldsymbol{\theta}*{S}^{(t)}
+    \theta_{T}^{(t)} = \lambda_t \theta_{T}^{(t-1)} + (1-\lambda_t)\theta_{S}^{(t)}
 \end{equation}
 
-gdzie $\theta*{T}^{(t)}$ oznacza parametry modelu nauczyciela w kroku $t$, $\theta*{S}^{(t)}$ oznacza parametry modelu ucznia po aktualizacji za pomocą propagacji wstecznej, natomiast $\lambda_t$ jest współczynnikiem średniej kroczącej wykładniczej. Współczynnik ten jest wyznaczany na podstawie parametru wyżarzania $\theta$ zgodnie z:
+gdzie $\theta_{T}^{(t)}$ oznacza parametry modelu nauczyciela w kroku $t$, $\theta_{S}^{(t)}$ oznacza parametry modelu ucznia po aktualizacji za pomocą propagacji wstecznej, natomiast $\lambda_t$ jest współczynnikiem średniej kroczącej wykładniczej, którego wartość zwiększana jest w trakcie początkowej fazy treningu. Niech $\lambda_{\mathrm{init}}$ oraz $\lambda_{\mathrm{target}}$ oznaczają odpowiednio hiperparametry odpowiedzialne za początkową i docelową wartość współczynnika, a $T_{\mathrm{warm}}$ hiperparametr liczby kroków wyżarzania. Wtedy:
 \begin{equation}
-\lambda_t = \theta^{\frac{t}{T}},
+\lambda_t =
+\begin{cases}
+\lambda_{\mathrm{init}}
++
+\dfrac{\lambda_{\mathrm{target}}-\lambda_{\mathrm{init}}}{t},
+& t < T_{\mathrm{warm}}, \\
+\lambda_{\mathrm{target}},
+& t \geq T_{\mathrm{warm}}
+\end{cases}
 \end{equation}
-gdzie $T$ oznacza całkowitą liczbę kroków treningowych, a $\theta$ określa końcową wartość współczynnika EMA. W ten sposób wraz z postępem treningu parametry nauczyciela są coraz silniej zależne od historycznych wartości jego parametrów, pozwalając na większą swobodę na poszukiwanie optymalnego rozwiązania problemu minimializacyjnego na początku treningu, prowadząc do dokładniejszych reprezentacji modelu nauczyciela.
 
-Dobór współczynnika $\theta$ stanowi krytyczny wybór w ramach treningu metodą data2vec. Nieodpowiednie dopasowanie jego wartości prowadzić może do przypadku, w którym model ucznia uczy się trywialnych reperezentacji, doprowadzając do zjawiska zwanego \textit{załamaniem wariancji}. Dlatego właśnie krytyczne podczas treningu jest monitorowanie wariancji reprezentacji zarówno modelu ucznia, jak i nauczyciela -- sama wartość funkcji straty może być niezwykle myląca, szczególnie w świetle późniejszego wykorzystania pretrenowanego modelu w modelu \textit{Embedding Alignment Model}, ponieważ nie gwarantuje ona jakości generowanych przez model reprezentacji.
+Zastosowanie dynamicznej zmiany wartości parametru $\lambda_t$ w ramach treningu pozwala na modyfikowanie relacji między modelem ucznia i nauczyciela. Początkowo, mniejsza wartość tego parametru zwiększa znaczenie parametrów modelu ucznia przy aktualizacji modelu nauczyciela, bardziej zbliżając do siebie oba modele pod względem wartości wag, co pomaga w początkowej, niestabilnej fazie treningu. W miarę stabilizacji reprezentacji w późniejszych etapach treningu, model nauczyciela coraz mniej podąża za aktualizacjami modelu ucznia, stanowiąc stabilniejszy generator reprezentacji docelowych.
+
+Dobór hiperparametrów $\lambda_{\mathrm{init}}$, $\lambda_{\mathrm{target}}$ i $T_{\mathrm{warm}}$, odpowiadających za przebieg wartości współczynnika $\lambda_t$ stanowi krytyczny wybór w ramach treningu metodą data2vec. Nieodpowiednie dopasowanie ich wartości prowadzić może do przypadku, w którym model ucznia uczy się trywialnych reperezentacji, doprowadzając do zjawiska zwanego \textit{załamaniem wariancji}. Dlatego właśnie krytyczne podczas treningu jest monitorowanie wariancji reprezentacji zarówno modelu ucznia, jak i nauczyciela -- sama wartość funkcji straty może być niezwykle myląca, szczególnie w świetle późniejszego wykorzystania pretrenowanego modelu w modelu \textit{Embedding Alignment Model}, ponieważ nie gwarantuje ona jakości generowanych przez model reprezentacji.
 
 Trening wstępny metodą Data2Vec w modelach embeddingowych nie jest szeroko zgłębioną w literaturze metodą. W pracy \textit{mRNA2vec: mRNA Embedding with Language Model in the 5'UTR-CDS for mRNA Design} \cite{mrna2vec}, autorzy z powodzeniem wykorzystali trening wstępny oparty na metodzie Data2Vec w ramach modelu embeddingowego służącego do wyszukiwania sekwencji mRNA. Końcowy model osiągał wyniki wyższe niż istniejące modele, jednakże sekwencje mRNA stanowią drastycznie różnią się od zarówno mowy jak i tekstu, co nie stanowi jednoznacznego potwierdzenia skuteczności tej metody w ramach modelu \textit{EAM}. Ponadto, sama praca nie obejmuje analizy wynikowej przestrzeni wyjściowej modelu Data2Vec i jej właściwości w świetle geometrii reprezentacji latentnej. Dodatkowo, największą różnicą między wykorzystaniem Data2Vec w ramach modelu \textit{mRNA2vec} a \textit{EAM} jest jej umiejscowienie w łańcuchu przetwarzania -- \textit{mRNA2vec} wykorzustuje ją w ramach treningu bazowego enkodera, natomiast \textit{EAM} jako swoisty adapter dla bazowego, zamrożonego enkodera. Możliwe jest, że predykcja zamaskowanych kroków czasowych dobrze reprezentowanych pod względem ich semantyki i wykorzystnie nie zmieniającego się modelu ekstrakcji cech pogorszy działanie końcowego modelu, więc poprawność tej metody dla proponowanego w tej pracy zastosowania wymaga sprawdzenia empirycznego. Kolejnym potencjalnym zagrożeniem jest pogorszenie izotropii przestrzeni związane z dodaniem kolejnych warstw modelu. W celu prewencji takiego zachowania modelu, podczas treningu wstępnego metodą Data2Vec dodana została regularyzacja względem wariancji i kowariancji na całą wynikową przestrzeń latentą zainspirowana metodą \textit{VICReg} \cite{bardes2022vicreg}, podobnie jak w przypadku bazowego modelu \textit{Embedding Alignment Model}, która opisana jest równaniem \ref{eq:vicregData2Vec}:
 
