@@ -1,30 +1,30 @@
-\subsection{Kontekst i motywacja}
+\section{Kontekst i motywacja}
 
-\subsubsection{Wyszukiwanie informacji w bazach specjalistycznych}
+\subsection{Wyszukiwanie informacji w bazach specjalistycznych}
 
 Tradycyjne systemy wyszukiwania informacji opierały się na modelu boolowskim (ang. \textit{Boolean Information Retrieval}), w którym zapytania formułowane są za pomocą operatorów logicznych AND, OR oraz NOT \cite{salton1983introduction}. Podejście to, choć precyzyjne w założeniach teoretycznych, wymaga od użytkownika znajomości składni zapytań i nie uwzględnia zjawisk językowych takich jak synonimia czy polisemia \cite{manning2008introduction}. Ograniczenia te doprowadziły do rozwoju systemów typu \textit{free text retrieval}, w których zapytania formułowane są w języku naturalnym, a dokumenty rankingowane według stopnia dopasowania \cite{robertson2009probabilistic}.
 
-Ewolucja ta jest szczególnie widoczna w kontekście specjalistycznych baz danych, takich jak PubMed czy MEDLINE, które początkowo opierały się na kontrolowanych słownikach (MeSH - \textit{Medical Subject Headings}) i zapytaniach boolowskich \cite{lu2011pubmed}. Współczesne interfejsy tych systemów oferują jednak wyszukiwanie w języku naturalnym z automatycznym rozszerzaniem zapytań o synonimy i terminy pokrewne, co znacząco obniża barierę wejścia dla użytkowników końcowych - lekarzy i badaczy nieposiadających przygotowania z zakresu informatologii. Dalszy postęp w tej dziedzinie wiąże się z zastosowaniem modeli uczenia głębokiego do reprezentacji semantycznej tekstu oraz architektur typu RAG (ang. \textit{Retrieval-Augmented Generation}), które zostały szczegółowo omówione w rozdziale 2.
+Ewolucja ta jest szczególnie widoczna w kontekście specjalistycznych baz danych, takich jak PubMed czy MEDLINE, które początkowo opierały się na kontrolowanych słownikach (MeSH - \textit{Medical Subject Headings}) i zapytaniach boolowskich \cite{lu2011pubmed}. Współczesne interfejsy tych systemów oferują jednak wyszukiwanie w języku naturalnym z automatycznym rozszerzaniem zapytań o synonimy i terminy pokrewne, co znacząco obniża barierę wejścia dla użytkowników końcowych - lekarzy i badaczy nieposiadających przygotowania z zakresu informatologii. Dalszy postęp w tej dziedzinie wiąże się z zastosowaniem modeli uczenia głębokiego do reprezentacji semantycznej tekstu oraz architektur typu RAG (ang. \textit{Retrieval-Augmented Generation}), które zostały szczegółowo omówione w rozdziale \ref{sec:przeglad}.
 
-\subsubsection{Rola przetwarzania mowy w wyszukiwaniu informacji}
+\subsection{Rola przetwarzania mowy w wyszukiwaniu informacji}
 
-Współczesne modele automatycznego rozpoznawania mowy (ang. \textit{Automatic Speech Recognition}, ASR) umożliwiają formułowanie zapytań do systemów wyszukiwania informacji za pomocą mowy, co jest szczególnie istotne w środowiskach klinicznych, gdzie ręczne wprowadzanie tekstu jest niepraktyczne. Modele takie jak Whisper \cite{whisper}, Wav2Vec 2.0 \cite{baevski2020wav2vec} czy HuBERT \cite{hsu2021hubert} osiągają wysoką jakość transkrypcji dla wielu języków, jednak w podejściu kaskadowym (ASR $\rightarrow$ embedding tekstowy $\rightarrow$ wyszukiwanie) błędy transkrypcji propagują się do kolejnych etapów, obniżając jakość wyników wyszukiwania. Szczegółowy przegląd architektury i możliwości tych modeli przedstawiono w rozdziale 2.
+Współczesne modele automatycznego rozpoznawania mowy (ang. \textit{Automatic Speech Recognition}, ASR) umożliwiają formułowanie zapytań do systemów wyszukiwania informacji za pomocą mowy, co jest szczególnie istotne w środowiskach klinicznych, gdzie ręczne wprowadzanie tekstu jest niepraktyczne. Modele takie jak Whisper \cite{whisper}, Wav2Vec 2.0 \cite{baevski2020wav2vec} czy HuBERT \cite{hsu2021hubert} osiągają wysoką jakość transkrypcji dla wielu języków, jednak w podejściu kaskadowym (ASR $\rightarrow$ embedding tekstowy $\rightarrow$ wyszukiwanie) błędy transkrypcji propagują się do kolejnych etapów, obniżając jakość wyników wyszukiwania. Szczegółowy przegląd architektury i możliwości tych modeli przedstawiono w rozdziale \ref{sec:przeglad}.
 
-\subsubsection{Ograniczenia modeli dla języka polskiego i domen specjalistycznych}
+\subsection{Ograniczenia modeli dla języka polskiego i domen specjalistycznych}
 \label{sec:motywacja}
 
 Współczesne modele uczenia głębokiego są w przeważającej mierze trenowane na danych w języku angielskim. Zbiory danych wykorzystywane do pretrainingu dużych modeli językowych, takie jak Common Crawl, Wikipedia czy arXiv, charakteryzują się znaczącą nadreprezentacją treści anglojęzycznych \cite{joshi2020state}. Szacuje się, że język angielski stanowi ponad 90\% danych treningowych wielu popularnych modeli, mimo że jest językiem ojczystym jedynie dla około 5\% światowej populacji \cite{bender2021dangers}.
 
 Nierównowaga ta ma istotne konsekwencje dla jakości modeli w kontekście języków innych niż angielski. Języki regionalne, w tym język polski, są klasyfikowane jako języki o średnich lub niskich zasobach (ang. \textit{mid-resource} lub \textit{low-resource languages}) \cite{joshi2020state}. Modele wielojęzyczne, takie jak mBERT \cite{devlin2019bert}, XLM-RoBERTa \cite{conneau2020unsupervised} czy Whisper \cite{whisper}, stanowią próbę rozwiązania tego problemu, jednak badania empiryczne wskazują, że ich jakość dla języków innych niż angielski jest systematycznie niższa \cite{wu2020all}, szczególnie w zadaniach wymagających znajomości specjalistycznej terminologii.
 
-Ograniczenia modeli ogólnego przeznaczenia w kontekście domen specjalistycznych wynikają nie tylko z nierównowagi językowej, ale również z charakteru danych treningowych. Modele ASR są trenowane głównie na podcastach, filmach i nagraniach z platformy YouTube \cite{whisper}, które rzadko zawierają specjalistyczną terminologię medyczną. Analogiczny problem dotyczy modeli embeddingowych, których reprezentacje wektorowe terminów specjalistycznych mogą nie odzwierciedlać poprawnie ich znaczenia w kontekście domenowym \cite{lee2020biobert}. Istnieją rozwiązania w postaci modeli dostosowanych do konkretnych domen, jednak dotyczą one przede wszystkim języka angielskiego (zob. rozdział 2).
+Ograniczenia modeli ogólnego przeznaczenia w kontekście domen specjalistycznych wynikają nie tylko z nierównowagi językowej, ale również z charakteru danych treningowych. Modele ASR są trenowane głównie na podcastach, filmach i nagraniach z platformy YouTube \cite{whisper}, które rzadko zawierają specjalistyczną terminologię medyczną. Analogiczny problem dotyczy modeli embeddingowych, których reprezentacje wektorowe terminów specjalistycznych mogą nie odzwierciedlać poprawnie ich znaczenia w kontekście domenowym \cite{lee2020biobert}. Istnieją rozwiązania w postaci modeli dostosowanych do konkretnych domen, jednak dotyczą one przede wszystkim języka angielskiego (zob. rozdział \ref{sec:przeglad}).
 
 Kluczowym wyzwaniem pozostaje ograniczona dostępność specjalistycznych zbiorów danych dla języka polskiego. Podczas gdy dla języka angielskiego istnieją obszerne zbiory tekstów medycznych, takie jak MIMIC-III \cite{johnson2016mimic} czy PubMed, dla języka polskiego brakuje porównywalnych zasobów. Dokumentacja medyczna w języku polskim jest rozproszona, często niedostępna ze względów prawnych i wymaga pracochłonnej anonimizacji przed wykorzystaniem do celów badawczych. Sytuacja ta tworzy błędne koło: brak danych uniemożliwia trening wysokiej jakości modeli, co z kolei utrudnia automatyzację procesów, które mogłyby wspomóc tworzenie i przetwarzanie takich zbiorów.
 
 % ----------------------------------------
-\subsection{Proponowane podejście}
+\section{Proponowane podejście}
 
-\subsubsection{System wyszukiwania oparty na transkrypcji audio i wektorowej bazie danych}
+\subsection{System wyszukiwania oparty na transkrypcji audio i wektorowej bazie danych}
 
 Klasyczna architektura systemu wyszukiwania informacji na podstawie zapytań głosowych opiera się na sekwencyjnym przetwarzaniu sygnału audio przez oddzielne moduły. Podejście to można określić jako pipeline kaskadowy, w którym każdy etap przetwarza dane wyjściowe etapu poprzedniego.
 
@@ -48,7 +48,7 @@ W tym miejscu autorzy niniejszej pracy chcieliby się odnieść się do pojęcia
 
 Ponadto redukcja sygnału audio do tekstu prowadzi do utraty informacji. Cechy prozodyczne, takie jak intonacja, tempo mowy czy wahania, mogą nieść informację o pewności lub intencji mówiącego. Informacje te są tracone w procesie transkrypcji. Przykładowo, termin medyczny wymówiony z wahaniem może wskazywać na niepewność diagnostyczną, jednak po transkrypcji jest nieodróżnialny od tego samego terminu wymówionego z pewnością.
 
-\subsubsection{Proponowany system wyszukiwania informacji oparty na reprezentacji cech ukrytych modelu ASR}
+\subsection{Proponowany system wyszukiwania informacji oparty na reprezentacji cech ukrytych modelu ASR}
 
 Alternatywnym podejściem jest bezpośrednie wykorzystanie reprezentacji ukrytych generowanych przez enkoder modelu ASR do wyszukiwania informacji, z pominięciem etapu transkrypcji tekstowej. Koncepcja ta, określana jako Speech-to-Retrieval, opiera się na założeniu, że reprezentacje ukryte modeli ASR zawierają informację semantyczną wystarczającą do realizacji zadań wyszukiwania.
 
@@ -69,7 +69,7 @@ Potencjalne zalety proponowanego podejścia obejmują redukcję latencji poprzez
 
 Podejście to wiąże się jednak z istotnymi wyzwaniami. Brak transkrypcji utrudnia weryfikację i interpretację działania systemu przez użytkownika. Wyjaśnialność systemu jest ograniczona, ponieważ trudniej jest zrozumieć, dlaczego system zwrócił określone dokumenty. Trening warstwy projekcji wymaga odpowiednio dużego zbioru danych. Ponadto modele ASR nie były pierwotnie trenowane z myślą o zadaniach wyszukiwania informacji, co może ograniczać jakość reprezentacji semantycznych.
 
-\subsubsection{Pytania badawcze}
+\subsection{Pytania badawcze}
 
 Porównanie przedstawionych architektur prowadzi do sformułowania pytań badawczych stanowiących przedmiot niniejszej pracy:
 
@@ -83,11 +83,11 @@ Porównanie przedstawionych architektur prowadzi do sformułowania pytań badawc
 Odpowiedzi na te pytania pozwolą na ocenę praktycznej przydatności podejścia Speech-to-Retrieval w kontekście specjalistycznych systemów wyszukiwania informacji dla języka polskiego.
 
 % ----------------------------------------
-\subsection{Struktura pracy}
+\section{Struktura pracy}
 
-Dalsza część pracy jest zorganizowana w następujący sposób. Rozdział 2 zawiera przegląd literatury obejmujący systemy wyszukiwania informacji, modele embeddingowe,
-architekturę RAG oraz współczesne modele ASR. W rozdziale 3 przedstawiono badania nad semantycznością reprezentacji wektorów cech modeli ASR.
-Rozdział 4 opisuje ewaluację architektur dopasowania reprezentacji latentnych modeli ASR i modeli embeddingowych. 
-Rozdział 5 dzieli się na dwie części. Pierwsza przedstawia system ewaluacji zbudowany na potrzeby pracy. Druga zawiera eksperymenty porównujące architekturę kaskadową
+Dalsza część pracy jest zorganizowana w następujący sposób. Rozdział \ref{sec:przeglad} zawiera przegląd literatury obejmujący systemy wyszukiwania informacji, modele embeddingowe,
+architekturę RAG oraz współczesne modele ASR. W rozdziale \ref{sec:latent} przedstawiono badania nad semantycznością reprezentacji wektorów cech modeli ASR.
+Rozdział \ref{sec:latentTranslation} opisuje ewaluację architektur dopasowania reprezentacji latentnych modeli ASR i modeli embeddingowych. 
+Rozdział \ref{sec:implementacja} dzieli się na dwie części. Pierwsza przedstawia system ewaluacji zbudowany na potrzeby pracy. Druga zawiera eksperymenty porównujące architekturę kaskadową
 z proponowanym dopasowaniem reprezentacji latentnych oraz omówienie uzyskanych wyników.
-Rozdział 6 zawiera podsumowanie i wnioski.
+Rozdział \ref{sec:podsumowanie} zawiera podsumowanie i wnioski.
