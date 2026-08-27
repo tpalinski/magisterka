@@ -1,83 +1,202 @@
 \section{Eksperymenty i wyniki}
 \label{sec:eksperymenty}
-Podrozdział przedstawia pomiary wykonane za pomocą opisanego wyżej systemu. Porównywane warianty
-są konfiguracjami tego samego grafu, przedstawionego w podrozdziale \ref{sec:sciezka}. Przedmiotem porównania są dwie architektury
-przetwarzania zapytania głosowego: klasyczna kaskada, w której nagranie jest najpierw
-transkrybowane, a dopiero powstały tekst embeddowany w przestrzeni wektorowej, oraz proponowane
-rozwiązanie, w którym reprezentacja latentna modelu ASR jest dopasowywana wprost do przestrzeni
-modelu embeddingowego. Obu towarzyszy trzecia konfiguracja, pozbawiona ścieżki głosowej i pełniąca rolę
-punktu odniesienia, a nie rozwiązania poddanego ocenie. Wszystkie przebiegi wykonano na tych
-samych pytaniach, więc różnice liczone są parami.
+Podrozdział przedstawia pomiary wykonane za pomocą opisanego wyżej systemu. Porównywane warianty są
+konfiguracjami tego samego grafu, przedstawionego w podrozdziale \ref{sec:sciezka}. Przedmiotem
+porównania są dwie architektury przetwarzania zapytania głosowego: klasyczna kaskada, w której
+nagranie jest najpierw transkrybowane, a dopiero powstały tekst embeddowany w przestrzeni
+wektorowej, oraz proponowane rozwiązanie, w którym reprezentacja latentna modelu ASR jest
+dopasowywana wprost do przestrzeni modelu embeddingowego. Obu towarzyszy trzecia konfiguracja,
+pozbawiona ścieżki głosowej i pełniąca rolę punktu odniesienia, a nie rozwiązania poddanego ocenie.
+Pomiary prowadzone są na dwóch zestawach danych opisanych w podrozdziale~\ref{sec:zbiory}.
+Porównywane konfiguracje przetwarzają w obrębie jednego zestawu ten sam zbiór pytań, więc różnice
+liczone są parami.
 
 \subsection{Metodologia}
 
 \subsubsection{Zbiory danych}
-Podstawą porównania jest zbiór PubMedQA \cite{jin2019pubmedqa}, w którym
-pytania mają przypisany artykuł źródłowy pełniący rolę dokumentu istotnego. Pytania
-przetłumaczono na język polski, a korpus przygotowano w trzech wariantach, aby rozdzielić dwa
-efekty, które w pojedynczym pomiarze pozostawałyby ze sobą splecione. Wariant pierwszy zestawia
-pytania polskie z korpusem angielskim i odpowiada sytuacji realnej, ponieważ literatura
-biomedyczna jest w przeważającej mierze anglojęzyczna. Wariant drugi zestawia pytania polskie
-z korpusem przetłumaczonym i pozwala zmierzyć, ile jakości traci samo przejście między językami.
-Wariant trzeci, w całości anglojęzyczny, pokazuje koszt użycia języka polskiego niezależnie od
-modalności. Podział ten odpowiada wprost ograniczeniom omówionym
-w podrozdziale \ref{sec:motywacja}.
+\label{sec:zbiory}
+Podstawą porównania jest zbiór PubMedQA \cite{jin2019pubmedqa}, w którym każde pytanie ma przypisany
+artykuł źródłowy, pełniący rolę jedynego dokumentu istotnego. Zbiór występuje w dwóch
+konfiguracjach: anotowanej przez ekspertów, liczącej tysiąc pytań, oraz etykietowanej automatycznie,
+obejmującej ponad dwieście tysięcy pytań. Wybrano konfigurację anotowaną, mimo że jest o dwa rzędy
+wielkości mniejsza, ponieważ w konfiguracji automatycznej ponad dziewięćdziesiąt procent odpowiedzi
+to ,,tak'', a klasa ,,może'' praktycznie nie występuje. Trafność decyzji mierzona na takim materiale
+nie odróżniałaby systemu od odpowiadania stałą wartością.
+
+Eksperymenty prowadzi się na dwóch zestawach, z których każdy odpowiada na inne pytanie. Zestaw
+główny to całość konfiguracji anotowanej: tysiąc pytań i tysiąc dokumentów, w całości
+anglojęzycznych. Służy on porównaniu samych architektur przetwarzania, ponieważ daje moc testu oraz
+dziesięciokrotnie większy korpus, w którym trafienie w dokument istotny jest odpowiednio
+trudniejsze. Zestaw językowy liczy sto pytań, jest ścisłym podzbiorem poprzedniego i występuje w
+trzech wariantach językowych; służy zmierzeniu kosztu zadania pytania po polsku oraz ocenie
+odpowiedzi generowanych z pełnych artykułów.
+
+Podział ten wynika z natury badanego zjawiska. Różnica między kaskadą a dopasowaniem reprezentacji
+latentnych bierze się z tego, że pierwsza przepuszcza sygnał przez pośrednią postać dyskretną, a
+druga nie; mechanizm ten nie zależy od języka zapytania. Rozstrzygnięcie, która architektura jest
+lepsza, wymaga zatem przede wszystkim mocy statystycznej, którą daje zestaw większy. Osobnym
+pytaniem jest to, ile jakości ubywa, gdy zapytanie pada po polsku, i na nie odpowiada zestaw
+mniejszy.
+
+Zestaw językowy liczy sto pytań, a nie tysiąc, z dwóch powodów naraz. Po pierwsze wariant z korpusem
+polskim wymaga przetłumaczenia każdego dokumentu, a tłumaczenie tysiąca abstraktów przekraczało
+dostępne zasoby. Po drugie ocena generacji wymaga pełnych tekstów artykułów, te zaś są dostępne
+wyłącznie dla podzbioru: spośród tysiąca artykułów konfiguracji anotowanej pełny tekst udaje się
+pobrać z otwartego repozytorium PMC dla stu piętnastu, czyli dla 11,5 procent. Wybrano sto pytań
+spełniających oba warunki naraz, dzięki czemu ten sam zestaw obsługuje część językową i część
+generacyjną.
+
+Korpus zestawu językowego przygotowano w trzech wariantach, aby rozdzielić dwa efekty, które w
+pojedynczym pomiarze pozostawałyby ze sobą splecione. Wariant pierwszy zestawia pytania polskie z
+korpusem angielskim i odpowiada sytuacji realnej, ponieważ literatura biomedyczna jest w
+przeważającej mierze anglojęzyczna. Wariant drugi zestawia pytania polskie z korpusem
+przetłumaczonym i pozwala zmierzyć, ile jakości traci samo przejście między językami. Wariant
+trzeci, w całości anglojęzyczny, pokazuje koszt użycia języka polskiego niezależnie od modalności.
+Podział ten odpowiada wprost ograniczeniom omówionym w podrozdziale \ref{sec:motywacja}. Wszystkie
+trzy warianty obejmują te same sto pytań i te same sto dokumentów, rozpoznawane po wspólnych
+identyfikatorach, więc różnice liczone są parami, pytanie po pytaniu.
+
+Tłumaczenie na język polski wykonano modelem językowym, osobno dla treści pytania, tytułu dokumentu,
+abstraktu i odpowiedzi referencyjnej; etykiety decyzji pozostawiono w postaci oryginalnej, ponieważ
+ocena porównuje je z literałami zbioru. Pełne teksty artykułów pozostają wyłącznie anglojęzyczne,
+zatem ocena odpowiedzi generowanych z pobranego kontekstu przebiega zawsze na materiale angielskim,
+także wtedy, gdy pytanie zadano po polsku. Charakterystykę obu zbiorów zestawiono w
+tabeli~\ref{tab:zbior}.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}L{6.4cm}L{2.5cm}L{2.5cm}L{2.5cm}@{}}
+\toprule
+& \textbf{Zestaw główny} & \multicolumn{2}{c}{\textbf{Zestaw językowy}} \\
+\cmidrule(lr){2-2}\cmidrule(lr){3-4}
+\textbf{Wielkość} & angielski & angielski & polski \\
+\midrule
+Liczba pytań                              & 1000          & 100        & 100 \\
+Liczba dokumentów w korpusie              & 1000          & 100        & 100 \\
+Dokumenty istotne na pytanie              & 1             & 1          & 1 \\
+Rozkład odpowiedzi (tak / nie / może)     & 552/338/110   & 56/36/8    & 56/36/8 \\
+Długość pytania (mediana, słowa)          & 13            & 12,5       & 13 \\
+Długość abstraktu (mediana, słowa)        & 201           & 209        & 206 \\
+Długość pełnego artykułu (mediana, słowa) & ---           & 3286       & --- \\
+\bottomrule
+\end{tabular}
+\caption{Charakterystyka zbiorów użytych w eksperymentach. Zestaw językowy jest ścisłym podzbiorem
+głównego, a jego wersje językowe obejmują te same pytania i dokumenty, rozpoznawane po wspólnych
+identyfikatorach. Pełne teksty artykułów są dostępne wyłącznie w wersji angielskiej zestawu
+językowego.}
+\label{tab:zbior}
+\end{table}
+
+Oba korpusy są małe wobec zastosowania rzeczywistego, w którym system przeszukuje zbiór o kilka
+rzędów wielkości większy, więc bezwzględne wartości metryk rankingowych należy czytać jako
+optymistyczne. Dotyczy to zwłaszcza korpusu stu dokumentów, gdzie nawet losowy ranking trafia w
+dokument istotny co dziesiąte pytanie przy progu odcięcia równym dziesięć. Nie unieważnia to
+porównania, ponieważ wszystkie konfiguracje pracują na tym samym korpusie, a przedmiotem oceny jest
+różnica między nimi, nie poziom bezwzględny. Ponieważ zestaw językowy jest podzbiorem głównego,
+wynik konfiguracji anglojęzycznej można policzyć na obu i sprawdzić, czy setka zachowuje się jak
+tysiąc; rozbieżność wskazywałaby, że efekt przypisany językowi bierze się z doboru podzbioru.
 
 Ścieżka audio nie pochodzi z nagrań, lecz jest syntezowana w czasie wykonania przez węzeł syntezy
 mowy. Wybór ten zapewnia, że wszystkie porównywane konfiguracje pracują na identycznym sygnale
 wejściowym, więc różnice w wynikach nie mogą pochodzić z różnic między nagraniami. Ceną jest
-ograniczona zmienność mowy: sygnał syntetyczny nie obejmuje pełnego zakresu cech osobniczych
-mówcy, wad wymowy ani zakłóceń otoczenia. Wnioski o odporności należy zatem odnosić do zmienności
+ograniczona zmienność mowy: sygnał syntetyczny nie obejmuje pełnego zakresu cech osobniczych mówcy,
+wad wymowy ani zakłóceń otoczenia. Wnioski o odporności należy zatem odnosić do zmienności
 wprowadzonej celowo, opisanej w podrozdziale \ref{sec:odpornosc}, a nie do zmienności naturalnej.
-
-\todo{Uzupełnić liczebności: pytania wykorzystane w części retrievalowej oraz podzbiór z pełnymi tekstami użyty w części generacyjnej}
 
 \subsubsection{Porównywane architektury}
 Porównaniu podlegają trzy konfiguracje. Pierwsza pomija ścieżkę głosową i kieruje do wyszukiwania
 tekst pytania. Nie jest ona rozwiązaniem poddanym ocenie, lecz wyznacza górną granicę jakości
 osiągalnej przy danym korpusie i danym modelu embeddingowym. Bez tego odniesienia nie sposób
 rozstrzygnąć, czy różnica między pozostałymi konfiguracjami wynika z architektury, czy z trudności
-samego zadania wyszukiwania. Druga konfiguracja to kaskada, w której nagranie przechodzi przez
-model ASR, a powstała transkrypcja przez model embeddingowy. Trzecia to dopasowanie reprezentacji
-latentnych, w którym wyjście enkodera ASR rzutowane jest wprost do przestrzeni modelu
-embeddingowego przez adapter wytrenowany w rozdziale \ref{sec:latentTranslation}.
+samego zadania wyszukiwania. Druga konfiguracja to kaskada, w której nagranie przechodzi przez model
+ASR, a powstała transkrypcja przez model embeddingowy. Trzecia to dopasowanie reprezentacji
+latentnych, w którym wyjście enkodera ASR rzutowane jest wprost do przestrzeni modelu embeddingowego
+przez adapter wytrenowany w rozdziale \ref{sec:latentTranslation}.
 
 \todo{Uzupełnić listę wykorzystanych modeli ASR i embeddingowych wraz z uzasadnieniem doboru, opartym na wnioskach z rozdziałów \ref{sec:latent} i \ref{sec:latentTranslation}}
 
 \subsubsection{Metryki}
 Jakość wyszukiwania oceniana jest metrykami rankingowymi zdefiniowanymi w podrozdziale
-\ref{sec:metryki}: miarami Recall@k, Precision@k oraz NDCG@k dla kilku progów odcięcia, a także
-miarą MRR liczoną dla całej listy wyników. Metryki liczone są osobno dla każdego
-pytania, co jest warunkiem zastosowania testu sparowanego oraz analizy przedstawionej
-w podrozdziale \ref{sec:prog}.
+\ref{sec:metryki}. Dobór metryk ogranicza jednak struktura zbioru: każde pytanie ma dokładnie
+jeden dokument istotny, czyli artykuł, z którego powstało. Dla pojedynczego pytania skuteczność
+wyszukiwania przyjmuje wtedy wartość zero albo jeden, precyzja na progu $k$ jest jej stałą
+wielokrotnością, a średnia precyzja pokrywa się z odwrotnością rangi. Raportuje się zatem Recall@k
+oraz NDCG@k dla progów $k \in \{1,5,10\}$, a także MRR liczoną dla całej listy wyników; Precision@k
+i MAP pominięto, ponieważ na tych danych nie wnoszą nic ponad to, co zawierają pozostałe miary.
+Metryki liczone są osobno dla każdego pytania, co jest warunkiem zastosowania testu sparowanego oraz
+analizy przedstawionej w podrozdziale \ref{sec:prog}.
 
-Jakość transkrypcji mierzona jest wskaźnikiem błędu na poziomie słów i znaków oraz wskaźnikiem
-błędu encji krytycznych. Wielkości te dotyczą wyłącznie konfiguracji kaskadowej, ponieważ
-pozostałe dwie transkrypcji nie wytwarzają. Nie są więc przedmiotem porównania między
-architekturami, lecz zmienną objaśniającą w analizie zależności między jakością transkrypcji
-a jakością wyszukiwania.
+Jakość transkrypcji mierzona jest wskaźnikiem błędu na poziomie słów i znaków. Wielkości te dotyczą
+wyłącznie konfiguracji kaskadowej, ponieważ pozostałe dwie transkrypcji nie wytwarzają. Nie są więc
+przedmiotem porównania między architekturami, lecz zmienną objaśniającą w analizie zależności między
+jakością transkrypcji a jakością wyszukiwania.
 
 \subsubsection{Aparat statystyczny}
 Każdą wielkość zbiorczą podaje się wraz z przedziałem ufności wyznaczonym metodą losowania ze
-zwracaniem (ang.\ \textit{bootstrap}), a różnice między konfiguracjami ocenia się testem
-sparowanym, ponieważ wszystkie konfiguracje przetwarzają ten sam zbiór pytań. Wybór testu
-sparowanego nie jest tu formalnością: zmienność między pytaniami jest znacznie większa niż
-różnice między architekturami, więc test dla prób niezależnych miałby na tych danych zbyt małą
-moc, by wykryć różnice, o które w porównaniu chodzi. Względy mocy testu przesądzają też o tym, że
-część wyszukiwawczą prowadzi się na pełnym zbiorze pytań. Część generacyjna ogranicza się do
-podzbioru z dostępnymi pełnymi tekstami, lecz decyduje o tym nie moc testu, a koszt obliczeniowy
-oceny odpowiedzi.
+zwracaniem (ang.\ \textit{bootstrap}), a różnice między konfiguracjami ocenia się testem sparowanym,
+ponieważ wszystkie konfiguracje przetwarzają ten sam zbiór pytań. Zmienność między pytaniami jest
+znacznie większa niż różnice między architekturami, więc test dla prób niezależnych miałby na tych
+danych zbyt małą moc, by wykryć badane różnice.
+
+Porównanie architektur, analizę odporności, wyznaczenie progu jakości transkrypcji oraz pomiary
+zasobów prowadzi się na zestawie tysiąca pytań, ponieważ wszystkie wymagają mocy testu. Efekt języka
+oraz ocenę odpowiedzi generowanych z kontekstu prowadzi się na zestawie stu pytań, ponieważ tylko on
+istnieje w wariantach językowych i tylko dla niego dostępne są pełne teksty. Każde porównanie opiera
+się na pełnym komplecie par danego zestawu; sto par jest liczbą skromną, lecz przekracza próg,
+poniżej którego framework oznacza wynik jako obarczony małą mocą.
 
 \subsection{Porównanie architektur w warunkach czystych}
 \label{sec:czyste}
-Podrozdział przedstawia wyniki wyszukiwania dla nagrań niezakłóconych, osobno dla każdego wariantu
-językowego korpusu. Każdy wynik odniesiono do górnej granicy wyznaczonej przez konfigurację
-tekstową, dzięki czemu rozdzielone zostają dwa źródła utraty jakości: przejście na modalność mowy
-oraz wybór architektury przetwarzania. Osobnego omówienia wymaga różnica między wariantem
-jednojęzykowym a międzyjęzykowym, ponieważ to ona wskazuje, jaka część utraty jakości obciąża sam
-fakt zadania pytania po polsku.
+Podrozdział przedstawia wyniki wyszukiwania dla nagrań niezakłóconych na zestawie tysiąca pytań.
+Jest to zasadnicze porównanie niniejszej pracy: kaskada zestawiona z dopasowaniem reprezentacji
+latentnych, obie odniesione do górnej granicy wyznaczonej przez konfigurację tekstową. Odniesienie
+do tej granicy rozdziela dwa źródła utraty jakości, przejście na modalność mowy oraz wybór
+architektury przetwarzania, których łączny efekt w pojedynczym pomiarze pozostawałby
+nierozróżnialny.
 
 \todo{Uzupełnić tabelę wyników oraz ich omówienie po wykonaniu przebiegów}
+
+\subsection{Koszt zadania pytania po polsku}
+\label{sec:jezyk}
+Podrozdział powtarza porównanie architektur na zestawie stu pytań, w trzech wariantach językowych
+opisanych w podrozdziale~\ref{sec:zbiory}, i na tej podstawie rozdziela utratę jakości wnoszoną
+przez sam język od utraty wnoszonej przez modalność. Wariant w całości anglojęzyczny odtwarza
+warunki podrozdziału~\ref{sec:czyste} na mniejszej próbie, więc pełni podwójną rolę: wyznacza punkt
+odniesienia dla dwóch pozostałych wariantów, a zarazem pozwala sprawdzić, czy setka zachowuje się
+jak tysiąc, z którego została wybrana.
+
+Rozstrzygnięcia wymaga zwłaszcza różnica między wariantem jednojęzykowym polskim a międzyjęzykowym,
+ponieważ wskazuje ona, jaka część utraty jakości bierze się z przekraczania granicy języka przez
+samo zapytanie, a jaka z tego, że polszczyzna jest dla użytych modeli językiem gorzej
+reprezentowanym niż angielski.
+
+\todo{Uzupełnić zestawienie wyników dla trzech wariantów językowych oraz omówienie po wykonaniu przebiegów}
+
+\subsection{Jakość odpowiedzi generowanych z pobranego kontekstu}
+\label{sec:generacja}
+Wyszukiwanie jest w zastosowaniu klinicznym środkiem, a nie celem: użytkownik oczekuje odpowiedzi,
+nie listy dokumentów. Podrozdział sprawdza zatem, czy przewaga jednej architektury nad drugą,
+zmierzona metrykami rankingowymi, przenosi się na jakość odpowiedzi generowanej z pobranego
+kontekstu. Przejście to nie jest oczywiste, ponieważ model językowy potrafi odpowiedzieć poprawnie
+mimo niedoskonałego rankingu, o ile potrzebny fragment znalazł się w kontekście, i odwrotnie ---
+potrafi zawieść przy rankingu poprawnym.
+
+Kontekstem są pełne artykuły, a nie abstrakty, ponieważ abstrakt rzadko zawiera dane liczbowe
+potrzebne do uzasadnienia odpowiedzi. Jest to jednak kontekst wyłącznie angielski, więc konfiguracje
+z pytaniem polskim pracują w układzie międzyjęzykowym również na etapie generacji. Mediana długości
+artykułu przekracza trzy tysiące słów, czyli około siedemnastokrotność abstraktu, co przy kilku
+pobranych dokumentach wyczerpuje typowe okno kontekstowe modelu językowego. Liczbę dokumentów
+podawanych modelowi dobrano więc z uwzględnieniem tego ograniczenia.
+
+Ocena obejmuje metryki opisane w podrozdziale \ref{sec:rag}: trafność decyzji wobec etykiety zbioru,
+podobieństwo ROUGE do odpowiedzi referencyjnej, wskaźnik halucynacji, pokrycie kontekstu oraz oceny
+sędziego automatycznego. Pokrycie kontekstu pełni tu rolę rozstrzygającą, ponieważ oddziela
+niepowodzenie wyszukiwania od niepowodzenia generacji: jego niska wartość oznacza, że potrzebnej
+treści w pobranych dokumentach nie było, więc winą za błędną odpowiedź nie można obciążać modelu
+językowego.
+
+\todo{Uzupełnić zestawienie metryk odpowiedzi oraz omówienie po wykonaniu przebiegów}
 
 \subsection{Odporność na degradację sygnału}
 \label{sec:odpornosc}
@@ -96,12 +215,12 @@ wszystkie wymiary reprezentacji zamiast skupionej w pojedynczym utraconym słowi
 Podrozdział zestawia jakość wyszukiwania z jakością transkrypcji, pytanie po pytaniu, i na tej
 podstawie wyznacza próg jakości transkrypcji, poniżej którego kaskada przestaje przewyższać
 rozwiązanie proponowane. Ponieważ konfiguracja latentna transkrypcji nie wytwarza, jej wyniki
-przypisuje się wartości wskaźnika błędu osiągniętej przez kaskadę na tym samym pytaniu.
-Zestawienie takie jest możliwe wyłącznie dzięki temu, że obie konfiguracje przetwarzają ten sam
-zbiór, a ich wyniki pozostają powiązane identyfikatorem pytania.
+przypisuje się wartości wskaźnika błędu osiągniętej przez kaskadę na tym samym pytaniu. Zestawienie
+takie jest możliwe wyłącznie dzięki temu, że obie konfiguracje przetwarzają ten sam zbiór, a ich
+wyniki pozostają powiązane identyfikatorem pytania.
 
-Próg ten jest jedynym wynikiem pracy, który przekłada się wprost na regułę doboru architektury.
-Znając spodziewaną jakość transkrypcji w danym zastosowaniu, można z niego odczytać, która ścieżka
+Jest to wynik, który najbardziej bezpośrednio przekłada się na regułę doboru architektury. Znając
+spodziewaną jakość transkrypcji w danym zastosowaniu, można z niego odczytać, która ścieżka
 przetwarzania jest korzystniejsza, bez powtarzania całego porównania.
 
 \todo{Uzupełnić wykres zależności oraz wyznaczoną wartość progu wraz z przedziałem ufności}
@@ -109,12 +228,11 @@ przetwarzania jest korzystniejsza, bez powtarzania całego porównania.
 \subsection{Wykorzystanie zasobów i prędkość wyszukiwania}
 \label{sec:zasoby}
 Podrozdział przedstawia opóźnienie pełnej ścieżki przetwarzania, szczytowe zużycie pamięci karty
-graficznej, przepustowość oraz rozmiar indeksu. Oczekiwana przewaga konfiguracji latentnej wynika
-z pominięcia dekodowania autoregresyjnego: kaskada musi wytworzyć transkrypcję element po
-elemencie, podczas gdy ścieżka latentna wykonuje pojedyncze przejście w przód przez enkoder oraz
-adapter. Pomiary te są dla wyboru architektury równorzędne z jakością, ponieważ w zastosowaniu
-klinicznym o przydatności systemu decyduje nie tylko trafność wyników, lecz także czas oczekiwania
-na nie.
+graficznej, przepustowość oraz rozmiar indeksu. Oczekiwana przewaga konfiguracji latentnej wynika z
+pominięcia dekodowania autoregresyjnego: kaskada musi wytworzyć transkrypcję element po elemencie,
+podczas gdy ścieżka latentna wykonuje pojedyncze przejście w przód przez enkoder oraz adapter.
+Pomiary te są dla wyboru architektury równorzędne z jakością, ponieważ w zastosowaniu klinicznym o
+przydatności systemu decyduje nie tylko trafność wyników, lecz także czas oczekiwania na nie.
 
 \todo{Uzupełnić zestawienie pomiarów zasobów i opóźnień po wykonaniu przebiegów}
 

@@ -1,0 +1,56 @@
+\begin{tikzpicture}[
+    scale=0.6,
+    transform shape,
+    font=\small,
+    block/.style={
+        draw,
+        rounded corners=2pt,
+        thick,
+        minimum width=3.1cm,
+        minimum height=1.05cm,
+        align=center
+    },
+    src/.style={block, fill=gray!12},
+    trans/.style={block, fill=blue!20},
+    met/.style={block, fill=red!12},
+    agg/.style={block, fill=orange!25},
+    sink/.style={block, fill=green!15},
+    arrow/.style={-{Stealth[]}, thick},
+    art/.style={font=\scriptsize\itshape, text=gray!60!black, align=center}
+]
+
+% ============================================================
+% GLOWNY PRZEPLYW
+% ============================================================
+\node[src]   (zrodlo) at ( 0.0, 0) {Źródła danych\\[-2pt]\scriptsize{typowane pola}};
+\node[trans] (przeksz) at ( 6.2, 0) {Węzły\\[-2pt]przekształceń};
+\node[met]   (metryki) at (12.4, 0) {Węzły metryk};
+\node[agg]   (agreg)   at (18.2, 0) {Agregacja};
+\node[sink]  (raport)  at (23.6, 0) {Raport};
+
+\draw[arrow] (zrodlo)  -- node[art, above] {artefakty} (przeksz);
+\draw[arrow] (przeksz) -- node[art, above] {artefakty} (metryki);
+\draw[arrow] (metryki) -- node[art, above] {wyniki\\elementowe} (agreg);
+\draw[arrow] (agreg)   -- (raport);
+
+% ============================================================
+% CO KRYJE SIE POD WEZLAMI PRZEKSZTALCEN
+% ============================================================
+\node[align=center, font=\scriptsize, text=gray!60!black, below=1.05cm of przeksz]
+    (opis) {transkrypcja, synteza mowy, embedding,\\
+            indeksowanie, wyszukiwanie, zawężanie,\\
+            augmentacja, generacja odpowiedzi};
+\draw[gray, dashed] (przeksz.south) -- (opis.north);
+
+\node[align=center, font=\scriptsize, text=gray!60!black, below=1.05cm of metryki]
+    (opism) {dostawiane automatycznie wszędzie,\\gdzie ich wejścia są obecne};
+\draw[gray, dashed] (metryki.south) -- (opism.north);
+
+% ============================================================
+% TABLICA ARTEFAKTOW JAKO WSPOLNE PODLOZE
+% ============================================================
+\node[draw=gray, dashed, rounded corners=4pt, inner sep=0.42cm,
+      fit=(zrodlo)(przeksz)(metryki)(agreg)(raport),
+      label={[font=\scriptsize\itshape, gray]above:wspólna tablica artefaktów przebiegu}] {};
+
+\end{tikzpicture}

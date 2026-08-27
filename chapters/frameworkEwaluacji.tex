@@ -7,36 +7,81 @@ pracy, a na koniec ścieżkę wyszukiwania zestawioną z opisanych węzłów ora
 system jest obsługiwany. Podrozdział \ref{sec:eksperymenty} przedstawia pomiary wykonane na tak
 zbudowanym systemie.
 
-Wyszukiwanie i jego ewaluacja nie są w tej pracy dwoma osobnymi programami. Ścieżka wyszukiwania
-jest jedną z konfiguracji grafu opisanego w dalszej części rozdziału, a wykonuje ją ten sam
-rdzeń, co konfiguracje mierzące jakość transkrypcji czy jakość odpowiedzi. Nie istnieje zatem
-odrębny potok produkcyjny, którego graf ewaluacyjny byłby przybliżeniem. To, co bywa rozdzielane
-na aplikację oraz środowisko jej ewaluacji, jest tutaj jednym komponentem. Ma to znaczenie dla wniosków z podrozdziału \ref{sec:eksperymenty}: mierzone
-jest dokładnie to przetwarzanie, które system wykonuje, a nie jego uproszczony zastępnik.
-
 Do ewaluacji wyszukiwania istnieją ustalone narzędzia. Zbiory porównawcze wraz z referencyjnymi
 implementacjami metryk rankingowych oceniają listę wyników wobec dokumentów istotnych
-\cite{manning2008introduction, lin2020}, a nowsze zestawy oceniają jakość generacji wspomaganej
-wyszukiwaniem, również w medycynie \cite{pubmed, thakur2021beir, es2024ragas}. Żadne ze znanych
+\cite{manning2008introduction, lin2020, thakur2021beir}, a nowsze zestawy oceniają jakość
+generacji wspomaganej wyszukiwaniem, również w medycynie \cite{pubmed, es2024ragas}. Żadne ze znanych
 autorom narzędzi nie obejmuje jednak całej ścieżki od nagrania do rankingu ani nie porównuje
-wariantów przetwarzania na tych samych elementach z różnicami liczonymi parami. Opisany framework
+wariantów przetwarzania na tych samych elementach z różnicami liczonymi parami. Opisane środowisko
 uzupełnia te braki, korzystając z istniejących implementacji metryk tam, gdzie one wystarczają.
 
 \section{Opis systemu}
 \label{sec:opis}
 
+\subsection{Przegląd systemu}
+\label{sec:przeglad-systemu}
+Zanim opisane zostaną poszczególne mechanizmy, warto pokazać całość. System sprowadza pojedynczy
+eksperyment do jednego grafu, przez który przepływają nazwane wartości, a jego budowa jest zawsze
+taka sama, niezależnie od tego, czy mierzona jest jakość transkrypcji, wyszukiwania czy generowanej
+odpowiedzi. Schemat tego przepływu przedstawiono na Rysunku~\ref{fig:przegladSystemu}.
+
+\begin{figure}[htbp]
+    \centering
+    \input{tikz/przegladSystemu}
+    \caption{Przepływ pojedynczego przebiegu. Źródła danych udostępniają typowane pola, węzły
+    przekształceń przetwarzają je na kolejne artefakty, węzły metryk odczytują artefakty i zwracają
+    wyniki elementowe, a agregacja redukuje je do raportu. Wszystkie węzły wymieniają dane wyłącznie
+    przez wspólną tablicę artefaktów przebiegu, nigdy bezpośrednio między sobą.}
+    \label{fig:przegladSystemu}
+\end{figure}
+
+Przepływ ma cztery etapy. Źródło danych udostępnia typowane pola, takie jak nagranie zapytania,
+tekst pytania czy korpus dokumentów. Węzły przekształceń zamieniają je na kolejne artefakty:
+transkrybują mowę, osadzają tekst w przestrzeni wektorowej, budują indeks, wyszukują dokumenty,
+zawężają ranking albo generują odpowiedź. Węzły metryk odczytują powstałe artefakty, niczego nie
+zmieniając, i zwracają wyniki dla poszczególnych elementów. Węzeł agregujący sprowadza je do
+raportu, który utrwalają węzły zapisu.
+
+O tym, który węzeł czyta od którego, rozstrzygają krawędzie grafu. Dzięki temu ten sam zestaw
+węzłów obsługuje różne tryby oceny, a dołożenie nowej operacji nie wymaga zmian w pozostałych.
+
+Tabela~\ref{tab:wezly} zestawia dostępne kategorie węzłów wraz z rodzajem modelu, z którego
+korzystają. Jest to pełny katalog operacji, z których składa się dowolny eksperyment opisany
+w dalszej części rozdziału.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{@{}L{3.3cm}L{7.4cm}L{3.1cm}@{}}
+\toprule
+\textbf{Kategoria} & \textbf{Węzły (rola)} & \textbf{Model} \\
+\midrule
+Przygotowanie zapytania & transkrypcja mowy, synteza mowy, optymalizacja, przeredagowanie i korekcja zapytania & ASR, TTS, LLM, korektor \\
+Reprezentacja wektorowa & embedding tekstu i audio, fuzja osadzeń, indeksowanie korpusu & modele embeddingowe \\
+Wyszukiwanie & wyszukiwanie (gęste/rzadkie/hybrydowe), przestawianie, MMR, próg & ---, model przestawiający \\
+Augmentacja & zaburzanie audio lub tekstu (z zachowaniem typu) & --- \\
+Generacja odpowiedzi & odpowiedź z pobranego kontekstu (RAG) & LLM \\
+Ewaluacja i zapis & metryki, agregacja, utrwalanie raportu & --- \\
+\bottomrule
+\end{tabular}
+\caption{Kategorie węzłów i wykorzystywane modele. Myślnik oznacza węzły bezmodelowe,
+wykonujące operacje na artefaktach bez użycia modelu.}
+\label{tab:wezly}
+\end{table}
+
 \subsection{Założenia projektowe}
-Takie porównanie wymaga jednorodnego środowiska. Zaprojektowano zatem framework, w którym
+Porównanie wariantów przetwarzania na wspólnych danych wymaga jednorodnych warunków.
+Zaprojektowano zatem środowisko, w którym
 eksperyment jest \textit{skierowanym grafem acyklicznym} (ang.\ \textit{directed acyclic graph},
 DAG). Typowane źródła danych dostarczają wartości pośrednie, a węzły je przekształcają. Każda
 wartość przekazywana między węzłami jest nazwanym artefaktem o określonym typie i modalności, jak
 nagranie zapytania albo jego osadzenie wektorowe. Węzły nie wywołują się nawzajem, lecz wymieniają
-artefakty przez wspólną tablicę roboczą przebiegu. Węzeł deklaruje, jakie artefakty pobiera i
+je przez wspólną tablicę artefaktów przebiegu. Węzeł deklaruje, jakie artefakty pobiera i
 jakie wytwarza, a jego tożsamość jest oddzielona od typu, więc ten sam typ może wystąpić w grafie
-wielokrotnie. Krawędzie stanowią część specyfikacji. 
-Każda z nich nazywa węzeł i artefakt źródłowy oraz węzeł i wejście docelowe.
+wielokrotnie. Krawędzie stanowią część specyfikacji: każda z nich nazywa węzeł i artefakt
+źródłowy oraz węzeł i wejście docelowe.
 
-Metryki i agregacja także są węzłami, dzięki czemu każdą metrykę można niezależnie wlączyć i
+Metryki i agregacja także są węzłami, dzięki czemu każdą metrykę można niezależnie włączyć i
 skierować na wybraną gałąź, czyli na wariant przetwarzania odchodzący od wspólnej początkowej
 części grafu. Cały eksperyment opisany jest konfiguracją, którą wykonuje wspólny rdzeń, ten sam
 dla wiersza poleceń, interfejsu webowego oraz API. Konfiguracja nie
@@ -65,7 +110,7 @@ takie jak wymagana modalność i dostępne pola, nie wybierają pomiaru, lecz og
 poprawnych grafów: konfiguracja żądająca artefaktu, którego zbiór nie publikuje, zostaje odrzucona
 na etapie walidacji. Te same właściwości podpowiadają domyślny dobór metryk, który pozostaje
 nadpisywalny. Obsługiwane zbiory obejmują m.in.\ FLEURS \cite{fleurs}, ADMED Voice
-\cite{ADMEDVoice} oraz PubMedQA \cite{pubmed}. Zbiór tekstowy wspierający generowanie poszerza
+\cite{ADMEDVoice} oraz PubMedQA \cite{jin2019pubmedqa}. Zbiór tekstowy wspierający generowanie poszerza
 zestaw publikowanych pól o ścieżkę audio zapytań syntezowaną w czasie wykonania, dzięki czemu
 dopuszcza również grafy głosowe; dokumenty korpusu pozostają tekstem.
 
@@ -79,22 +124,23 @@ nieodróżnialne od realnie zerowej skuteczności. Metryki niezależne od tego p
 odpowiedzi, liczą się dalej.
 
 \subsection{Tablica artefaktów}
-Węzły wymieniają dane przez tablicę roboczą przebiegu, na której każdy artefakt zajmuje osobne
+Węzły wymieniają dane przez tablicę artefaktów przebiegu, na której każdy artefakt zajmuje osobne
 miejsce, adresowane parą złożoną z identyfikatora węzła wytwarzającego, dalej producenta, oraz
 nazwy artefaktu. Węzeł odczytujący, dalej konsument, nie sięga po artefakt po samej nazwie, lecz
 przez powiązanie ustalone przy budowie grafu, które wskazuje, od którego producenta ma go pobrać.
 Adresowanie po producencie sprawia, że dwa węzły mogą opublikować artefakt tego samego typu bez
-kolizji. 
-
-Przekształcenia jak korekcja, optymalizacja i
-przeredagowanie publikują osobne artefakty. Do jednego wejścia może prowadzić kilka krawędzi i
-wszystkie zostają z nim związane: węzeł łączący, jak fuzja wektorów czy scalenie korpusów, czyta je
-wszystkie naraz, a węzeł oczekujący jednej wartości bierze pierwszy opublikowany wariant, zaczynając
-od najbardziej przetworzonego. Dzięki temu nieprzetworzona hipoteza ASR pozostaje niezmienna, a WER i CER
-oblicza się wprost na niej, a ten sam łańcuch wyraża każdą kombinację korekcji i optymalizacji.
+kolizji, a przekształcenia takie jak korekcja, optymalizacja i przeredagowanie publikują osobne
+artefakty. Do jednego wejścia może prowadzić kilka krawędzi i
+wszystkie zostają z nim związane. Węzeł łączący, jak fuzja wektorów czy scalenie korpusów, czyta
+je wszystkie naraz. Węzeł oczekujący jednej wartości deklaruje listę dopuszczalnych wariantów artefaktu w porządku
+priorytetu, od wariantu najpóźniejszego etapu przetwarzania, i czyta pierwszy, który został
+opublikowany; dla tekstu zapytania lista ta obejmuje kolejno przeredagowanie, optymalizację,
+augmentację, korekcję i surową transkrypcję.
+Nieprzetworzona hipoteza ASR pozostaje dzięki temu niezmienna, więc WER i CER oblicza się wprost
+na niej, a ten sam łańcuch wyraża każdą kombinację korekcji i optymalizacji.
 Tabela~\ref{tab:artefakty} zestawia artefakty systemu.
 
-\begin{table}[h]
+\begin{table}[htbp]
 \centering
 \small
 \begin{tabular}{@{}L{3.2cm}L{6.0cm}L{4.6cm}@{}}
@@ -125,21 +171,30 @@ wyniku węzła, a liczbę odrzuceń odnotowuje się, aby zmniejszony mianownik p
 Węzeł przekształcający to typowana funkcja $f:\text{wejścia} \rightarrow \text{wyjścia}$ nad
 artefaktami. Zapis sygnatur nad modalnościami (T~tekst, A~audio, V[s]~wektor w przestrzeni $s$)
 pozwala zapisać tę algebrę wprost:
-\begin{itemize}
-    \item synteza mowy $\text{T} \rightarrow \text{A}$ i transkrypcja
-    $\text{A} \rightarrow \text{T}$,
-    \item Embedding tekstu i audio $\rightarrow \text{V}[s]$, osobno dla zapytań
-    i dla korpusu,
-    \item fuzja osadzeń zapytania $\text{V}[s_1] \times \dots \times \text{V}[s_n]
-    \rightarrow \text{V}[s']$ oraz złączenie osadzonych korpusów (suma rozłącznych
-    zbiorów),
-    \item optymalizacja zapytania przed wyszukiwaniem $\text{T} \rightarrow \text{T}$
-    (przepisanie, HyDE), przeredagowanie po wyszukiwaniu
-    $\text{T} \times \text{wyniki} \rightarrow \text{T}$ oraz korekcja po ASR
-    $\text{T} \rightarrow \text{T}$,
-    \item budowa indeksu korpusu $\text{V}[s] \rightarrow \text{indeks}[s]$
-    i wyszukiwanie $(\text{V}[s], \text{indeks}[s]) \rightarrow \text{ranking}$.
-\end{itemize}
+\begin{equation}
+\begin{aligned}
+\text{synteza mowy} &: \text{T} \rightarrow \text{A},
+&\;
+\text{transkrypcja} &: \text{A} \rightarrow \text{T}, \\[3pt]
+\text{embedding tekstu} &: \text{T} \rightarrow \text{V}[s],
+&\;
+\text{embedding audio} &: \text{A} \rightarrow \text{V}[s], \\[3pt]
+\text{optymalizacja} &: \text{T} \rightarrow \text{T},
+&\;
+\text{korekcja po ASR} &: \text{T} \rightarrow \text{T}, \\[3pt]
+\text{przeredagowanie} &: \text{T} \times \text{wyniki} \rightarrow \text{T},
+&\;
+\text{indeksowanie} &: \text{V}[s] \rightarrow \text{indeks}[s], \\[3pt]
+\text{złączenie korpusów} &: \text{V}[s] \times \text{V}[s] \rightarrow \text{V}[s],
+&\;
+\text{fuzja osadzeń} &: \text{V}[s_1] \times \dots \times \text{V}[s_n] \rightarrow \text{V}[s'],
+\\[3pt]
+\text{wyszukiwanie} &: (\text{V}[s], \text{indeks}[s]) \rightarrow \text{ranking}
+\end{aligned}
+\label{eq:sygnatury}
+\end{equation}
+
+Optymalizacja zapytania obejmuje przepisanie oraz HyDE.
 Osadzenia normalizuje się w normie L2, więc iloczyn skalarny w wyszukiwaniu gęstym równa się
 podobieństwu kosinusowemu. Wektory są porównywalne wyłącznie w obrębie tej samej przestrzeni
 $s$, czyli tego samego modelu lub rzutowania, dlatego embedding zapytania i korpusu muszą ją
@@ -147,61 +202,83 @@ współdzielić, a walidator odrzuca wyszukiwanie o niezgodnych przestrzeniach. 
 można jawnie zadeklarować jako zgodne, gdy model umieszcza obie modalności w jednej geometrii.
 
 \subsubsection{Minimalny zestaw operatorów}
-Wszystkie powyższe węzły sprowadzają się do jedenastu ortogonalnych rodzajów operacji, z których
-składa się dowolny eksperyment: źródła, konwersji modalności, przekształcenia zachowującego typ,
-embeddingu, łączenia elementowego, sumy zbiorów, indeksowania, wyszukiwania, zawężania wyników,
-generacji oraz pomiaru wraz z redukcją wyników do raportu. Każdy węzeł to jeden z tych rodzajów
+Wszystkie powyższe węzły sprowadzają się do dwunastu ortogonalnych rodzajów operacji, z których
+składa się dowolny eksperyment: źródła, transkrypcji mowy, syntezy mowy, przekształcenia
+zachowującego typ, embeddingu, łączenia elementowego, sumy zbiorów, indeksowania, wyszukiwania,
+zawężania wyników, generacji oraz pomiaru wraz z zapisem wyników. Każdy węzeł to jeden z tych rodzajów
 wraz z sygnaturą typów.
 
-Każdą z nich stosuje się osobno do zapytań i do dokumentów korpusu. Embedding zapytania i
+Operacje elementowe stosuje się osobno do zapytań i do dokumentów korpusu. Embedding zapytania i
 embedding korpusu to ta sama operacja $\text{T} \rightarrow \text{V}[s]$ na tym samym rejestrze
 modeli, a różni je wyłącznie to, co osadzają. Podobnie fuzja łączy wektory jednego zapytania,
 podczas gdy złączenie korpusów sumuje rozłączne zbiory dokumentów. Symetryczne traktowanie obu
 stron domyka algebrę, bo każda operacja elementowa działa zarówno na zapytaniach, jak i na
-dokumentach. Tabela~\ref{tab:wezly} grupuje typy węzłów według roli w przepływie.
-
-\begin{table}[h]
-\centering
-\small
-\begin{tabular}{@{}L{3.3cm}L{7.4cm}L{3.1cm}@{}}
-\toprule
-\textbf{Kategoria} & \textbf{Węzły (rola)} & \textbf{Model} \\
-\midrule
-Przygotowanie zapytania & transkrypcja mowy, synteza mowy, optymalizacja, przeredagowanie i korekcja zapytania & ASR, TTS, LLM, korektor \\
-Reprezentacja wektorowa & embedding tekstu i audio, fuzja osadzeń, indeksowanie korpusu & model embeddingowe \\
-Wyszukiwanie & wyszukiwanie (gęste/rzadkie/hybrydowe), przestawianie, MMR, próg & ---, model przestawiający \\
-Augmentacja & zaburzanie audio lub tekstu (z zachowaniem typu) & --- \\
-Generacja odpowiedzi & odpowiedź z pobranego kontekstu (RAG) & LLM \\
-Ewaluacja i zapis & metryki, agregacja, utrwalanie raportu & --- \\
-\bottomrule
-\end{tabular}
-\caption{Kategorie węzłów i wykorzystywane modele. Myślnik oznacza węzły bezmodelowe,
-wykonujące operacje na artefaktach bez użycia modelu.}
-\label{tab:wezly}
-\end{table}
+dokumentach. Kategorie tych węzłów zestawiono w tabeli~\ref{tab:wezly}.
 
 \subsection{Wyszukiwanie i zawężanie wyników}
 \label{sec:wyszukiwanie}
 Wyszukiwanie działa w trybie gęstym, rzadkim albo hybrydowym \cite{manning2008introduction}. Tryb
-gęsty wybiera $k$ najbliższych sąsiadów według iloczynu skalarnego znormalizowanych wektorów, tryb
-rzadki na dopasowaniu leksykalnym BM25 \cite{robertson2009probabilistic,
-sparckjones1972statistical}, a tryb hybrydowy scala obie listy sumą ważoną po normalizacji
-min--max, metodą RRF \cite{cormack2009rrf} albo maksimum ze znormalizowanych wyników.
+gęsty wybiera $k$ najbliższych sąsiadów według iloczynu skalarnego znormalizowanych wektorów, czyli
+podobieństwa kosinusowego. Tryb rzadki opiera się na dopasowaniu leksykalnym BM25
+\cite{robertson2009probabilistic, sparckjones1972statistical}, zaimplementowanym w systemie
+bezpośrednio:
 
-Zawężanie wyników rozbito na trzy węzły, przestawianie, maksymalną trafność brzegową (ang.\
+\begin{equation}
+\begin{aligned}
+\mathrm{idf}(t) &= \ln\!\left(1 + \frac{N - \mathrm{df}(t) + 0{,}5}{\mathrm{df}(t) + 0{,}5}\right), \\[4pt]
+\mathrm{BM25}(q, d) &= \sum_{t \in q} \mathrm{idf}(t)\,
+   \frac{f(t,d)\,(k_1 + 1)}{f(t,d) + k_1\left(1 - b + b\,\dfrac{|d|}{\mathrm{avgdl}}\right)}
+\end{aligned}
+\label{eq:bm25}
+\end{equation}
+
+gdzie $f(t,d)$ oznacza liczbę wystąpień termu $t$ w dokumencie $d$, $\mathrm{df}(t)$ liczbę
+dokumentów zawierających $t$, $N$ liczność korpusu, $|d|$ długość dokumentu, a $\mathrm{avgdl}$
+średnią długość dokumentu. Parametry $k_1$ i $b$ sterują nasyceniem częstości oraz siłą
+normalizacji długości; przyjęto wartości domyślne $k_1 = 1{,}5$ i $b = 0{,}75$.
+
+Tryb hybrydowy scala listę gęstą i rzadką jedną z trzech strategii. Dwie z nich wymagają
+uprzedniej normalizacji min--max wyników każdej listy do przedziału $\langle 0, 1 \rangle$:
+
+\begin{equation}
+\begin{aligned}
+s_{\mathrm{waż}}(d) &= w\, \tilde{s}_\mathrm{g}(d) + (1 - w)\, \tilde{s}_\mathrm{r}(d), \\[3pt]
+s_{\max}(d) &= \max\!\big(w\, \tilde{s}_\mathrm{g}(d),\; (1 - w)\, \tilde{s}_\mathrm{r}(d)\big), \\[3pt]
+s_{\mathrm{RRF}}(d) &= \sum_{L \in \{\mathrm{g},\, \mathrm{r}\}} \frac{1}{k_{\mathrm{RRF}} + \mathrm{rank}_L(d)}
+\end{aligned}
+\label{eq:fuzja}
+\end{equation}
+
+gdzie $\tilde{s}_\mathrm{g}$ i $\tilde{s}_\mathrm{r}$ oznaczają znormalizowane wyniki listy gęstej
+i rzadkiej, $w$ wagę listy gęstej, $\mathrm{rank}_L(d)$ pozycję dokumentu w liście $L$, a
+$k_{\mathrm{RRF}}$ stałą tłumiącą wpływ dalszych pozycji, domyślnie równą $60$
+\cite{cormack2009rrf}. Metoda RRF jako jedyna nie wymaga normalizacji, ponieważ operuje na samych
+pozycjach, a nie na wartościach wyników.
+
+Zawężanie wyników rozbito na trzy węzły: przestawianie (ang.\ \textit{reranking}), maksymalną trafność brzegową (ang.\
 \textit{maximal marginal relevance}, MMR) oraz próg podobieństwa, z których każdy przyjmuje ranking
 i zwraca ranking. Kolejność łańcucha wynika z krawędzi grafu, domyślnie jest to kolejność podana
 wyżej, a ten sam węzeł może w nim wystąpić wielokrotnie, więc każdy wariant zawężania jest osobną
 gałęzią porównania. Przestawianie korzysta z modelu cross-encoder
-albo z pokrycia leksykalnego, a MMR zachłannie wybiera wyniki różnorodne, przy czym parametr
-$\lambda$ steruje kompromisem między trafnością a różnorodnością \cite{carbonell1998mmr}.
+albo z pokrycia leksykalnego, natomiast MMR zachłannie buduje listę wynikową, w każdym kroku
+dobierając dokument o najwyższej wartości \cite{carbonell1998mmr}:
+
+\begin{equation}
+\mathrm{MMR}(d) = \lambda\, \mathrm{sim}(d, q)
+                 - (1 - \lambda)\, \max_{d' \in S} \mathrm{sim}(d, d')
+\label{eq:mmr}
+\end{equation}
+
+gdzie $S$ oznacza zbiór dokumentów już wybranych, $\mathrm{sim}$ podobieństwo kosinusowe, a
+parametr $\lambda \in \langle 0, 1 \rangle$ steruje kompromisem między trafnością wobec zapytania
+a różnorodnością względem tego, co już znalazło się na liście.
 
 Indeks korpusu buduje osobny węzeł, w którym wskazuje się, gdzie mają być przechowywane wektory.
 Do wyboru są pamięć operacyjna, biblioteka FAISS \cite{johnson2019billion}, w wariancie
 czytającym indeks z dysku lub liczącym na GPU, oraz zewnętrzna baza wektorowa
 \cite{wang2021milvus}. Wybór ten decyduje o tym, jak duży korpus da się obsłużyć, a nie o samym
-wyniku wyszukiwania, ponieważ wszystkie warianty wbudowane przeglądają cały indeks i liczą ten sam
-iloczyn skalarny.
+wyniku wyszukiwania, ponieważ wszystkie warianty wbudowane korzystają z indeksu płaskiego, bez
+przybliżonego wyszukiwania sąsiadów: przeglądają cały indeks i liczą ten sam iloczyn skalarny.
 
 \subsection{Ścieżka RAG i jej ocena}
 \label{sec:rag}
@@ -226,7 +303,19 @@ część opisową, rozdzielane przy ocenie, ponieważ decyzję ocenia się przez
 zbioru, a część opisową z odpowiedzią referencyjną. Generacja wspomagana wyszukiwaniem
 \cite{lewis2020retrieval, shuster2021retrieval} przebiega metodą prostą, łańcuchem myśli albo
 wielozapytaniową. Kontekst polecenia dla modelu (ang.\ \textit{prompt}) tworzą pobrane fragmenty
-albo fragmenty pełnych artykułów najbliższe pytaniu w przestrzeni osadzeń. Gdy w grafie nie ma
+albo fragmenty pełnych artykułów najbliższe pytaniu w przestrzeni osadzeń.
+
+Samo polecenie nie jest wpisane w kod, lecz stanowi część konfiguracji przebiegu. Zadaje się je
+dwoma polami: instrukcją systemową, ustalającą rolę i format odpowiedzi, oraz szablonem treści
+z miejscami podstawienia, w które silnik wstawia pobrany kontekst i pytanie. Szablon generacji
+przyjmuje podstawienia \texttt{\{context\}} i \texttt{\{question\}}, a szablon sędziego dodatkowo
+odpowiedź wygenerowaną, odpowiedź referencyjną oraz listę ocenianych aspektów.
+
+Rozwiązanie to wynika z tego, że treść polecenia należy do warunków eksperymentu na równi z doborem
+modelu. Zamiana zdania w poleceniu zmienia wyniki podobnie jak zmiana modelu językowego, więc
+polecenia zapisuje się jawnie w konfiguracji, a nie pozostawia domyślnym wartościom
+w kodzie. Dzięki temu późniejsza zmiana tych wartości nie modyfikuje po cichu przebiegu już
+zaraportowanego, a zapisana konfiguracja wystarcza do jego powtórzenia. Gdy w grafie nie ma
 wyszukiwania, model odpowiada z wiedzy własnej, co pozwala zmierzyć wkład samego wyszukiwania.
 Model generujący dostaje przy tym pytanie oryginalne, nie przepisane, ponieważ przeredagowanie
 jest narzędziem wyszukiwania, a pytanie przepisane mieszałoby jakość generacji z jakością
@@ -234,13 +323,55 @@ przepisania.
 
 Odpowiedzi ocenia pięć metryk. Trafność decyzji polega na dokładnej zgodności z etykietą, przy
 czym osobno raportuje się udział odpowiedzi z nierozpoznaną decyzją, aby odstępstwo od formatu nie
-wyglądało na odpowiedź błędną. ROUGE, czyli miara pokrycia odpowiedzi referencyjnej przez
-odpowiedź wygenerowaną, liczona na wspólnych słowach, parach słów i najdłuższym wspólnym podciągu
-\cite{lin2004rouge}, obejmuje wyłącznie część opisową. Wskaźnik halucynacji podaje odsetek słów
-odpowiedzi
-nieobecnych w kontekście \cite{ji2023survey}, bezpieczeństwo dawkowania udział wiernie
-odtworzonych par liczby i jednostki, a pokrycie kontekstu oddziela niepowodzenie wyszukiwania od
-niepowodzenia generacji. Trzy ostatnie porównują wyłącznie słowa i liczby, bez oceny sensu
+wyglądało na odpowiedź błędną. Kolejną metryką jest ROUGE \cite{lin2004rouge}, czyli miara
+zgodności odpowiedzi wygenerowanej z referencyjną, liczona jako średnia harmoniczna precyzji
+i pokrycia:
+
+\begin{equation}
+\begin{aligned}
+P_n &= \frac{|G_n(\hat{y}) \cap G_n(y)|}{|G_n(\hat{y})|},
+&\qquad
+R_n &= \frac{|G_n(\hat{y}) \cap G_n(y)|}{|G_n(y)|},
+&\qquad
+\text{ROUGE-}n &= \frac{2 P_n R_n}{P_n + R_n}
+\end{aligned}
+\label{eq:rouge}
+\end{equation}
+
+gdzie $y$ oznacza odpowiedź referencyjną, $\hat{y}$ odpowiedź wygenerowaną, a $G_n(\cdot)$
+wielozbiór zawartych w niej $n$-gramów; przecięcie wielozbiorów przypisuje każdemu $n$-gramowi
+mniejszą z jego krotności. Raportowana średnia harmoniczna odpowiada wariantowi F1 miary,
+podczas gdy pierwotna definicja ROUGE jest miarą samego pokrycia.
+Raportowane są trzy warianty: ROUGE-1 dla pojedynczych słów, ROUGE-2
+dla par słów oraz ROUGE-L, w którym licznik obu ułamków zastępuje długość najdłuższego wspólnego
+podciągu, a mianowniki -- długości obu odpowiedzi. Przed porównaniem słowa sprowadza się do
+rdzeni algorytmem Portera; algorytm ten powstał dla języka angielskiego, więc w tekście polskim
+ujednolica tylko część form fleksyjnych i porównanie pozostaje w praktyce bliskie ścisłemu. Metryka obejmuje
+wyłącznie część opisową odpowiedzi, ponieważ decyzję ocenia się przez porównanie z etykietą zbioru. Trzy pozostałe metryki opierają się na przecięciu zbiorów:
+
+\begin{equation}
+\begin{aligned}
+H &= 1 - \frac{|T_\mathrm{odp} \cap T_\mathrm{kont}|}{|T_\mathrm{odp}|},
+&\qquad
+\mathrm{PK} &= \frac{|W_\mathrm{ref} \cap W_\mathrm{kont}|}{|W_\mathrm{ref}|},
+&\qquad
+\mathrm{BD} &= \frac{|P_\mathrm{ref} \cap P_\mathrm{odp}|}{|P_\mathrm{ref}|}
+\end{aligned}
+\label{eq:metrykiRAG}
+\end{equation}
+
+gdzie $H$ oznacza wskaźnik halucynacji \cite{ji2023survey}, czyli udział słów odpowiedzi
+nieobecnych w kontekście, $\mathrm{PK}$ pokrycie kontekstu, a $\mathrm{BD}$ bezpieczeństwo
+dawkowania. Symbole $T$, $W$ i $P$ oznaczają odpowiednio zbiory tokenów, słów oraz par złożonych
+z liczby i jednostki dawki, a indeksy wskazują, czy pochodzą z odpowiedzi wygenerowanej, z tekstu
+referencyjnego, czy z pobranego kontekstu. Wielkości te są zbiorami, nie listami, więc powtórzenia
+tego samego słowa liczą się jednokrotnie. Pokrycie kontekstu oddziela niepowodzenie wyszukiwania od
+niepowodzenia generacji: jego niska wartość oznacza, że w pobranych dokumentach nie było tego, co
+potrzebne, więc odpowiedź nie mogła zostać poprawnie ugruntowana. Gdy tekst referencyjny nie
+zawiera żadnej dawki, bezpieczeństwo dawkowania przyjmuje wartość jeden, ponieważ nie ma czego
+odtworzyć błędnie. Miara ta sprawdza wyłącznie odtworzenie dawek referencyjnych: dawki obecnej
+w odpowiedzi, a nieobecnej w referencji, nie karze, więc nie wyklucza dawki zmyślonej przez model.
+Trzy ostatnie porównują wyłącznie słowa i liczby, bez oceny sensu
 odpowiedzi, więc wskazują przypadki podejrzane, a nie rozstrzygają o merytorycznej poprawności
 odpowiedzi.
 
@@ -252,16 +383,16 @@ kompletność, w skali od zera do jedynki \cite{zheng2023judging, es2024ragas}. 
 się w jeden wynik, domyślnie przez uśrednienie, a przypadek uznaje się za zaliczony, gdy wynik
 przekroczy zadany próg; odsetek takich przypadków tworzy wskaźnik zdawalności. Na koniec sprawdza
 się, czy oceny sędziego idą w parze z metrykami wyszukiwania, licząc ich korelację Pearsona z
-Recall@5 oraz MRR. Nie jest to kalibracja, bo samych ocen się nie poprawia, lecz kontrola, czy
+elementowymi wartościami Recall@5 oraz odwrotnej pozycji pierwszego trafienia, której średnia po
+zapytaniach daje MRR. Nie jest to kalibracja, bo samych ocen się nie poprawia, lecz kontrola, czy
 sędzia reaguje na zmiany jakości wyszukiwania.
 
 \subsection{Korekcja transkrypcji encji medycznych oparta na słowniku}
 Błędy transkrypcji nazw leków i dawek są w medycynie niebezpieczne. Węzeł korekcji nie przepisuje
 tekstu swobodnie, lecz dopasowuje hipotezę ASR do encji ze słownika dziedzinowego, więc nie
-powstaje halucynowana nazwa leku \cite{ji2023survey}. Węzeł ten jest gotowym elementem
-frameworku, nie należy jednak do czynników badanych w niniejszej pracy. Opisano go, ponieważ
-pokazuje, że w tej samej algebrze mieszczą się także przekształcenia dziedzinowe, a jego rzetelna
-ocena wymaga materiału testowego z oznaczonymi nazwami leków i dawkami.
+powstaje halucynowana nazwa leku \cite{ji2023survey}. Opisano go, ponieważ pokazuje, że w tej
+samej algebrze mieszczą się także przekształcenia dziedzinowe, a jego rzetelna ocena wymaga
+materiału testowego z oznaczonymi nazwami leków i dawkami.
 
 Korekcja nazwy leku opiera się na indeksie kodów fonetycznych typu Double-Metaphone
 \cite{christen2006namematching} zbudowanym nad słownikiem leków. Słowo zostaje zastąpione kandydatem
@@ -278,14 +409,16 @@ językowym przechodzi przez to samo dopasowanie fonetyczne.
 
 Przewidziany pomiar wartości korekcji polega na porównaniu gałęzi: gałąź bez korekcji, korzystającą
 wyłącznie z transkrypcji ASR, zestawia się z gałęziami poszczególnych korektorów. Ponieważ nieprzetworzona
-hipoteza ASR pozostaje niezmienna, WER, CER i CEER mierzą jakość samego rozpoznania, a tekst
-poprawiony ocenia opcjonalny zestaw metryk bliźniaczych, w którym zbiór encji krytycznych obejmuje
-także nazwy leków. Wpływ korekcji na wyszukiwanie opisuje zmiana Recall@k wobec gałęzi bez
-korekcji.
+hipoteza ASR pozostaje niezmienna, WER i CER mierzą jakość samego rozpoznania, a tekst
+poprawiony ocenia opcjonalny zestaw metryk bliźniaczych, czyli te same WER i CER liczone wobec
+tej samej referencji na tekście po korekcji. Wpływ korekcji na wyszukiwanie opisuje zmiana
+Recall@k wobec gałęzi bez korekcji.
 
 Zaprojektowano również oparcie korekcji na historii pacjenta wraz z metryką karzącą surowiej błędy
 wprowadzone przez korekcję niż pozostawione, lecz część tę wyłączono z zakresu pracy, ponieważ
-żaden z dostępnych zbiorów nie zawiera historii pacjenta.
+żaden z dostępnych zbiorów nie zawiera historii pacjenta. Sama korekcja jest gotowym elementem
+systemu, nie należy jednak do czynników badanych w niniejszej pracy; eksperymenty z rozdziału
+\ref{sec:eksperymenty} jej nie obejmują.
 
 \subsection{Węzły augmentacji}
 Augmentacja to węzeł zachowujący typ ($X \rightarrow X'$), więc można go wstawić przed dowolnym
@@ -300,30 +433,71 @@ zrównoleglenia, a użyte ziarno jest zapisywane w proweniencji.
 \label{sec:metryki}
 Węzeł metryki czyta artefakty i zwraca wyniki, nie zmieniając danych, a wynik opatruje
 proweniencją ocenianego węzła lub gałęzi. Rejestr deklaruje dla każdej metryki wymagane artefakty, a budowa grafu wstawia jej węzeł wszędzie tam,
-gdzie te artefakty są dostępne. Liczy się więc wszystko, co da się policzyć, a tryb ewaluacji
-rozstrzyga jedynie, co trafia do zestawienia zbiorczego.
+gdzie te artefakty są dostępne. Tryb ewaluacji rozstrzyga jedynie, które wyniki trafiają do
+zestawienia zbiorczego.
 
-Metryki dzielą się na pięć grup. Składnikowe oceniają jeden etap wobec referencji: WER, CER oraz
-CEER, czyli wskaźnik błędu encji krytycznych, wprowadzony dlatego, że WER traktuje wszystkie słowa
-jednakowo, a o bezpieczeństwie decydują nazwy leków, dawki i jednostki. Metryki wyszukiwania
-\cite{manning2008introduction, salton1983introduction} oceniają ranking wobec dokumentów
-istotnych: Recall@k, Precision@k oraz NDCG@k \cite{jarvelin2002cumulated} dla $k \in \{1,5,10\}$,
-a MRR i średnia precyzja dla całej listy. Bezreferencyjne opisują rozkład wyników podobieństwa,
-międzyetapowe pobierają inne metryki, czego przykładem jest korelacja błędu transkrypcji ze
-skutecznością wyszukiwania, a metryki odpowiedzi opisano przy ścieżce RAG w
-podrozdziale~\ref{sec:rag}.
+Metryki dzielą się na pięć grup: składnikowe oceniają jeden etap wobec referencji (WER oraz CER),
+bezreferencyjne opisują rozkład wyników podobieństwa, międzyetapowe zestawiają ze sobą inne
+metryki, czego przykładem jest korelacja błędu transkrypcji ze skutecznością wyszukiwania,
+a metryki odpowiedzi opisano przy ścieżce RAG w podrozdziale~\ref{sec:rag}. Grupę ostatnią tworzą
+metryki wyszukiwania \cite{manning2008introduction, salton1983introduction}, oceniające ranking
+wobec dokumentów istotnych. Pełność (Recall@$k$) i precyzję (Precision@$k$) liczy się na progach
+$k \in \{1,5,10\}$ wprost z definicji, natomiast pozostałe trzy miary wymagają przytoczenia:
+
+\begin{equation}
+\begin{aligned}
+\text{DCG@}k &= \sum_{i=1}^{k} \frac{\mathrm{rel}(d_i)}{\log_2(i+1)},
+&\qquad
+\text{NDCG@}k &= \frac{\text{DCG@}k}{\text{IDCG@}k}, \\[4pt]
+\text{MRR} &= \frac{1}{|Q|}\sum_{q \in Q} \frac{1}{r_q},
+&\qquad
+\text{MAP} &= \frac{1}{|Q|}\sum_{q \in Q} \frac{1}{|R_q|}
+             \sum_{i \,:\, d_i \in R_q} \text{Precision@}i
+\end{aligned}
+\label{eq:metrykiIR}
+\end{equation}
+
+gdzie $d_i$ oznacza dokument na $i$-tej pozycji rankingu, $\mathrm{rel}(d)$ jego ocenę istotności
+(zero dla dokumentów nieistotnych), $R_q$ zbiór dokumentów istotnych dla zapytania $q$, $r_q$
+pozycję pierwszego z nich w rankingu, a $Q$ zbiór wszystkich zapytań. Wartość $\text{IDCG@}k$
+powstaje przez zastosowanie tego samego wzoru do rankingu idealnego, czyli ocen istotności
+uporządkowanych malejąco, dzięki czemu $\text{NDCG@}k$ przyjmuje wartości z przedziału
+$\langle 0, 1 \rangle$. Przyjęto liniową postać zysku $\mathrm{rel}(d_i)$, zgodną z definicją
+\texttt{ndcg\_cut} z pakietu \texttt{trec\_eval} \cite{jarvelin2002cumulated}; dla ocen binarnych
+jest ona równoważna wariantowi wykładniczemu, a przy ocenach stopniowanych zapewnia
+porównywalność z wynikami raportowanymi w zbiorach odniesienia. Ranking obejmuje $k$ zwróconych
+dokumentów, więc raportowana wartość MAP jest w praktyce MAP@$k$. W obliczeniach elementowych,
+w tym w różnicach parowanych między gałęziami, używa się składników powyższych średnich:
+odwrotnej pozycji $1/r_q$ oraz średniej precyzji pojedynczego zapytania, a MRR i MAP powstają
+dopiero przy agregacji.
 
 \subsection{Budowa i wykonanie grafu}
 Wprowadzono dwa rejestry: typów węzłów, opisujący wymagane i wytwarzane artefakty, oraz procedur
 obsługi, odwzorowujący typ w funkcję wykonawczą. Zarejestrowano dwanaście operatorów, z których
 przez dobór parametrów powstają trzydzieści cztery nazwane typy węzłów. Formalnie eksperyment jest
-grafem $G = (V, E)$, w którym $V$ jest zbiorem węzłów, a $E$ zadeklarowanym zbiorem krawędzi.
-Każdemu węzłowi $v$ przypisane są typ $\tau(v)$, parametry $\theta(v)$ oraz zbiór faktycznie
-udostępnianych wyjść. Dla wejścia $x$ powiązanie $\beta(v, x)$ jest uporządkowaną listą
-producentów $x$, odtworzoną z $E$. Tablica $B$ przypisuje wartość każdej parze złożonej z
-identyfikatora producenta i nazwy artefaktu, a odczyt wejścia $x$ przez węzeł $v$ przechodzi listę
-$\beta(v, x)$ od producenta najpóźniejszego i zwraca wartość pierwszego, który faktycznie coś
-opublikował.
+grafem skierowanym o postaci:
+
+\begin{equation}
+\begin{aligned}
+G &= (V, E),
+&\qquad
+v &\in V:\ \big(\tau(v),\ \theta(v),\ \mathrm{wy}(v)\big), \\[3pt]
+\beta(v, x) &= (p_1, \dots, p_k),
+&\qquad
+B&[p, a] \ \text{--- wartość artefaktu } a \text{ producenta } p, \\[3pt]
+\mathrm{odczyt}(v, x) &= B[p_j, x],
+&\qquad
+j &= \min\{\, i \le k : B[p_i, x] \ \text{istnieje} \,\}
+\end{aligned}
+\label{eq:graf}
+\end{equation}
+
+gdzie $V$ jest zbiorem węzłów, a $E$ zadeklarowanym zbiorem krawędzi. Każdemu węzłowi $v$
+przypisane są typ $\tau(v)$, parametry $\theta(v)$ oraz zbiór faktycznie udostępnianych wyjść
+$\mathrm{wy}(v)$. Powiązanie $\beta(v, x)$ jest listą producentów wejścia $x$ w porządku
+priorytetu, odtworzoną z $E$, a tablica $B$ przechowuje wartość każdej pary złożonej z
+identyfikatora producenta i nazwy artefaktu. Odczyt przechodzi listę powiązań w tym porządku
+i zwraca wartość pierwszego producenta, który faktycznie coś opublikował.
 
 Budowa wiąże porty każdego węzła z krawędzi konfiguracji, sprawdza w porządku topologicznym, czy
 wejścia każdego węzła są dostępne, i wyznacza deterministyczne poziomy z wykryciem cykli;
@@ -331,9 +505,9 @@ walidacja poprzedza uruchomienie.
 
 Wykonanie przebiega poziomami, a węzły jednego poziomu są niezależne. Dla każdego węzła czyta się
 wejścia, wywołuje procedurę i zapisuje wyjścia, a model jest zwalniany z pamięci, gdy nie
-potrzebuje go żaden węzeł następny. Zbiór danych ładuje się wewnątrz grafu, w węźle źródła. 
-Wiązanie każdej wartości z identyfikatorem elementu, z którego powstała, jest warunkiem poprawności, ponieważ węzeł może
-zawieść dla części elementów, a część węzłów zmienia liczność.
+potrzebuje go żaden węzeł następny. Zbiór danych ładuje się wewnątrz grafu, w węźle źródła.
+Węzeł może zawieść dla części elementów, a część węzłów zmienia liczność wyniku. Każda wartość
+jest więc związana z identyfikatorem elementu, z którego powstała.
 
 Każdy typ węzła deklaruje kategorię i dziedzinę, niezależne od siebie. Kategoria opisuje rolę w
 przepływie danych i steruje cyklem życia oraz przydziałem urządzenia obliczeniowego, obejmując
@@ -362,8 +536,7 @@ wynikowej pracy.
 
 Wyniki kolejnych przebiegów gromadzi tablica wyników (ang.\ \textit{leaderboard}), a deklaratywne
 przemiatanie (ang.\ \textit{sweep}) rozwija konfigurację bazową w grupę przebiegów, po jednym na
-każdą kombinację zadanych wartości parametrów. Granica Pareta wyznaczona nad taką grupą wskazuje
-niezdominowane kompromisy między celami, na przykład między MRR a opóźnieniem.
+każdą kombinację zadanych wartości parametrów.
 
 \subsubsection{Rozgałęzienia w grafie}
 Aby uniknąć ręcznego powielania węzłów i powtórnego liczenia wspólnych początkowych fragmentów
@@ -378,7 +551,7 @@ Węzeł agregujący grupuje wyniki elementowe po identyfikatorze zapytania i dla
 różnicę \textit{parowaną} między gałęziami:
 \[
 \Delta\text{Recall@}k(q) =
-\text{Recall@}k_{\,\text{korekcja}}(q) - \text{Recall@}k_{\,\text{transkrypcja}}(q).
+\text{Recall@}k_{\,\text{ASR}}(q) - \text{Recall@}k_{\,\text{referencyjna}}(q).
 \]
 Ten sam element występuje w obu gałęziach pod tym samym identyfikatorem, więc parowanie jest
 poprawne. Warianty powstałe z rozgałęzienia trzeba jednak wcześniej sprowadzić do elementu
@@ -392,11 +565,35 @@ obciążona, ponieważ elementy rzadko wypadają losowo i przecięcie mierzy wte
 łatwiejszych przypadków zamiast różnicy między gałęziami.
 
 Średnią różnicę opatruje się przedziałem ufności ze sparowanego bootstrapu o ustalonym ziarnie
-oraz parowanym testem rangowanych znaków Wilcoxona \cite{wilcoxon1945individual,
-efron1979bootstrap}. Metryki elementowe są dyskretne, więc wiele par daje różnicę zerową, którą
-procedura pomija; liczbę par wchodzących do testu raportuje się osobno, aby wartość $p$ pozostała
-interpretowalna. Przy wielu metrykach i parach gałęzi stosuje się korekcję Benjaminiego--Hochberga
-\cite{benjamini1995fdr}, a obok wartości $p$ podaje rozmiar efektu ($d$ Cohena dla par).
+\cite{efron1979bootstrap}. Procedura bootstrapu losuje ze zwracaniem $B$ prób o liczności równej liczbie
+par, dla każdej wyznacza średnią różnicę, a granice przedziału odczytuje jako kwantyle rozkładu
+tych średnich:
+
+\begin{equation}
+\begin{aligned}
+\bar{\Delta}^{*(b)} &= \frac{1}{n} \sum_{i=1}^{n} \Delta_{J_i^{(b)}},
+\qquad J_i^{(b)} \sim \mathcal{U}\{1, \dots, n\}, \\[4pt]
+\mathrm{PU}_{1-\alpha} &= \Big[\, Q_{\alpha/2}\big(\bar{\Delta}^{*}\big),\;
+                                    Q_{1-\alpha/2}\big(\bar{\Delta}^{*}\big) \,\Big],
+\qquad
+d = \frac{\bar{\Delta}}{s_{\Delta}}
+\end{aligned}
+\label{eq:bootstrap}
+\end{equation}
+
+gdzie $\Delta_i$ oznacza różnicę wartości metryki dla $i$-tego elementu między porównywanymi
+gałęziami, $n$ liczbę par, $J^{(b)}$ indeksy wylosowane w $b$-tej próbie, $Q_p$ kwantyl rzędu $p$,
+a $\bar{\Delta}$ i $s_{\Delta}$ średnią oraz odchylenie standardowe różnic. Przyjęto
+$B = 1000$ oraz $\alpha = 0{,}05$. Ponieważ losowanie odbywa się na samych różnicach, a nie na
+wynikach obu gałęzi osobno, przedział zachowuje sparowanie. Rozmiar efektu $d$ jest sparowaną
+postacią statystyki Cohena (oznaczaną $d_z$): różnicę średnią odnosi do rozproszenia samych
+różnic, nie do rozproszenia wyników w gałęziach. Wartość $p$ pochodzi z testu rang znakowanych
+Wilcoxona dla par, który zgodnie ze swoją definicją pomija pary o różnicy zerowej; metryki
+elementowe są dyskretne, więc takich par bywa wiele i liczbę par wchodzących do testu raportuje
+się osobno, aby wartość $p$ pozostała interpretowalna. Przedział ufności liczony jest natomiast
+na pełnym zbiorze par, łącznie z zerowymi, więc estymuje średnią różnicę bez przesunięcia. Przy
+wielu metrykach i parach gałęzi stosuje się korekcję Benjaminiego--Hochberga
+\cite{benjamini1995fdr}, a obok wartości $p$ podaje rozmiar efektu.
 Porównania oparte na mniej niż dwudziestu parach oznaczane są jako obarczone małą mocą; ten próg,
 podobnie jak próg pięciu procent, jest umowny i nie wynika z analizy mocy.
 
@@ -408,8 +605,8 @@ przyczyną i wskazaniem węzła, który je odrzucił. Ziarna generatorów ustala
 uruchomieniem przebiegu i wymusza tryb deterministyczny, a gdy pełny determinizm akceleratora jest
 nieosiągalny, fakt ten odnotowuje się jawnie.
 
-Determinizm bezwarunkowy dotyczy jednak wyłącznie modeli lokalnych. Węzły oparte na modelu
-językowym odwołują się do serwera, którego próbkowania framework nie kontroluje, więc ich wyniki
+Determinizm dotyczy jednak wyłącznie modeli lokalnych. Węzły oparte na modelu
+językowym odwołują się do serwera, którego próbkowania środowisko nie kontroluje, więc ich wyniki
 mogą różnić się między przebiegami nawet przy temperaturze zerowej; odtwarzalność metryk sędziego
 i generacji jest zatem względna wobec serwera i tak też jest raportowana.
 
@@ -423,7 +620,7 @@ parametrami, więc sam raport wystarcza do powtórzenia eksperymentu.
 \label{sec:rejestry}
 Pełną konfigurację, zapisaną jako drzewo struktur danych, wczytuje jeden wspólny moduł,
 niezależnie od sposobu uruchomienia. Konfiguracja opisuje źródła danych, listę węzłów i krawędzi,
-parametry węzłów, zbiór gałęzi oraz środowisko uruchomieniowe. Graf można stworzytć w tekstowym
+parametry węzłów, zbiór gałęzi oraz środowisko uruchomieniowe. Graf można stworzyć w tekstowym
 pliku konfiguracji albo w dołączonym edytorze graficznym; nazwane szablony grafu są jedynie
 punktem wyjścia dla tego edytora, uzupełnianym przez użytkownika i zapisywanym jako jawna lista
 węzłów i krawędzi. Klucz nierozpoznany w danym bloku konfiguracji przerywa uruchomienie
@@ -434,10 +631,9 @@ Modele rejestruje się dekoratorami języka Python w odrębnych rejestrach
 (tabela~\ref{tab:rejestry}), a wybór następuje przez wartość konfiguracyjną. Każdy model sam
 deklaruje swoje parametry nastawialne wraz z wartościami domyślnymi i dozwolonymi, z których
 edytor graficzny automatycznie tworzy formularz. Dodanie zbioru danych, modelu, typu węzła,
-metryki, korektora czy augmentacji sprowadza się do rejestracji, bez zmiany rdzenia; ta sama droga
-stoi otworem dla kodu spoza pakietu, który rejestruje własne implementacje.
+metryki, korektora czy augmentacji sprowadza się do rejestracji, bez zmiany rdzenia.
 
-\begin{table}[h]
+\begin{table}[htbp]
 \centering
 \small
 \begin{tabular}{@{}L{3.8cm}L{10.2cm}@{}}
@@ -445,7 +641,7 @@ stoi otworem dla kodu spoza pakietu, który rejestruje własne implementacje.
 \textbf{Rejestr} & \textbf{Zarejestrowane typy} \\
 \midrule
 ASR (transkrypcja)        & \texttt{whisper} \cite{whisper}, \texttt{faster\_whisper}, \texttt{wav2vec2} \cite{baevski2020wav2vec, conneau2020xlsr}, \texttt{seamless\_m4t} \\
-Embedding tekstu          & \texttt{labse} \cite{feng-etal-2022-language}, \texttt{jina\_v4} \cite{jina_v4}, \texttt{bge\_m3}, \texttt{clip} \cite{radford2021learning}, \texttt{nemotron}, \texttt{sonar} \\
+Embedding tekstu          & \texttt{labse} \cite{feng-etal-2022-language}, \texttt{jina\_v4} \cite{jina_v4}, \texttt{bge\_m3}, \texttt{clip} \cite{radford2021learning}, \texttt{clap\_text}, \texttt{nemotron}, \texttt{sonar} \\
 Embedding audio           & \texttt{attention\_pool}, \texttt{attention\_pool\_m4t}, \texttt{clap\_style}, \texttt{hubert} \cite{hsu2021hubert}, \texttt{wavlm}, \texttt{sonar\_speech} \\
 Przestawianie wyników     & \texttt{cross\_encoder} \\
 Synteza mowy (TTS)        & \texttt{piper}, \texttt{xtts\_v2}, \texttt{mms}, \texttt{m4t} \\
@@ -540,6 +736,14 @@ nieprzejrzyste dla proweniencji. Obliczenia biegną na jednej maszynie, a skalow
 przetwarzaniu oknami, nie na rozproszeniu. Generacja odpowiedzi i sędzia korzystają z zewnętrznej
 usługi modelu językowego, więc ich odtwarzalność jest względna wobec serwera, a jakość odpowiedzi
 ocenia sędzia automatyczny wraz z heurystykami leksykalnymi, nie klinicysta.
+
+Osobne ograniczenia wnosi materiał badawczy. Ścieżka głosowa nie pochodzi z nagrań, lecz jest
+syntezowana w czasie wykonania, więc nie obejmuje zmienności osobniczej mówcy, wad wymowy ani
+zakłóceń otoczenia. Według wiedzy autorów nie istnieje też publiczny medyczny zbiór pytań i dokumentów w języku polskim
+o strukturze wymaganej do oceny wyszukiwania, dlatego PubMedQA przetłumaczono na polski modelem
+językowym. Tłumaczenie maszynowe wnosi własny błąd, uproszczenia terminologii i kalki składniowe,
+który nakłada się na mierzone różnice między architekturami i którego niniejsza praca od nich nie
+rozdziela.
 
 Implementację w języku Python udostępniono na licencji MIT wraz z konfiguracjami opisanych
 eksperymentów.
