@@ -46,8 +46,9 @@
 
 % wyszukiwanie i węzły dalsze
 \node[ann]    (ret)  at (19.0,  0.0) {\texttt{retrieval}};
-\node[opt]    (ref)  at (19.0, -3.2) {\texttt{rerank} $\to$ \texttt{mmr}\\$\to$ \texttt{threshold}};
-\node[opt]    (gen)  at (19.0, -5.7) {\texttt{answer\_gen}};
+% zakomentowano: zawężanie wyników (rerank/mmr/threshold) nie jest testowane
+% \node[opt]    (ref)  at (19.0, -3.2) {\texttt{rerank} $\to$ \texttt{mmr}\\$\to$ \texttt{threshold}};
+\node[opt]    (gen)  at (19.0, -3.2) {\texttt{answer\_gen}};
 \node[metric] (met)  at (24.4,  0.0) [minimum width=3.6cm]
     {węzły metryk\\[-1pt]\scriptsize{dostawiane automatycznie}};
 
@@ -68,8 +69,7 @@
 \draw[arrow] (aemb.east) -- node[art, pos=0.55, below right, inner sep=1pt]
     {\texttt{query\_vectors}} (ret.south west);
 
-\draw[optarrow] (ret.south) -- (ref.north);
-\draw[optarrow] (ref) -- (gen);
+\draw[optarrow] (ret.south) -- (gen.north);
 \draw[arrow] (ret) -- (met);
 
 % ============================================================

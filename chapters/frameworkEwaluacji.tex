@@ -57,9 +57,11 @@ w dalszej części rozdziału.
 \textbf{Kategoria} & \textbf{Węzły (rola)} & \textbf{Model} \\
 \midrule
 Przygotowanie zapytania & transkrypcja mowy, synteza mowy, optymalizacja, przeredagowanie i korekcja zapytania & ASR, TTS, LLM, korektor \\
-Reprezentacja wektorowa & embedding tekstu i audio, fuzja osadzeń, indeksowanie korpusu & modele embeddingowe \\
-Wyszukiwanie & wyszukiwanie (gęste/rzadkie/hybrydowe), przestawianie, MMR, próg & ---, model przestawiający \\
-Augmentacja & zaburzanie audio lub tekstu (z zachowaniem typu) & --- \\
+Reprezentacja wektorowa & embedding tekstu i audio, fuzja embeddingów, indeksowanie korpusu & modele embeddingowe \\
+% Wyszukiwanie & wyszukiwanie (gęste/rzadkie/hybrydowe), przestawianie, MMR, próg & ---, model przestawiający \\
+Wyszukiwanie & wyszukiwanie gęste w przestrzeni wektorowej & --- \\
+% Augmentacja & zaburzanie audio lub tekstu (z zachowaniem typu) & --- \\
+Augmentacja & zaburzanie audio (z zachowaniem typu) & --- \\
 Generacja odpowiedzi & odpowiedź z pobranego kontekstu (RAG) & LLM \\
 Ewaluacja i zapis & metryki, agregacja, utrwalanie raportu & --- \\
 \bottomrule
@@ -187,7 +189,7 @@ pozwala zapisać tę algebrę wprost:
 \text{indeksowanie} &: \text{V}[s] \rightarrow \text{indeks}[s], \\[3pt]
 \text{złączenie korpusów} &: \text{V}[s] \times \text{V}[s] \rightarrow \text{V}[s],
 &\;
-\text{fuzja osadzeń} &: \text{V}[s_1] \times \dots \times \text{V}[s_n] \rightarrow \text{V}[s'],
+\text{fuzja embeddingów} &: \text{V}[s_1] \times \dots \times \text{V}[s_n] \rightarrow \text{V}[s'],
 \\[3pt]
 \text{wyszukiwanie} &: (\text{V}[s], \text{indeks}[s]) \rightarrow \text{ranking}
 \end{aligned}
@@ -215,63 +217,68 @@ podczas gdy złączenie korpusów sumuje rozłączne zbiory dokumentów. Symetry
 stron domyka algebrę, bo każda operacja elementowa działa zarówno na zapytaniach, jak i na
 dokumentach. Kategorie tych węzłów zestawiono w tabeli~\ref{tab:wezly}.
 
-\subsection{Wyszukiwanie i zawężanie wyników}
+\subsection{Wyszukiwanie}
 \label{sec:wyszukiwanie}
-Wyszukiwanie działa w trybie gęstym, rzadkim albo hybrydowym \cite{manning2008introduction}. Tryb
-gęsty wybiera $k$ najbliższych sąsiadów według iloczynu skalarnego znormalizowanych wektorów, czyli
-podobieństwa kosinusowego. Tryb rzadki opiera się na dopasowaniu leksykalnym BM25
-\cite{robertson2009probabilistic, sparckjones1972statistical}, zaimplementowanym w systemie
-bezpośrednio:
+Wyszukiwanie działa w trybie gęstym \cite{manning2008introduction}: wybiera $k$ najbliższych
+sąsiadów według iloczynu skalarnego znormalizowanych wektorów, czyli podobieństwa kosinusowego.
 
-\begin{equation}
-\begin{aligned}
-\mathrm{idf}(t) &= \ln\!\left(1 + \frac{N - \mathrm{df}(t) + 0{,}5}{\mathrm{df}(t) + 0{,}5}\right), \\[4pt]
-\mathrm{BM25}(q, d) &= \sum_{t \in q} \mathrm{idf}(t)\,
-   \frac{f(t,d)\,(k_1 + 1)}{f(t,d) + k_1\left(1 - b + b\,\dfrac{|d|}{\mathrm{avgdl}}\right)}
-\end{aligned}
-\label{eq:bm25}
-\end{equation}
-
-gdzie $f(t,d)$ oznacza liczbę wystąpień termu $t$ w dokumencie $d$, $\mathrm{df}(t)$ liczbę
-dokumentów zawierających $t$, $N$ liczność korpusu, $|d|$ długość dokumentu, a $\mathrm{avgdl}$
-średnią długość dokumentu. Parametry $k_1$ i $b$ sterują nasyceniem częstości oraz siłą
-normalizacji długości; przyjęto wartości domyślne $k_1 = 1{,}5$ i $b = 0{,}75$.
-
-Tryb hybrydowy scala listę gęstą i rzadką jedną z trzech strategii. Dwie z nich wymagają
-uprzedniej normalizacji min--max wyników każdej listy do przedziału $\langle 0, 1 \rangle$:
-
-\begin{equation}
-\begin{aligned}
-s_{\mathrm{waż}}(d) &= w\, \tilde{s}_\mathrm{g}(d) + (1 - w)\, \tilde{s}_\mathrm{r}(d), \\[3pt]
-s_{\max}(d) &= \max\!\big(w\, \tilde{s}_\mathrm{g}(d),\; (1 - w)\, \tilde{s}_\mathrm{r}(d)\big), \\[3pt]
-s_{\mathrm{RRF}}(d) &= \sum_{L \in \{\mathrm{g},\, \mathrm{r}\}} \frac{1}{k_{\mathrm{RRF}} + \mathrm{rank}_L(d)}
-\end{aligned}
-\label{eq:fuzja}
-\end{equation}
-
-gdzie $\tilde{s}_\mathrm{g}$ i $\tilde{s}_\mathrm{r}$ oznaczają znormalizowane wyniki listy gęstej
-i rzadkiej, $w$ wagę listy gęstej, $\mathrm{rank}_L(d)$ pozycję dokumentu w liście $L$, a
-$k_{\mathrm{RRF}}$ stałą tłumiącą wpływ dalszych pozycji, domyślnie równą $60$
-\cite{cormack2009rrf}. Metoda RRF jako jedyna nie wymaga normalizacji, ponieważ operuje na samych
-pozycjach, a nie na wartościach wyników.
-
-Zawężanie wyników rozbito na trzy węzły: przestawianie (ang.\ \textit{reranking}), maksymalną trafność brzegową (ang.\
-\textit{maximal marginal relevance}, MMR) oraz próg podobieństwa, z których każdy przyjmuje ranking
-i zwraca ranking. Kolejność łańcucha wynika z krawędzi grafu, domyślnie jest to kolejność podana
-wyżej, a ten sam węzeł może w nim wystąpić wielokrotnie, więc każdy wariant zawężania jest osobną
-gałęzią porównania. Przestawianie korzysta z modelu cross-encoder
-albo z pokrycia leksykalnego, natomiast MMR zachłannie buduje listę wynikową, w każdym kroku
-dobierając dokument o najwyższej wartości \cite{carbonell1998mmr}:
-
-\begin{equation}
-\mathrm{MMR}(d) = \lambda\, \mathrm{sim}(d, q)
-                 - (1 - \lambda)\, \max_{d' \in S} \mathrm{sim}(d, d')
-\label{eq:mmr}
-\end{equation}
-
-gdzie $S$ oznacza zbiór dokumentów już wybranych, $\mathrm{sim}$ podobieństwo kosinusowe, a
-parametr $\lambda \in \langle 0, 1 \rangle$ steruje kompromisem między trafnością wobec zapytania
-a różnorodnością względem tego, co już znalazło się na liście.
+% --- zakomentowano: wyszukiwanie rzadkie (BM25), tryb hybrydowy oraz zawężanie wyników
+% (przestawianie, MMR, próg) -- warianty niesprawdzane eksperymentalnie
+% Wyszukiwanie działa w trybie gęstym, rzadkim albo hybrydowym \cite{manning2008introduction}. Tryb
+% gęsty wybiera $k$ najbliższych sąsiadów według iloczynu skalarnego znormalizowanych wektorów, czyli
+% podobieństwa kosinusowego. Tryb rzadki opiera się na dopasowaniu leksykalnym BM25
+% \cite{robertson2009probabilistic, sparckjones1972statistical}, zaimplementowanym w systemie
+% bezpośrednio:
+%
+% \begin{equation}
+% \begin{aligned}
+% \mathrm{idf}(t) &= \ln\!\left(1 + \frac{N - \mathrm{df}(t) + 0{,}5}{\mathrm{df}(t) + 0{,}5}\right), \\[4pt]
+% \mathrm{BM25}(q, d) &= \sum_{t \in q} \mathrm{idf}(t)\,
+%    \frac{f(t,d)\,(k_1 + 1)}{f(t,d) + k_1\left(1 - b + b\,\dfrac{|d|}{\mathrm{avgdl}}\right)}
+% \end{aligned}
+% \label{eq:bm25}
+% \end{equation}
+%
+% gdzie $f(t,d)$ oznacza liczbę wystąpień termu $t$ w dokumencie $d$, $\mathrm{df}(t)$ liczbę
+% dokumentów zawierających $t$, $N$ liczność korpusu, $|d|$ długość dokumentu, a $\mathrm{avgdl}$
+% średnią długość dokumentu. Parametry $k_1$ i $b$ sterują nasyceniem częstości oraz siłą
+% normalizacji długości; przyjęto wartości domyślne $k_1 = 1{,}5$ i $b = 0{,}75$.
+%
+% Tryb hybrydowy scala listę gęstą i rzadką jedną z trzech strategii. Dwie z nich wymagają
+% uprzedniej normalizacji min--max wyników każdej listy do przedziału $\langle 0, 1 \rangle$:
+%
+% \begin{equation}
+% \begin{aligned}
+% s_{\mathrm{waż}}(d) &= w\, \tilde{s}_\mathrm{g}(d) + (1 - w)\, \tilde{s}_\mathrm{r}(d), \\[3pt]
+% s_{\max}(d) &= \max\!\big(w\, \tilde{s}_\mathrm{g}(d),\; (1 - w)\, \tilde{s}_\mathrm{r}(d)\big), \\[3pt]
+% s_{\mathrm{RRF}}(d) &= \sum_{L \in \{\mathrm{g},\, \mathrm{r}\}} \frac{1}{k_{\mathrm{RRF}} + \mathrm{rank}_L(d)}
+% \end{aligned}
+% \label{eq:fuzja}
+% \end{equation}
+%
+% gdzie $\tilde{s}_\mathrm{g}$ i $\tilde{s}_\mathrm{r}$ oznaczają znormalizowane wyniki listy gęstej
+% i rzadkiej, $w$ wagę listy gęstej, $\mathrm{rank}_L(d)$ pozycję dokumentu w liście $L$, a
+% $k_{\mathrm{RRF}}$ stałą tłumiącą wpływ dalszych pozycji, domyślnie równą $60$
+% \cite{cormack2009rrf}. Metoda RRF jako jedyna nie wymaga normalizacji, ponieważ operuje na samych
+% pozycjach, a nie na wartościach wyników.
+%
+% Zawężanie wyników rozbito na trzy węzły: przestawianie (ang.\ \textit{reranking}), maksymalną trafność brzegową (ang.\
+% \textit{maximal marginal relevance}, MMR) oraz próg podobieństwa, z których każdy przyjmuje ranking
+% i zwraca ranking. Kolejność łańcucha wynika z krawędzi grafu, domyślnie jest to kolejność podana
+% wyżej, a ten sam węzeł może w nim wystąpić wielokrotnie, więc każdy wariant zawężania jest osobną
+% gałęzią porównania. Przestawianie korzysta z modelu cross-encoder
+% albo z pokrycia leksykalnego, natomiast MMR zachłannie buduje listę wynikową, w każdym kroku
+% dobierając dokument o najwyższej wartości \cite{carbonell1998mmr}:
+%
+% \begin{equation}
+% \mathrm{MMR}(d) = \lambda\, \mathrm{sim}(d, q)
+%                  - (1 - \lambda)\, \max_{d' \in S} \mathrm{sim}(d, d')
+% \label{eq:mmr}
+% \end{equation}
+%
+% gdzie $S$ oznacza zbiór dokumentów już wybranych, $\mathrm{sim}$ podobieństwo kosinusowe, a
+% parametr $\lambda \in \langle 0, 1 \rangle$ steruje kompromisem między trafnością wobec zapytania
+% a różnorodnością względem tego, co już znalazło się na liście.
 
 Indeks korpusu buduje osobny węzeł, w którym wskazuje się, gdzie mają być przechowywane wektory.
 Do wyboru są pamięć operacyjna, biblioteka FAISS \cite{johnson2019billion}, w wariancie
@@ -293,9 +300,11 @@ dostępu do wyników, obejmując czyste przepisanie oraz metodę HyDE \cite{gao2
 Przeredagowanie działa po wyszukiwaniu, pobiera bieżące zapytanie wraz ze znalezionymi dokumentami
 i publikuje osobny artefakt. Zaimplementowano dla niego przepisanie z kontekstem oraz krytykę
 self-RAG, w której model najpierw ocenia trafność pobranych dokumentów \cite{asai2024selfrag}.
-Wyszukiwanie iteracyjne daje się zapisać grafem acyklicznym, bo kolejne rundy rozwija się w
-odrębne węzły; w opisywanych eksperymentach są to dwa przebiegi wyszukiwania, a węzły dalsze
-czytają wynik drugiego. Nieudane wywołanie zostawia zapytanie bez zmian, więc krok nigdy nie
+% --- zakomentowano: wyszukiwanie iteracyjne nie występuje w eksperymentach
+% Wyszukiwanie iteracyjne daje się zapisać grafem acyklicznym, bo kolejne rundy rozwija się w
+% odrębne węzły; w opisywanych eksperymentach są to dwa przebiegi wyszukiwania, a węzły dalsze
+% czytają wynik drugiego.
+Nieudane wywołanie zostawia zapytanie bez zmian, więc krok nigdy nie
 przerywa przebiegu.
 
 Ustalony format odpowiedzi jest częścią eksperymentu. Odpowiedź zawiera wiersz z decyzją oraz
@@ -303,7 +312,7 @@ część opisową, rozdzielane przy ocenie, ponieważ decyzję ocenia się przez
 zbioru, a część opisową z odpowiedzią referencyjną. Generacja wspomagana wyszukiwaniem
 \cite{lewis2020retrieval, shuster2021retrieval} przebiega metodą prostą, łańcuchem myśli albo
 wielozapytaniową. Kontekst polecenia dla modelu (ang.\ \textit{prompt}) tworzą pobrane fragmenty
-albo fragmenty pełnych artykułów najbliższe pytaniu w przestrzeni osadzeń.
+albo fragmenty pełnych artykułów najbliższe pytaniu w przestrzeni embeddingowej.
 
 Samo polecenie nie jest wpisane w kod, lecz stanowi część konfiguracji przebiegu. Zadaje się je
 dwoma polami: instrukcją systemową, ustalającą rolę i format odpowiedzi, oraz szablonem treści
@@ -347,31 +356,35 @@ dla par słów oraz ROUGE-L, w którym licznik obu ułamków zastępuje długoś
 podciągu, a mianowniki -- długości obu odpowiedzi. Przed porównaniem słowa sprowadza się do
 rdzeni algorytmem Portera; algorytm ten powstał dla języka angielskiego, więc w tekście polskim
 ujednolica tylko część form fleksyjnych i porównanie pozostaje w praktyce bliskie ścisłemu. Metryka obejmuje
-wyłącznie część opisową odpowiedzi, ponieważ decyzję ocenia się przez porównanie z etykietą zbioru. Trzy pozostałe metryki opierają się na przecięciu zbiorów:
+wyłącznie część opisową odpowiedzi, ponieważ decyzję ocenia się przez porównanie z etykietą zbioru. Dwie pozostałe metryki opierają się na przecięciu zbiorów:
 
 \begin{equation}
 \begin{aligned}
 H &= 1 - \frac{|T_\mathrm{odp} \cap T_\mathrm{kont}|}{|T_\mathrm{odp}|},
 &\qquad
-\mathrm{PK} &= \frac{|W_\mathrm{ref} \cap W_\mathrm{kont}|}{|W_\mathrm{ref}|},
-&\qquad
-\mathrm{BD} &= \frac{|P_\mathrm{ref} \cap P_\mathrm{odp}|}{|P_\mathrm{ref}|}
+\mathrm{PK} &= \frac{|W_\mathrm{ref} \cap W_\mathrm{kont}|}{|W_\mathrm{ref}|}
+% --- zakomentowano: bezpieczeństwo dawkowania (BD) nie jest testowane w pracy
+% &\qquad
+% \mathrm{BD} &= \frac{|P_\mathrm{ref} \cap P_\mathrm{odp}|}{|P_\mathrm{ref}|}
 \end{aligned}
 \label{eq:metrykiRAG}
 \end{equation}
 
 gdzie $H$ oznacza wskaźnik halucynacji \cite{ji2023survey}, czyli udział słów odpowiedzi
-nieobecnych w kontekście, $\mathrm{PK}$ pokrycie kontekstu, a $\mathrm{BD}$ bezpieczeństwo
-dawkowania. Symbole $T$, $W$ i $P$ oznaczają odpowiednio zbiory tokenów, słów oraz par złożonych
-z liczby i jednostki dawki, a indeksy wskazują, czy pochodzą z odpowiedzi wygenerowanej, z tekstu
+nieobecnych w kontekście, a $\mathrm{PK}$ pokrycie kontekstu.
+% zakomentowano wraz z BD: , a $\mathrm{BD}$ bezpieczeństwo dawkowania; $P$ -- pary liczba-jednostka dawki
+Symbole $T$ i $W$ oznaczają odpowiednio zbiory tokenów oraz słów,
+a indeksy wskazują, czy pochodzą z odpowiedzi wygenerowanej, z tekstu
 referencyjnego, czy z pobranego kontekstu. Wielkości te są zbiorami, nie listami, więc powtórzenia
 tego samego słowa liczą się jednokrotnie. Pokrycie kontekstu oddziela niepowodzenie wyszukiwania od
 niepowodzenia generacji: jego niska wartość oznacza, że w pobranych dokumentach nie było tego, co
-potrzebne, więc odpowiedź nie mogła zostać poprawnie ugruntowana. Gdy tekst referencyjny nie
-zawiera żadnej dawki, bezpieczeństwo dawkowania przyjmuje wartość jeden, ponieważ nie ma czego
-odtworzyć błędnie. Miara ta sprawdza wyłącznie odtworzenie dawek referencyjnych: dawki obecnej
-w odpowiedzi, a nieobecnej w referencji, nie karze, więc nie wyklucza dawki zmyślonej przez model.
-Trzy ostatnie porównują wyłącznie słowa i liczby, bez oceny sensu
+potrzebne, więc odpowiedź nie mogła zostać poprawnie ugruntowana.
+% --- zakomentowano: opis metryki bezpieczeństwa dawkowania
+% Gdy tekst referencyjny nie
+% zawiera żadnej dawki, bezpieczeństwo dawkowania przyjmuje wartość jeden, ponieważ nie ma czego
+% odtworzyć błędnie. Miara ta sprawdza wyłącznie odtworzenie dawek referencyjnych: dawki obecnej
+% w odpowiedzi, a nieobecnej w referencji, nie karze, więc nie wyklucza dawki zmyślonej przez model.
+Obie porównują wyłącznie słowa i liczby, bez oceny sensu
 odpowiedzi, więc wskazują przypadki podejrzane, a nie rozstrzygają o merytorycznej poprawności
 odpowiedzi.
 
@@ -387,44 +400,48 @@ elementowymi wartościami Recall@5 oraz odwrotnej pozycji pierwszego trafienia, 
 zapytaniach daje MRR. Nie jest to kalibracja, bo samych ocen się nie poprawia, lecz kontrola, czy
 sędzia reaguje na zmiany jakości wyszukiwania.
 
-\subsection{Korekcja transkrypcji encji medycznych oparta na słowniku}
-Błędy transkrypcji nazw leków i dawek są w medycynie niebezpieczne. Węzeł korekcji nie przepisuje
-tekstu swobodnie, lecz dopasowuje hipotezę ASR do encji ze słownika dziedzinowego, więc nie
-powstaje halucynowana nazwa leku \cite{ji2023survey}. Opisano go, ponieważ pokazuje, że w tej
-samej algebrze mieszczą się także przekształcenia dziedzinowe, a jego rzetelna ocena wymaga
-materiału testowego z oznaczonymi nazwami leków i dawkami.
-
-Korekcja nazwy leku opiera się na indeksie kodów fonetycznych typu Double-Metaphone
-\cite{christen2006namematching} zbudowanym nad słownikiem leków. Słowo zostaje zastąpione kandydatem
-brzmiącym tak samo tylko wtedy, gdy kandydat jest jednoznaczny, a pozostała różnica mieści się w
-zadanym limicie. Obejmuje to klasę błędów współbrzmiących, których korektor oparty na odległości
-edycyjnej nie potrafi bezpiecznie naprawić.
-
-Przy korekcji dawki punktem odniesienia jest dopasowany wcześniej lek, a podaną moc zestawia się z
-tabelą wartości dopuszczalnych. Gdy dawka jest w podanej jednostce nieprawdopodobna, a dokładnie
-jedna metryczna jednostka masy czyni ją prawdopodobną, przepisywana jest jednostka, nigdy liczba,
-czego przykładem jest lewotyroksyna „125 miligramów'' wobec „125 mikrogramów''. Przypadki
-niejednoznaczne i leki spoza słownika pozostają bez zmian, a wynik korektora opartego na modelu
-językowym przechodzi przez to samo dopasowanie fonetyczne.
-
-Przewidziany pomiar wartości korekcji polega na porównaniu gałęzi: gałąź bez korekcji, korzystającą
-wyłącznie z transkrypcji ASR, zestawia się z gałęziami poszczególnych korektorów. Ponieważ nieprzetworzona
-hipoteza ASR pozostaje niezmienna, WER i CER mierzą jakość samego rozpoznania, a tekst
-poprawiony ocenia opcjonalny zestaw metryk bliźniaczych, czyli te same WER i CER liczone wobec
-tej samej referencji na tekście po korekcji. Wpływ korekcji na wyszukiwanie opisuje zmiana
-Recall@k wobec gałęzi bez korekcji.
-
-Zaprojektowano również oparcie korekcji na historii pacjenta wraz z metryką karzącą surowiej błędy
-wprowadzone przez korekcję niż pozostawione, lecz część tę wyłączono z zakresu pracy, ponieważ
-żaden z dostępnych zbiorów nie zawiera historii pacjenta. Sama korekcja jest gotowym elementem
-systemu, nie należy jednak do czynników badanych w niniejszej pracy; eksperymenty z rozdziału
-\ref{sec:eksperymenty} jej nie obejmują.
+% --- zakomentowano: korekcja encji medycznych (leki, dawki) nie jest testowana w pracy
+% \subsection{Korekcja transkrypcji encji medycznych oparta na słowniku}
+% Błędy transkrypcji nazw leków i dawek są w medycynie niebezpieczne. Węzeł korekcji nie przepisuje
+% tekstu swobodnie, lecz dopasowuje hipotezę ASR do encji ze słownika dziedzinowego, więc nie
+% powstaje halucynowana nazwa leku \cite{ji2023survey}. Opisano go, ponieważ pokazuje, że w tej
+% samej algebrze mieszczą się także przekształcenia dziedzinowe, a jego rzetelna ocena wymaga
+% materiału testowego z oznaczonymi nazwami leków i dawkami.
+%
+% Korekcja nazwy leku opiera się na indeksie kodów fonetycznych typu Double-Metaphone
+% \cite{christen2006namematching} zbudowanym nad słownikiem leków. Słowo zostaje zastąpione kandydatem
+% brzmiącym tak samo tylko wtedy, gdy kandydat jest jednoznaczny, a pozostała różnica mieści się w
+% zadanym limicie. Obejmuje to klasę błędów współbrzmiących, których korektor oparty na odległości
+% edycyjnej nie potrafi bezpiecznie naprawić.
+%
+% Przy korekcji dawki punktem odniesienia jest dopasowany wcześniej lek, a podaną moc zestawia się z
+% tabelą wartości dopuszczalnych. Gdy dawka jest w podanej jednostce nieprawdopodobna, a dokładnie
+% jedna metryczna jednostka masy czyni ją prawdopodobną, przepisywana jest jednostka, nigdy liczba,
+% czego przykładem jest lewotyroksyna „125 miligramów'' wobec „125 mikrogramów''. Przypadki
+% niejednoznaczne i leki spoza słownika pozostają bez zmian, a wynik korektora opartego na modelu
+% językowym przechodzi przez to samo dopasowanie fonetyczne.
+%
+% Przewidziany pomiar wartości korekcji polega na porównaniu gałęzi: gałąź bez korekcji, korzystającą
+% wyłącznie z transkrypcji ASR, zestawia się z gałęziami poszczególnych korektorów. Ponieważ nieprzetworzona
+% hipoteza ASR pozostaje niezmienna, WER i CER mierzą jakość samego rozpoznania, a tekst
+% poprawiony ocenia opcjonalny zestaw metryk bliźniaczych, czyli te same WER i CER liczone wobec
+% tej samej referencji na tekście po korekcji. Wpływ korekcji na wyszukiwanie opisuje zmiana
+% Recall@k wobec gałęzi bez korekcji.
+%
+% Zaprojektowano również oparcie korekcji na historii pacjenta wraz z metryką karzącą surowiej błędy
+% wprowadzone przez korekcję niż pozostawione, lecz część tę wyłączono z zakresu pracy, ponieważ
+% żaden z dostępnych zbiorów nie zawiera historii pacjenta. Sama korekcja jest gotowym elementem
+% systemu, nie należy jednak do czynników badanych w niniejszej pracy; eksperymenty z rozdziału
+% \ref{sec:eksperymenty} jej nie obejmują.
 
 \subsection{Węzły augmentacji}
 Augmentacja to węzeł zachowujący typ ($X \rightarrow X'$), więc można go wstawić przed dowolnym
 odbiorcą artefaktu $X$ bez zmian w pozostałej części grafu. Zdefiniowano augmentację audio,
-zmieniającą szum, tempo, wysokość i głośność, oraz augmentację tekstu, podmieniającą homofony,
-zniekształcającą liczby i jednostki albo pomijającą słowa. Badanie odporności prowadzi się wówczas
+zmieniającą szum, tempo, wysokość i głośność.
+% --- zakomentowano: augmentacja tekstu (homofony, liczby i jednostki, pomijanie słów) nie jest testowana
+% , oraz augmentację tekstu, podmieniającą homofony,
+% zniekształcającą liczby i jednostki albo pomijającą słowa.
+Badanie odporności prowadzi się wówczas
 w dodatkowej gałęzi, zestawianej z gałęzią bez zaburzeń. Augmentator ustala ziarno generatora
 losowego osobno dla każdego elementu, więc wariant jest odtwarzalny niezależnie od kolejności i
 zrównoleglenia, a użyte ziarno jest zapisywane w proweniencji.
@@ -643,9 +660,11 @@ metryki, korektora czy augmentacji sprowadza się do rejestracji, bez zmiany rdz
 ASR (transkrypcja)        & \texttt{whisper} \cite{whisper}, \texttt{faster\_whisper}, \texttt{wav2vec2} \cite{baevski2020wav2vec, conneau2020xlsr}, \texttt{seamless\_m4t} \\
 Embedding tekstu          & \texttt{labse} \cite{feng-etal-2022-language}, \texttt{jina\_v4} \cite{jina_v4}, \texttt{bge\_m3}, \texttt{clip} \cite{radford2021learning}, \texttt{clap\_text}, \texttt{nemotron}, \texttt{sonar} \\
 Embedding audio           & \texttt{attention\_pool}, \texttt{attention\_pool\_m4t}, \texttt{clap\_style}, \texttt{hubert} \cite{hsu2021hubert}, \texttt{wavlm}, \texttt{sonar\_speech} \\
-Przestawianie wyników     & \texttt{cross\_encoder} \\
+% Przestawianie wyników     & \texttt{cross\_encoder} \\
 Synteza mowy (TTS)        & \texttt{piper}, \texttt{xtts\_v2}, \texttt{mms}, \texttt{m4t} \\
-Korektor zapytań          & \texttt{rule} (regułowy), \texttt{kb} (baza wiedzy), \texttt{llm}, \texttt{phonetic} (fonetyczny), \texttt{clinical} (dawki leków) \\
+% Korektor zapytań (wersja pełna, z korektorami leków -- niesprawdzana eksperymentalnie):
+% Korektor zapytań          & \texttt{rule} (regułowy), \texttt{kb} (baza wiedzy), \texttt{llm}, \texttt{phonetic} (fonetyczny), \texttt{clinical} (dawki leków) \\
+Korektor zapytań          & \texttt{rule} (regułowy), \texttt{kb} (baza wiedzy), \texttt{llm} \\
 \bottomrule
 \end{tabular}
 \caption{Rejestry modeli i zarejestrowane typy. Wybór modelu następuje przez
@@ -671,7 +690,7 @@ Rysunku~\ref{fig:grafWyszukiwania}.
 \end{figure}
 
 Gałąź korpusu jest wspólna dla wszystkich porównywanych wariantów. Węzeł embeddingu korpusu
-przekształca dokumenty w wektory i publikuje je wraz ze znacznikiem przestrzeni osadzeń oraz
+przekształca dokumenty w wektory i publikuje je wraz ze znacznikiem przestrzeni embeddingowej oraz
 z dokumentami źródłowymi, przyporządkowanymi wektorom jeden do jednego. Wynik trafia do pamięci
 podręcznej pod kluczem wyprowadzonym z treści korpusu, a więc niezależnym od tego, gdzie wektory
 zostaną następnie umieszczone. O miejscu ich przechowywania rozstrzyga dopiero kolejny węzeł, który
@@ -692,8 +711,8 @@ porównanie modeli wewnątrz jednego wariantu mieści się w jednej.
 
 Węzeł wyszukiwania pobiera indeks z gałęzi korpusu oraz wektory zapytania z jednego z dwóch
 opisanych wariantów. Oba wejścia są zwykłymi artefaktami, więc podmiana wariantu nie wymaga żadnej zmiany
-w samym węźle. Dalej może następować łańcuch zawężania wyników oraz węzeł generacji odpowiedzi,
-opisane w podrozdziałach \ref{sec:wyszukiwanie} i \ref{sec:rag}. Konfiguracja nie wymienia
+w samym węźle. Dalej może następować węzeł generacji odpowiedzi, opisany
+w podrozdziale \ref{sec:rag}. Konfiguracja nie wymienia
 natomiast metryk, ponieważ ich węzły dostawiane są samoczynnie wszędzie tam, gdzie ich
 wejścia są obecne.
 
