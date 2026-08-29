@@ -20,8 +20,7 @@
     metric/.style={block, fill=red!12},
     arrow/.style={-{Stealth[]}, thick},
     optarrow/.style={-{Stealth[]}, thick, dashed},
-    art/.style={font=\scriptsize, text=gray!60!black},
-    lane/.style={font=\scriptsize\itshape, text=gray}
+    art/.style={font=\scriptsize, text=gray!60!black}
 ]
 
 % ============================================================
@@ -30,7 +29,7 @@
 \node[src]    (ds)   at ( 0.0,  0.0) {\texttt{dataset\_source}};
 
 % gałąź korpusu (góra)
-\node[embm]   (cemb) at (12.6,  3.2) {\texttt{corpus\_embedding}};
+\node[embm]   (cemb) at (14.0,  3.2) {\texttt{corpus\_embedding}};
 \node[store]  (vdb)  at (19.0,  3.2) {\texttt{vector\_db}};
 
 % gałąź zapytania — pień wspólny
@@ -41,16 +40,18 @@
 \node[embm]   (temb) at (14.0,  0.0) {\texttt{text\_embedding}};
 
 % wariant latentny
-\node[adapt]  (aemb) at (11.5, -3.2) [minimum width=5.6cm]
-    {\texttt{audio\_embedding}\\[-1pt]\scriptsize{adapter reprezentacji latentnych}};
+\node[embm]   (aemb) at (14.0, -3.2) {\texttt{audio\_embedding}};
+
+% wspólna przestrzeń embeddingowa
+\node[draw=gray!70, dashed, rounded corners=3pt, thick, inner sep=8pt,
+      fit=(cemb)(temb)(aemb),
+      label={[font=\scriptsize\itshape, text=gray]below:wspólna przestrzeń embeddingowa}] (spc) {};
 
 % wyszukiwanie i węzły dalsze
 \node[ann]    (ret)  at (19.0,  0.0) {\texttt{retrieval}};
 % zakomentowano: zawężanie wyników (rerank/mmr/threshold) nie jest testowane
 % \node[opt]    (ref)  at (19.0, -3.2) {\texttt{rerank} $\to$ \texttt{mmr}\\$\to$ \texttt{threshold}};
 \node[opt]    (gen)  at (19.0, -3.2) {\texttt{answer\_gen}};
-\node[metric] (met)  at (24.4,  0.0) [minimum width=3.6cm]
-    {węzły metryk\\[-1pt]\scriptsize{dostawiane automatycznie}};
 
 % ============================================================
 % KRAWĘDZIE
@@ -70,12 +71,5 @@
     {\texttt{query\_vectors}} (ret.south west);
 
 \draw[optarrow] (ret.south) -- (gen.north);
-\draw[arrow] (ret) -- (met);
-
-% ============================================================
-% PODPISY WARIANTÓW
-% ============================================================
-\node[lane] at ( 9.6,  1.35) {wariant kaskadowy};
-\node[lane] at ( 8.2, -1.55) {wariant latentny};
 
 \end{tikzpicture}

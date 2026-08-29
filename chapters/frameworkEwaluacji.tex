@@ -2,8 +2,8 @@ Rozdział przedstawia środowisko ewaluacyjne (ang.\ \textit{framework}) zbudowa
 niniejszej pracy. Jego zadaniem jest zestawianie ze sobą konfiguracji przetwarzania zapytania
 głosowego, od transkrypcji po wyszukiwanie, w warunkach, w których jedyną różnicą między
 porównywanymi przebiegami jest badany czynnik. Opisano kolejno model danych, algebrę węzłów,
-budowę i wykonanie grafu oraz aparat statystyczny, na którym opiera się weryfikacja hipotezy
-pracy, a na koniec ścieżkę wyszukiwania zestawioną z opisanych węzłów oraz interfejs, przez który
+budowę i wykonanie grafu oraz sposób zestawiania wyników, na którym opiera się weryfikacja
+hipotezy pracy, a na koniec ścieżkę wyszukiwania zestawioną z opisanych węzłów oraz interfejs, przez który
 system jest obsługiwany. Podrozdział \ref{sec:eksperymenty} przedstawia pomiary wykonane na tak
 zbudowanym systemie.
 
@@ -483,8 +483,7 @@ $\langle 0, 1 \rangle$. Przyjęto liniową postać zysku $\mathrm{rel}(d_i)$, zg
 \texttt{ndcg\_cut} z pakietu \texttt{trec\_eval} \cite{jarvelin2002cumulated}; dla ocen binarnych
 jest ona równoważna wariantowi wykładniczemu, a przy ocenach stopniowanych zapewnia
 porównywalność z wynikami raportowanymi w zbiorach odniesienia. Ranking obejmuje $k$ zwróconych
-dokumentów, więc raportowana wartość MAP jest w praktyce MAP@$k$. W obliczeniach elementowych,
-w tym w różnicach parowanych między gałęziami, używa się składników powyższych średnich:
+dokumentów, więc raportowana wartość MAP jest w praktyce MAP@$k$. W obliczeniach elementowych używa się składników powyższych średnich:
 odwrotnej pozycji $1/r_q$ oraz średniej precyzji pojedynczego zapytania, a MRR i MAP powstają
 dopiero przy agregacji.
 
@@ -513,8 +512,7 @@ gdzie $V$ jest zbiorem węzłów, a $E$ zadeklarowanym zbiorem krawędzi. Każde
 przypisane są typ $\tau(v)$, parametry $\theta(v)$ oraz zbiór faktycznie udostępnianych wyjść
 $\mathrm{wy}(v)$. Powiązanie $\beta(v, x)$ jest listą producentów wejścia $x$ w porządku
 priorytetu, odtworzoną z $E$, a tablica $B$ przechowuje wartość każdej pary złożonej z
-identyfikatora producenta i nazwy artefaktu. Odczyt przechodzi listę powiązań w tym porządku
-i zwraca wartość pierwszego producenta, który faktycznie coś opublikował.
+identyfikatora producenta i nazwy artefaktu. 
 
 Budowa wiąże porty każdego węzła z krawędzi konfiguracji, sprawdza w porządku topologicznym, czy
 wejścia każdego węzła są dostępne, i wyznacza deterministyczne poziomy z wykryciem cykli;
@@ -563,56 +561,12 @@ parametrów i wejść w jeden, wykonywany raz. Rozbieżność zaczyna się dopie
 się węźle, więc koszt eksperymentu porównawczego rośnie tylko o to, czym gałęzie faktycznie się
 różnią.
 
-\subsubsection{Złączenie różnicowe i ocena istotności}
-Węzeł agregujący grupuje wyniki elementowe po identyfikatorze zapytania i dla każdego $q$ liczy
-różnicę \textit{parowaną} między gałęziami:
-\[
-\Delta\text{Recall@}k(q) =
-\text{Recall@}k_{\,\text{ASR}}(q) - \text{Recall@}k_{\,\text{referencyjna}}(q).
-\]
-Ten sam element występuje w obu gałęziach pod tym samym identyfikatorem, więc parowanie jest
-poprawne. Warianty powstałe z rozgałęzienia trzeba jednak wcześniej sprowadzić do elementu
-rodzicielskiego, ponieważ są ze sobą skorelowane, a bootstrap wymaga losowania niezależnych
-jednostek.
-
-Gdy odrzucenie błędnych elementów rozsuwa zbiory identyfikatorów, różnicę liczy się na ich
-przecięciu, a raport podaje liczność par, liczności obu gałęzi oraz elementy występujące tylko w
-jednej z nich. Powyżej pięciu procent wykluczeń jednostronnych różnica zostaje oznaczona jako
-obciążona, ponieważ elementy rzadko wypadają losowo i przecięcie mierzy wtedy podzbiór
-łatwiejszych przypadków zamiast różnicy między gałęziami.
-
-Średnią różnicę opatruje się przedziałem ufności ze sparowanego bootstrapu o ustalonym ziarnie
-\cite{efron1979bootstrap}. Procedura bootstrapu losuje ze zwracaniem $B$ prób o liczności równej liczbie
-par, dla każdej wyznacza średnią różnicę, a granice przedziału odczytuje jako kwantyle rozkładu
-tych średnich:
-
-\begin{equation}
-\begin{aligned}
-\bar{\Delta}^{*(b)} &= \frac{1}{n} \sum_{i=1}^{n} \Delta_{J_i^{(b)}},
-\qquad J_i^{(b)} \sim \mathcal{U}\{1, \dots, n\}, \\[4pt]
-\mathrm{PU}_{1-\alpha} &= \Big[\, Q_{\alpha/2}\big(\bar{\Delta}^{*}\big),\;
-                                    Q_{1-\alpha/2}\big(\bar{\Delta}^{*}\big) \,\Big],
-\qquad
-d = \frac{\bar{\Delta}}{s_{\Delta}}
-\end{aligned}
-\label{eq:bootstrap}
-\end{equation}
-
-gdzie $\Delta_i$ oznacza różnicę wartości metryki dla $i$-tego elementu między porównywanymi
-gałęziami, $n$ liczbę par, $J^{(b)}$ indeksy wylosowane w $b$-tej próbie, $Q_p$ kwantyl rzędu $p$,
-a $\bar{\Delta}$ i $s_{\Delta}$ średnią oraz odchylenie standardowe różnic. Przyjęto
-$B = 1000$ oraz $\alpha = 0{,}05$. Ponieważ losowanie odbywa się na samych różnicach, a nie na
-wynikach obu gałęzi osobno, przedział zachowuje sparowanie. Rozmiar efektu $d$ jest sparowaną
-postacią statystyki Cohena (oznaczaną $d_z$): różnicę średnią odnosi do rozproszenia samych
-różnic, nie do rozproszenia wyników w gałęziach. Wartość $p$ pochodzi z testu rang znakowanych
-Wilcoxona dla par, który zgodnie ze swoją definicją pomija pary o różnicy zerowej; metryki
-elementowe są dyskretne, więc takich par bywa wiele i liczbę par wchodzących do testu raportuje
-się osobno, aby wartość $p$ pozostała interpretowalna. Przedział ufności liczony jest natomiast
-na pełnym zbiorze par, łącznie z zerowymi, więc estymuje średnią różnicę bez przesunięcia. Przy
-wielu metrykach i parach gałęzi stosuje się korekcję Benjaminiego--Hochberga
-\cite{benjamini1995fdr}, a obok wartości $p$ podaje rozmiar efektu.
-Porównania oparte na mniej niż dwudziestu parach oznaczane są jako obarczone małą mocą; ten próg,
-podobnie jak próg pięciu procent, jest umowny i nie wynika z analizy mocy.
+\subsubsection{Zestawienie gałęzi}
+Węzeł agregujący grupuje wyniki elementowe po gałęziach i dla każdej z nich podaje średnią wartość
+metryki wraz z liczbą elementów, które do niej weszły. Porównanie gałęzi sprowadza się do
+zestawienia tych średnich. Raport podaje przy tym elementy odrzucone w poszczególnych gałęziach,
+ponieważ element rzadko wypada losowo, a gałąź z mniejszą licznością mierzy wtedy podzbiór
+łatwiejszych przypadków.
 
 \subsubsection{Proweniencja i odtwarzalność}
 Proweniencja, czyli zapis pochodzenia wyniku, jest jego integralną częścią, bo bez niej liczb z
@@ -658,8 +612,8 @@ metryki, korektora czy augmentacji sprowadza się do rejestracji, bez zmiany rdz
 \textbf{Rejestr} & \textbf{Zarejestrowane typy} \\
 \midrule
 ASR (transkrypcja)        & \texttt{whisper} \cite{whisper}, \texttt{faster\_whisper}, \texttt{wav2vec2} \cite{baevski2020wav2vec, conneau2020xlsr}, \texttt{seamless\_m4t} \\
-Embedding tekstu          & \texttt{labse} \cite{feng-etal-2022-language}, \texttt{jina\_v4} \cite{jina_v4}, \texttt{bge\_m3}, \texttt{clip} \cite{radford2021learning}, \texttt{clap\_text}, \texttt{nemotron}, \texttt{sonar} \\
-Embedding audio           & \texttt{attention\_pool}, \texttt{attention\_pool\_m4t}, \texttt{clap\_style}, \texttt{hubert} \cite{hsu2021hubert}, \texttt{wavlm}, \texttt{sonar\_speech} \\
+Embedding tekstu          & \texttt{labse} \cite{feng-etal-2022-language}, \texttt{jina\_v4} \cite{jina_v4}, \texttt{bge\_m3}, \texttt{clip} \cite{radford2021learning}, \texttt{clap\_text}, \texttt{nemotron}, \texttt{sonar} \cite{sonar} \\
+Embedding audio           & \texttt{attention\_pool}, \texttt{attention\_pool\_m4t}, \texttt{clap\_style}, \texttt{hubert} \cite{hsu2021hubert}, \texttt{wavlm}, \texttt{sonar\_speech} \cite{sonar} \\
 % Przestawianie wyników     & \texttt{cross\_encoder} \\
 Synteza mowy (TTS)        & \texttt{piper}, \texttt{xtts\_v2}, \texttt{mms}, \texttt{m4t} \\
 % Korektor zapytań (wersja pełna, z korektorami leków -- niesprawdzana eksperymentalnie):
@@ -684,8 +638,9 @@ Rysunku~\ref{fig:grafWyszukiwania}.
     \centering
     \input{tikz/grafWyszukiwania}
     \caption{Ścieżka wyszukiwania złożona z węzłów systemu. Gałąź korpusu przebiega niezależnie
-    od gałęzi zapytania i jest współdzielona przez porównywane warianty. 
-    Węzły rysowane linią przerywaną są opcjonalne.}
+    od gałęzi zapytania i jest współdzielona przez porównywane warianty.
+    Ramka obejmuje węzły osadzające dane we wspólnej przestrzeni embeddingowej, w której działa
+    wyszukiwanie. Węzły rysowane linią przerywaną są opcjonalne.}
     \label{fig:grafWyszukiwania}
 \end{figure}
 
@@ -704,10 +659,12 @@ Gałąź zapytania rozdziela się na dwa warianty, które różnią się układe
 wartościami parametrów. Wariant kaskadowy prowadzi nagranie przez węzeł transkrypcji, a
 powstały tekst przez węzeł embeddingu tekstu. Wariant latentny pomija transkrypcję i kieruje
 nagranie wprost do węzła embeddingu audio, w którym działa adapter reprezentacji latentnych
-opisany w rozdziale \ref{sec:latentTranslation}. Ma to praktyczną konsekwencję dla sposobu
-prowadzenia eksperymentów. Mechanizm gałęzi powiela ten sam zestaw węzłów i nadpisuje jedynie ich
-parametry, więc porównanie obu wariantów wymaga dwóch osobnych konfiguracji, podczas gdy
-porównanie modeli wewnątrz jednego wariantu mieści się w jednej.
+opisany w rozdziale \ref{sec:latentTranslation}. Oba warianty mieszczą się w jednym grafie: ich
+węzły wypisuje się jawnie w konfiguracji, a wspólny początek, czyli źródło danych wraz z syntezą
+mowy oraz cała gałąź korpusu, pozostaje nierozdzielony. Porównywane warianty przetwarzają zatem
+w jednym przebiegu ten sam sygnał wejściowy, a ich wyniki trafiają do wspólnego raportu.
+Mechanizm gałęzi, nadpisujący same parametry powielonych węzłów, służy natomiast porównaniom
+wewnątrz jednego wariantu, na przykład zestawieniu dwóch modeli ASR.
 
 Węzeł wyszukiwania pobiera indeks z gałęzi korpusu oraz wektory zapytania z jednego z dwóch
 opisanych wariantów. Oba wejścia są zwykłymi artefaktami, więc podmiana wariantu nie wymaga żadnej zmiany
@@ -739,9 +696,8 @@ i sposobu wyświetlania, ponieważ rdzeń otrzymuje w obu przypadkach tę samą 
 Uzasadnia je proporcja: typowy potok obejmuje około dziesięciu operacji, a graf wykonawczy dokłada
 do nich niemal drugie tyle węzłów, których użytkownik nigdy nie konfiguruje.
 
-Typowy przebieg pracy zaczyna się od złożenia grafu w edytorze i jego walidacji, która
-sygnalizuje braki, nie blokując dalszej edycji. Powstałą konfigurację można obejrzeć w postaci
-tekstowej, a sam graf zapisać do ponownego użycia. Uruchomienie zlecane jest jako zadanie
+Typowy przebieg pracy zaczyna się od złożenia grafu w edytorze i jego walidacji. Powstały graf
+można uruchomić od razu albo zapisać do ponownego użycia. Uruchomienie zlecane jest jako zadanie
 wykonywane w osobnym procesie, którego postęp i stan są widoczne w interfejsie. Wyniki
 udostępniane są w dwóch widokach: jako raport pojedynczego przebiegu oraz jako tabela zestawiająca
 przebiegi.
@@ -751,8 +707,9 @@ przebiegi.
 \subsection{Ograniczenia i kod źródłowy}
 Przyjęte założenia wyznaczają trzy granice zastosowania. Graf jest ustalony w chwili budowy, więc
 sterowanie zależne od danych trzeba zamknąć w jednym węźle, którego wnętrze pozostaje
-nieprzejrzyste dla proweniencji. Obliczenia biegną na jednej maszynie, a skalowanie opiera się na
-przetwarzaniu oknami, nie na rozproszeniu. Generacja odpowiedzi i sędzia korzystają z zewnętrznej
+nieprzejrzyste dla proweniencji. Przebieg wykonywany jest w obrębie jednej maszyny, a większy
+korpus obsługuje przetwarzanie oknami, nie rozdzielenie pracy między osobne węzły obliczeniowe;
+granicą pozostaje zatem pojemność jednej maszyny. Generacja odpowiedzi i sędzia korzystają z zewnętrznej
 usługi modelu językowego, więc ich odtwarzalność jest względna wobec serwera, a jakość odpowiedzi
 ocenia sędzia automatyczny wraz z heurystykami leksykalnymi, nie klinicysta.
 
@@ -765,4 +722,4 @@ który nakłada się na mierzone różnice między architekturami i którego nin
 rozdziela.
 
 Implementację w języku Python udostępniono na licencji MIT wraz z konfiguracjami opisanych
-eksperymentów.
+eksperymentów w repozytorium \url{https://github.com/MathRlz/RetEva}.

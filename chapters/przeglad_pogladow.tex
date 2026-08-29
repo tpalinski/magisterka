@@ -229,6 +229,18 @@ W odpowiedzi na te ograniczenia powstały dwa główne nurty badawcze. Pierwszy 
 
 Budowa systemów wyszukiwania opartych na wspólnej przestrzeni reprezentacji dla audio i tekstu jest ułatwiona dzięki modelom takim jak Data2Vec (opisany w podrozdziale \ref{sec:modeleASR}), które oferują zunifikowane podejście do uczenia reprezentacji różnych modalności.
 
+\textbf{SONAR.} SONAR \cite{sonar} definiuje przestrzeń reprezentacji zdaniowych o stałej długości, wspólną dla dwustu języków tekstu oraz dla mowy. Przestrzeń tę wyznacza enkoder tekstu trenowany zadaniem tłumaczenia w układzie enkoder-dekoder, a nie funkcją kontrastywną; enkodery mowy dołączane są do niej dopiero później, metodą teacher-student, w której wzorcem jest reprezentacja tekstowa transkrypcji tego samego zdania. Nagranie i jego tłumaczenie na dowolny obsługiwany język trafiają dzięki temu w to samo miejsce przestrzeni, co pozwala wyszukiwać dokumenty tekstowe wprost nagraniem, bez etapu transkrypcji. Sposób budowy tej przestrzeni przedstawiono na Rysunku \ref{fig:sonarArchitecture}. Reprezentacje te posłużyły do wydobywania równoległych par mowa-tekst z korpusów nierównoległych, wykorzystanych przy budowie modelu SeamlessM4T \cite{m4t}. Dla niniejszej pracy SONAR jest najbliższym punktem odniesienia: pokazuje, że dostrojenie enkodera mowy do gotowej, zamrożonej przestrzeni tekstu wystarcza do wyszukiwania międzymodalnego, a zarazem wyznacza granicę takiego rozwiązania -- ścieżka głosowa nie wyszuka lepiej niż enkoder tekstu, do którego ją dopasowano.
+
+\begin{figure}[htbp]
+    \centering
+    \input{tikz/sonar}
+    \caption{Budowa przestrzeni SONAR. Przestrzeń wyznacza enkoder tekstu uczony zadaniem
+    tłumaczenia przez wektor zdania o stałej długości; enkoder mowy dołączany jest do niej
+    osobno, przez dopasowanie wektora nagrania do wektora transkrypcji tego samego zdania przy
+    zamrożonym enkoderze tekstu. Obie modalności trafiają dzięki temu do jednej przestrzeni.}
+    \label{fig:sonarArchitecture}
+\end{figure}
+
 \textbf{WavRAG.} WavRAG \cite{wavRAG} umożliwia reprezentowanie sygnałów audio w tej samej przestrzeni semantycznej co dane tekstowe. Pozwala to na pełną integrację informacji mówionej i pisanej w ramach jednego systemu. Zapytania głosowe są kodowane jako wektory w przestrzeni cech ukrytych, a wyszukiwanie opiera się na bezpośrednim dopasowywaniu embeddingów akustycznych i tekstowych za pomocą podobieństwa kosinusowego. Architekturę systemu przedstawiono na Rysunku \ref{fig:wavragArchitecture}.
 
 \begin{figure}[htbp]

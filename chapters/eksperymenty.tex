@@ -8,8 +8,8 @@ wektorowej, oraz proponowane rozwiązanie, w którym reprezentacja latentna mode
 dopasowywana wprost do przestrzeni modelu embeddingowego. Obu towarzyszy trzecia konfiguracja,
 pozbawiona ścieżki głosowej i pełniąca rolę punktu odniesienia, a nie rozwiązania poddanego ocenie.
 Pomiary prowadzone są na dwóch zestawach danych opisanych w podrozdziale~\ref{sec:zbiory}.
-Porównywane konfiguracje przetwarzają w obrębie jednego zestawu ten sam zbiór pytań, więc różnice
-liczone są parami.
+Porównywane konfiguracje przetwarzają w obrębie jednego zestawu ten sam zbiór pytań i ten sam
+korpus, więc różnią się wyłącznie badanym czynnikiem.
 
 \subsection{Metodologia}
 
@@ -25,7 +25,7 @@ nie odróżniałaby systemu od odpowiadania stałą wartością.
 
 Eksperymenty prowadzi się na dwóch zestawach, z których każdy odpowiada na inne pytanie. Zestaw
 główny to całość konfiguracji anotowanej: tysiąc pytań i tysiąc dokumentów, w całości
-anglojęzycznych. Służy on porównaniu samych architektur przetwarzania, ponieważ daje moc testu oraz
+anglojęzycznych. Służy on porównaniu samych architektur przetwarzania, ponieważ daje większą próbę oraz
 dziesięciokrotnie większy korpus, w którym trafienie w dokument istotny jest odpowiednio
 trudniejsze. Zestaw językowy liczy sto pytań, jest ścisłym podzbiorem poprzedniego i występuje w
 trzech wariantach językowych; służy zmierzeniu kosztu zadania pytania po polsku oraz ocenie
@@ -34,15 +34,15 @@ odpowiedzi generowanych z pełnych artykułów.
 Podział ten wynika z natury badanego zjawiska. Różnica między kaskadą a dopasowaniem reprezentacji
 latentnych bierze się z tego, że pierwsza przepuszcza sygnał przez pośrednią postać dyskretną, a
 druga nie; mechanizm ten nie zależy od języka zapytania. Rozstrzygnięcie, która architektura jest
-lepsza, wymaga zatem przede wszystkim mocy statystycznej, którą daje zestaw większy. Osobnym
+lepsza, wymaga zatem przede wszystkim większej liczby pytań, którą daje zestaw większy. Osobnym
 pytaniem jest to, ile jakości ubywa, gdy zapytanie pada po polsku, i na nie odpowiada zestaw
 mniejszy.
 
-Zestaw językowy liczy sto pytań, a nie tysiąc, z dwóch powodów naraz. Po pierwsze wariant z korpusem
+Zestaw językowy liczy sto pytań, a nie tysiąc, z dwóch powodów. Po pierwsze wariant z korpusem
 polskim wymaga przetłumaczenia każdego dokumentu, a tłumaczenie tysiąca abstraktów przekraczało
 dostępne zasoby. Po drugie ocena generacji wymaga pełnych tekstów artykułów, te zaś są dostępne
 wyłącznie dla podzbioru: spośród tysiąca artykułów konfiguracji anotowanej pełny tekst udaje się
-pobrać z otwartego repozytorium PMC dla stu piętnastu, czyli dla 11,5 procent. Wybrano sto pytań
+pobrać z otwartego repozytorium PMC (PubMed Central) dla stu piętnastu, czyli dla 11,5 procent. Wybrano sto pytań
 spełniających oba warunki naraz, dzięki czemu ten sam zestaw obsługuje część językową i część
 generacyjną.
 
@@ -54,7 +54,7 @@ przetłumaczonym i pozwala zmierzyć, ile jakości traci samo przejście między
 trzeci, w całości anglojęzyczny, pokazuje koszt użycia języka polskiego niezależnie od modalności.
 Podział ten odpowiada wprost ograniczeniom omówionym w podrozdziale \ref{sec:motywacja}. Wszystkie
 trzy warianty obejmują te same sto pytań i te same sto dokumentów, rozpoznawane po wspólnych
-identyfikatorach, więc różnice liczone są parami, pytanie po pytaniu.
+identyfikatorach, więc warianty ocenia się na tym samym materiale.
 
 Tłumaczenie na język polski wykonano modelem językowym, osobno dla treści pytania, tytułu dokumentu,
 abstraktu i odpowiedzi referencyjnej; etykiety decyzji pozostawiono w postaci oryginalnej, ponieważ
@@ -124,27 +124,26 @@ wyszukiwania przyjmuje wtedy wartość zero albo jeden, precyzja na progu $k$ je
 wielokrotnością, a średnia precyzja pokrywa się z odwrotnością rangi. Raportuje się zatem Recall@k
 oraz NDCG@k dla progów $k \in \{1,5,10\}$, a także MRR liczoną dla całej listy wyników; Precision@k
 i MAP pominięto, ponieważ na tych danych nie wnoszą nic ponad to, co zawierają pozostałe miary.
-Metryki liczone są osobno dla każdego pytania, co jest warunkiem zastosowania testu sparowanego oraz
-analizy przedstawionej w podrozdziale \ref{sec:prog}.
+Metryki liczone są osobno dla każdego pytania, co jest warunkiem analizy przedstawionej
+w podrozdziale \ref{sec:prog}.
 
 Jakość transkrypcji mierzona jest wskaźnikiem błędu na poziomie słów i znaków. Wielkości te dotyczą
 wyłącznie konfiguracji kaskadowej, ponieważ pozostałe dwie transkrypcji nie wytwarzają. Nie są więc
 przedmiotem porównania między architekturami, lecz zmienną objaśniającą w analizie zależności między
 jakością transkrypcji a jakością wyszukiwania.
 
-\subsubsection{Aparat statystyczny}
-Każdą wielkość zbiorczą podaje się wraz z przedziałem ufności wyznaczonym metodą losowania ze
-zwracaniem (ang.\ \textit{bootstrap}), a różnice między konfiguracjami ocenia się testem sparowanym,
-ponieważ wszystkie konfiguracje przetwarzają ten sam zbiór pytań. Zmienność między pytaniami jest
-znacznie większa niż różnice między architekturami, więc test dla prób niezależnych miałby na tych
-danych zbyt małą moc, by wykryć badane różnice.
+\subsubsection{Sposób raportowania wyników}
+Raportowane wielkości są średnimi po wszystkich pytaniach danego zestawu, wyliczonymi z wyników
+elementowych. Porównanie konfiguracji sprowadza się do zestawienia tych średnich i nie towarzyszy
+mu miara niepewności, więc różnice rzędu pojedynczych punktów procentowych czytać należy jako
+wskazanie kierunku, a nie rozstrzygnięcie. Dotyczy to zwłaszcza zestawu stu pytań, w którym
+pojedyncze pytanie waży cały punkt procentowy.
 
 Porównanie architektur, analizę odporności, wyznaczenie progu jakości transkrypcji oraz pomiary
-zasobów prowadzi się na zestawie tysiąca pytań, ponieważ wszystkie wymagają mocy testu. Efekt języka
+zasobów prowadzi się na zestawie tysiąca pytań, ponieważ wszystkie wymagają większej próby. Efekt języka
 oraz ocenę odpowiedzi generowanych z kontekstu prowadzi się na zestawie stu pytań, ponieważ tylko on
-istnieje w wariantach językowych i tylko dla niego dostępne są pełne teksty. Każde porównanie opiera
-się na pełnym komplecie par danego zestawu; sto par jest liczbą skromną, lecz przekracza próg,
-poniżej którego framework oznacza wynik jako obarczony małą mocą.
+istnieje w wariantach językowych i tylko dla niego dostępne są pełne teksty. Każde porównanie
+obejmuje wszystkie pytania danego zestawu.
 
 \subsection{Porównanie architektur w warunkach czystych}
 \label{sec:czyste}
@@ -223,7 +222,7 @@ Jest to wynik, który najbardziej bezpośrednio przekłada się na regułę dobo
 spodziewaną jakość transkrypcji w danym zastosowaniu, można z niego odczytać, która ścieżka
 przetwarzania jest korzystniejsza, bez powtarzania całego porównania.
 
-\todo{Uzupełnić wykres zależności oraz wyznaczoną wartość progu wraz z przedziałem ufności}
+\todo{Uzupełnić wykres zależności oraz wyznaczoną wartość progu}
 
 \subsection{Wykorzystanie zasobów i prędkość wyszukiwania}
 \label{sec:zasoby}
