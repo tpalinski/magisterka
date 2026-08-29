@@ -1,0 +1,65 @@
+\begin{tikzpicture}[
+    scale=0.6,
+    transform shape,
+    font=\small,
+    block/.style={
+        draw,
+        rounded corners=2pt,
+        thick,
+        minimum width=2.8cm,
+        minimum height=1.0cm,
+        align=center
+    },
+    data/.style={block, fill=gray!12},
+    embm/.style={block, fill=purple!20},
+    store/.style={block, fill=orange!25},
+    ann/.style={block, fill=yellow!25},
+    arrow/.style={-{Stealth[]}, thick},
+    lane/.style={font=\scriptsize\itshape, text=gray}
+]
+
+% ============================================================
+% UCZENIE PRZESTRZENI -- CEL TŁUMACZENIOWY
+% ============================================================
+\node[data]  (sent) at ( 0.0,  0.0) {Zdanie\\w języku $\ell_1$};
+\node[embm]  (tenc) at ( 4.4,  0.0) {Enkoder\\tekstu};
+\node[store] (vec)  at ( 8.8,  0.0) {Wektor zdania\\(stała długość)};
+\node[embm]  (dec)  at (13.2,  0.0) {Dekoder};
+\node[data]  (tran) at (17.4,  0.0) {Zdanie\\w języku $\ell_2$};
+
+\draw[arrow] (sent) -- (tenc);
+\draw[arrow] (tenc) -- (vec);
+\draw[arrow] (vec)  -- (dec);
+\draw[arrow] (dec)  -- (tran);
+
+% ============================================================
+% DOŁĄCZENIE MOWY -- TEACHER-STUDENT
+% ============================================================
+\node[data]  (aud)  at ( 0.0, -4.4) {Nagranie\\tego samego zdania};
+\node[embm]  (senc) at ( 4.4, -4.4) {Enkoder\\mowy};
+\node[store] (svec) at ( 8.8, -4.4) {Wektor\\nagrania};
+
+\draw[arrow] (aud)  -- (senc);
+\draw[arrow] (senc) -- (svec);
+\draw[{Stealth[]}-{Stealth[]}, dotted, thick, gray] (svec.north) --
+    node[left, font=\scriptsize, text=gray!60!black, align=right]
+    {dopasowanie wektorów\\(enkoder tekstu zamrożony)} (vec.south);
+
+% ============================================================
+% ZASTOSOWANIE
+% ============================================================
+\node[ann, minimum width=4.8cm] (use) at (17.4, -3.0)
+    {Wyszukiwanie międzymodalne\\i wydobywanie par mowa--tekst};
+
+% wspólna przestrzeń
+\node[draw=gray!70, dashed, rounded corners=3pt, thick, inner sep=8pt,
+      fit=(vec)(svec),
+      label={[lane]below:wspólna przestrzeń zdaniowa}] (spc) {};
+
+\draw[arrow] (spc.east) -- (use.west);
+
+% podpisy etapów
+\node[lane] at ( 4.4,  1.3) {uczenie przestrzeni celem tłumaczenia};
+\node[lane] at ( 2.2, -5.7) {dostrojenie enkodera mowy};
+
+\end{tikzpicture}
