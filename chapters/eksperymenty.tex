@@ -1,7 +1,7 @@
 \section{Eksperymenty i wyniki}
 \label{sec:eksperymenty}
-Podrozdział przedstawia pomiary wykonane za pomocą opisanego wyżej systemu. Porównywane warianty są
-konfiguracjami tego samego grafu, przedstawionego w podrozdziale \ref{sec:sciezka}. Przedmiotem
+Pomiary wykonano za pomocą opisanego wyżej systemu, a porównywane warianty są konfiguracjami
+tego samego grafu, przedstawionego w podrozdziale \ref{sec:sciezka}. Przedmiotem
 porównania są dwie architektury przetwarzania zapytania głosowego: klasyczna kaskada, w której
 nagranie jest najpierw transkrybowane, a dopiero powstały tekst embeddowany w przestrzeni
 wektorowej, oraz proponowane rozwiązanie, w którym reprezentacja latentna modelu ASR jest
@@ -17,14 +17,14 @@ korpus, więc różnią się wyłącznie badanym czynnikiem.
 \label{sec:zbiory}
 Podstawą porównania jest zbiór PubMedQA \cite{jin2019pubmedqa}, w którym każde pytanie ma przypisany
 artykuł źródłowy, pełniący rolę jedynego dokumentu istotnego. Zbiór występuje w dwóch
-konfiguracjach: anotowanej przez ekspertów, liczącej tysiąc pytań, oraz etykietowanej automatycznie,
-obejmującej ponad dwieście tysięcy pytań. Wybrano konfigurację anotowaną, mimo że jest o dwa rzędy
-wielkości mniejsza, ponieważ w konfiguracji automatycznej ponad dziewięćdziesiąt procent odpowiedzi
+wersjach: z adnotacjami od ekspertów dziedzinowych, liczącej tysiąc pytań, oraz etykietowanej
+automatycznie, obejmującej ponad dwieście tysięcy pytań. Wybrano wersję ekspercką, mimo że jest
+o dwa rzędy wielkości mniejsza, ponieważ w wersji automatycznej ponad dziewięćdziesiąt procent odpowiedzi
 to ,,tak'', a klasa ,,może'' praktycznie nie występuje. Trafność decyzji mierzona na takim zbiorze
 nie odróżniałaby systemu od odpowiadania stałą wartością.
 
 Eksperymenty prowadzi się na dwóch zestawach, z których każdy odpowiada na inne pytanie. Zestaw
-główny to całość konfiguracji anotowanej: tysiąc pytań i tysiąc dokumentów, w całości
+główny to całość wersji eksperckiej: tysiąc pytań i tysiąc dokumentów, w całości
 anglojęzycznych. Służy on porównaniu samych architektur przetwarzania, ponieważ daje większą próbę oraz
 dziesięciokrotnie większy korpus, w którym trafienie w dokument istotny jest odpowiednio
 trudniejsze. Zestaw językowy liczy sto pytań, jest ścisłym podzbiorem poprzedniego i występuje w
@@ -41,7 +41,7 @@ mniejszy.
 Zestaw językowy liczy sto pytań, a nie tysiąc, z dwóch powodów. Po pierwsze wariant z korpusem
 polskim wymaga przetłumaczenia każdego dokumentu, a tłumaczenie tysiąca abstraktów przekraczało
 dostępne zasoby. Po drugie ocena generacji wymaga pełnych tekstów artykułów, te zaś są dostępne
-wyłącznie dla podzbioru: spośród tysiąca artykułów konfiguracji anotowanej pełny tekst udaje się
+wyłącznie dla podzbioru: spośród tysiąca artykułów wersji eksperckiej pełny tekst udaje się
 pobrać z otwartego repozytorium PMC (PubMed Central) dla stu piętnastu, czyli dla 11,5 procent. Wybrano sto pytań
 spełniających oba warunki naraz, dzięki czemu ten sam zestaw obsługuje część językową i część
 generacyjną.
@@ -58,7 +58,7 @@ identyfikatorach, więc warianty ocenia się na tym samym zbiorze.
 
 Tłumaczenie na język polski wykonano modelem językowym, osobno dla treści pytania, tytułu dokumentu,
 abstraktu i odpowiedzi referencyjnej; etykiety decyzji pozostawiono w postaci oryginalnej, ponieważ
-ocena porównuje je z literałami zbioru. Pełne teksty artykułów pozostają wyłącznie anglojęzyczne,
+ocena porównuje je z dosłownym brzmieniem etykiet ze zbioru. Pełne teksty artykułów pozostają wyłącznie anglojęzyczne,
 zatem ocena odpowiedzi generowanych z pobranego kontekstu przebiega zawsze na dokumentach anglojęzycznych,
 także wtedy, gdy pytanie zadano po polsku. Charakterystykę obu zbiorów zestawiono w
 tabeli~\ref{tab:zbior}.
@@ -91,11 +91,12 @@ językowego.}
 Oba korpusy są małe wobec zastosowania rzeczywistego, w którym system przeszukuje zbiór o kilka
 rzędów wielkości większy, więc bezwzględne wartości metryk rankingowych należy czytać jako
 optymistyczne. Dotyczy to zwłaszcza korpusu stu dokumentów, gdzie nawet losowy ranking trafia w
-dokument istotny co dziesiąte pytanie przy progu odcięcia równym dziesięć. Nie unieważnia to
+dokument istotny co dziesiąte pytanie przy progu odcięcia równym dziesięciu. Nie unieważnia to
 porównania, ponieważ wszystkie konfiguracje pracują na tym samym korpusie, a przedmiotem oceny jest
 różnica między nimi, nie poziom bezwzględny. Ponieważ zestaw językowy jest podzbiorem głównego,
-wynik konfiguracji anglojęzycznej można policzyć na obu i sprawdzić, czy setka zachowuje się jak
-tysiąc; rozbieżność wskazywałaby, że efekt przypisany językowi bierze się z doboru podzbioru.
+wynik konfiguracji anglojęzycznej można policzyć na obu zestawach i sprawdzić, czy wynik na stu
+pytaniach odpowiada wynikowi na tysiącu; rozbieżność wskazywałaby, że efekt przypisany językowi
+bierze się z doboru podzbioru.
 
 Ścieżka audio nie pochodzi z nagrań, lecz jest syntezowana w czasie wykonania przez węzeł syntezy
 mowy. Wybór ten zapewnia, że wszystkie porównywane konfiguracje pracują na identycznym sygnale
@@ -114,7 +115,37 @@ ASR, a powstała transkrypcja przez model embeddingowy. Trzecia to dopasowanie r
 latentnych, w którym wyjście enkodera ASR rzutowane jest wprost do przestrzeni modelu embeddingowego
 przez adapter wytrenowany w rozdziale \ref{sec:latentTranslation}.
 
-\todo{Uzupełnić listę wykorzystanych modeli ASR i embeddingowych wraz z uzasadnieniem doboru, opartym na wnioskach z rozdziałów \ref{sec:latent} i \ref{sec:latentTranslation}}
+Dobór modeli wynika z wniosków dwóch wcześniejszych rozdziałów. Analiza reprezentacji ukrytych
+z rozdziału~\ref{sec:latent} wyłoniła dwa modele ASR kodujące znaczenie wypowiedzi najsilniej,
+SeamlessM4T oraz Whisper, i to na ich enkoderach oparto adaptery reprezentacji latentnych
+z rozdziału~\ref{sec:latentTranslation}. Oba trafiają zatem do porównania również w roli modeli
+transkrybujących, co pozwala zestawić ten sam enkoder użyty raz jako początek kaskady, a raz jako
+wejście ścieżki latentnej. Jako trzeci model ASR dołączono wav2vec2, który we wspomnianej analizie
+wypadł najsłabiej pod względem semantyczności reprezentacji; jego rola jest tu odwrotna niż
+pozostałych, ponieważ dostarcza transkrypcji wyraźnie gorszych i rozciąga zakres wskaźnika błędu
+potrzebny do analizy z podrozdziału~\ref{sec:prog}. W wariancie polskojęzycznym dołożono czwarty
+model, Whisper dostrojony metodą LoRA do polskiej mowy medycznej.
+
+Po stronie tekstowej wykorzystano trzy modele embeddingowe. LaBSE \cite{feng-etal-2022-language}
+oraz Jina v4 \cite{jina_v4} zostały ocenione w rozdziale~\ref{sec:latent} jako przestrzenie
+docelowe dla reprezentacji mowy, przy czym Jina v4 była przestrzenią, do której dopasowywano model
+\textit{Attention Pool}. Trzecim jest SONAR \cite{sonar}, dołączony jako punkt odniesienia
+zewnętrzny: dysponuje enkoderem mowy dopasowanym do własnej przestrzeni tekstowej, więc pozwala
+zestawić adaptery trenowane w niniejszej pracy z rozwiązaniem gotowym, powstałym na zbiorze
+wielokrotnie większym. Dwa pierwsze modele różnią się przy tym wyraźnie jakością
+wyszukiwania, co jest w tym porównaniu zaletą, ponieważ pozwala rozdzielić wpływ architektury
+przetwarzania od wpływu samej przestrzeni embeddingowej.
+
+Ścieżkę latentną reprezentują cztery modele osadzające nagranie wprost w przestrzeni korpusu:
+\textit{Attention Pool} w wariantach opartych na enkoderach Whisper i SeamlessM4T,
+\textit{Embedding Alignment Model} oraz enkoder mowy modelu SONAR. Wariant \textit{Attention Pool}
+oparty na SeamlessM4T włączono mimo załamania treningu opisanego
+w rozdziale~\ref{sec:latentTranslation}, ponieważ pokazuje, jak wygląda w pomiarze końcowym model,
+którego przestrzeń uległa degeneracji, i wyznacza dolną granicę odniesienia dla pozostałych.
+
+Mowę syntezuje się trzema systemami: XTTS-v2, SeamlessM4T oraz Piper. Ich dobór nie wynika
+z wcześniejszych rozdziałów, lecz z potrzeby sprawdzenia, czy wnioski nie zależą od jednego głosu;
+wpływ tego wyboru omówiono w podrozdziale~\ref{sec:czyste}.
 
 \subsubsection{Metryki}
 Jakość wyszukiwania oceniana jest metrykami rankingowymi zdefiniowanymi w podrozdziale
@@ -140,16 +171,16 @@ wskazanie kierunku, a nie rozstrzygnięcie. Dotyczy to zwłaszcza zestawu stu py
 pojedyncze pytanie waży cały punkt procentowy.
 
 Porównanie architektur, analizę odporności, wyznaczenie progu jakości transkrypcji oraz pomiary
-zasobów prowadzi się na zestawie tysiąca pytań, ponieważ wszystkie wymagają większej próby. Efekt języka
+zasobów prowadzi się na zestawie tysiąca pytań, ponieważ wszystkie wymagają większej próby. Wpływ języka
 oraz ocenę odpowiedzi generowanych z kontekstu prowadzi się na zestawie stu pytań, ponieważ tylko on
 istnieje w wariantach językowych i tylko dla niego dostępne są pełne teksty. Każde porównanie
 obejmuje wszystkie pytania danego zestawu.
 
-\subsection{Porównanie architektur w warunkach czystych}
+\subsection{Porównanie architektur na sygnale niezakłóconym}
 \label{sec:czyste}
-Podrozdział przedstawia wyniki wyszukiwania dla nagrań niezakłóconych na zestawie tysiąca pytań.
-Jest to zasadnicze porównanie niniejszej pracy: kaskada zestawiona z dopasowaniem reprezentacji
-latentnych, obie odniesione do górnej granicy wyznaczonej przez konfigurację tekstową. Odniesienie
+Zasadnicze porównanie niniejszej pracy obejmuje nagrania niezakłócone z zestawu tysiąca pytań:
+kaskadę zestawioną z dopasowaniem reprezentacji latentnych, obie odniesione do górnej granicy
+wyznaczonej przez konfigurację tekstową. Odniesienie
 do tej granicy rozdziela dwa źródła utraty jakości, przejście na modalność mowy oraz wybór
 architektury przetwarzania, których łączny efekt w pojedynczym pomiarze pozostawałby
 nierozróżnialny.
@@ -158,16 +189,16 @@ Pomiar objął trzy systemy syntezy mowy, trzy modele ASR, trzy modele embedding
 cztery modele osadzające nagranie wprost w przestrzeni korpusu, co daje dwadzieścia siedem
 konfiguracji kaskadowych i dwanaście latentnych. Wśród modeli osadzających nagranie znalazł się,
 obok proponowanych w niniejszej pracy modeli APM i EAM, enkoder mowy modelu SONAR \cite{sonar},
-czyli rozwiązanie gotowe, wytrenowane na zbiorze o kilka rzędów wielkości większym. Zestawienie architektur
+czyli rozwiązanie gotowe, wytrenowane na zbiorze nieporównanie większym. Zestawienie architektur
 przedstawiono na Rysunku~\ref{fig:wynikiArchitektury}.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{figures/wyniki/wyniki_architektury.png}
     \caption{Jakość wyszukiwania trzech architektur na zestawie tysiąca pytań. Trzy pierwsze grupy
-    słupków to zapytanie tekstowe w każdej z użytych przestrzeni embeddingowych, czyli sufit
-    dostępny dla gałęzi głosowej dopasowanej do tej przestrzeni. Najlepsza konfiguracja kaskadowa
-    dorównuje sufitowi swojej przestrzeni, natomiast oba warianty latentne pozostają wyraźnie
+    słupków to zapytanie tekstowe w każdej z użytych przestrzeni embeddingowych, czyli górna granica
+    dostępna dla gałęzi głosowej dopasowanej do tej przestrzeni. Najlepsza konfiguracja kaskadowa
+    dorównuje górnej granicy swojej przestrzeni, natomiast oba warianty latentne pozostają wyraźnie
     poniżej.}
     \label{fig:wynikiArchitektury}
 \end{figure}
@@ -187,10 +218,10 @@ równe $0{,}065$ i Recall@5 równe $0{,}180$, a dokument istotny nie trafia do p
 dla ponad trzech czwartych pytań, wobec od dwóch promili do pięciu procent w kaskadzie z modelem
 jina. Enkoder mowy modelu SONAR osiąga natomiast Recall@1 równe $0{,}524$ i Recall@5 równe
 $0{,}753$, przy czternastu procentach pytań bez trafienia w pierwszej piątce. Jest to wynik
-ośmiokrotnie lepszy od najlepszego z modeli własnych i porównywalny z kaskadą korzystającą ze
-słabszych modeli embeddingowych, choć wciąż odległy od kaskady z modelem jina.
+ośmiokrotnie lepszy od najlepszego z modeli zaproponowanych w pracy i porównywalny z kaskadą korzystającą ze
+słabszych modeli embeddingowych, choć wciąż odległy od kaskady z modelem Jina v4.
 
-Rozstrzyga to pytanie, czy pominięcie transkrypcji jest wykonalne. Enkoder mowy modelu SONAR
+Rozstrzyga to, czy pominięcie transkrypcji jest w ogóle wykonalne. Enkoder mowy modelu SONAR
 osiąga Recall@1 równe $0{,}524$ i Recall@5 równe $0{,}753$, podczas gdy zapytanie tekstowe w tej
 samej przestrzeni osiąga $0{,}590$ i $0{,}816$, a kaskada zbudowana na tej przestrzeni, czyli
 używająca modelu SONAR do osadzenia transkrypcji, od $0{,}364$ do $0{,}564$ zależnie od modelu ASR.
@@ -199,41 +230,57 @@ tekstowej i przewyższa kaskadę zbudowaną na tej samej przestrzeni dla wszystk
 Whisperem.
 Wyszukiwanie bez transkrypcji nie jest więc ograniczone architekturą, lecz jakością wspólnej
 przestrzeni, w której obie modalności są osadzane, oraz skalą zbioru, na którym ta przestrzeń
-powstała. Modele APM i EAM, trenowane w ramach niniejszej pracy na zbiorze mniejszym o kilka
-rzędów wielkości, przegrywają właśnie na tym, nie na samym pomyśle.
+powstała. Modele APM i EAM, trenowane w ramach niniejszej pracy na zbiorze wielokrotnie
+mniejszym, przegrywają właśnie na tym, nie na samym pomyśle.
 
-Zestawienie z pomiarem wstępnym, wykonanym wcześniej na stu pytaniach i stu abstraktach,
-pokazuje, jak silnie wielkość korpusu maskuje różnice. Dziesięciokrotne powiększenie zbioru
-dokumentów nie zmieniło wyniku modelu jina, który utrzymał Recall@1 na poziomie $0{,}99$, lecz
-obniżyło wynik modelu LaBSE z $0{,}88$ do $0{,}63$, a przestrzeni modelu EAM z $0{,}25$ do
-$0{,}07$. Warianty latentne straciły w tym samym przejściu blisko dwie trzecie Recall@5, z około
-$0{,}50$ do poniżej $0{,}20$. Wyniki na małym korpusie schlebiają zatem słabszym przestrzeniom
-embeddingowym, ponieważ przy stu kandydatach nawet zgrubne podobieństwo wystarcza, by dokument
+Te same konfiguracje wykonano również na zestawie językowym, liczącym sto pytań i sto
+dokumentów, co pozwala sprawdzić, jak wyniki zależą od wielkości zbioru. Zestawienie obu przebiegów
+przedstawiono na Rysunku~\ref{fig:wynikiWielkosc}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figures/wyniki/wyniki_wielkosc.png}
+    \caption{Te same konfiguracje na zestawie stu i tysiąca pytań, po lewej Recall@1, po prawej
+    Recall@5. Zestaw mniejszy jest podzbiorem większego, a nagrania w obu pochodzą z syntezy
+    XTTS-v2, więc jedyną różnicą jest wielkość zbioru pytań i korpusu.}
+    \label{fig:wynikiWielkosc}
+\end{figure}
+
+Dziesięciokrotne powiększenie zbioru nie zmieniło wyniku modelu Jina v4, który utrzymał Recall@1
+na poziomie $0{,}99$, ani wyniku kaskady zbudowanej na jego przestrzeni. Obniżyło natomiast wynik
+modelu LaBSE z $0{,}88$ do $0{,}63$, przestrzeni modelu SONAR z $0{,}83$ do $0{,}59$, a przestrzeni
+modelu EAM z $0{,}25$ do $0{,}07$. Warianty latentne straciły w tym samym przejściu blisko dwie
+trzecie Recall@5, z około $0{,}50$ do poniżej $0{,}20$, przy czym enkoder mowy modelu SONAR spadł
+z $0{,}94$ do $0{,}75$. Wyniki na małym korpusie zawyżają zatem ocenę słabszych przestrzeni
+embeddingowych, ponieważ przy stu kandydatach nawet zgrubne podobieństwo wystarcza, by dokument
 istotny znalazł się w pierwszej piątce. Wielkość korpusu jest więc czynnikiem rozstrzygającym
-o wnioskach, a nie jedynie parametrem skali.
+o wnioskach, a nie jedynie parametrem skali. Jest to zarazem zastrzeżenie do
+podrozdziału~\ref{sec:jezyk}, w którym porównanie wariantów językowych opiera się na zestawie stu
+pytań: wartości bezwzględne są tam zawyżone, więc wnioski należy odnosić do różnic między
+wariantami, a nie do poziomu, jaki osiągają.
 
 Warianty latentne, zestawione na Rysunku~\ref{fig:wynikiLatentne}, rozpadają się przy tym na dwa
 różne tryby niepowodzenia. Model APM dopasowuje nagranie do przestrzeni mocnego modelu tekstowego,
 w której zapytanie tekstowe osiąga Recall@5 bliskie jedności, lecz sam odtwarza z niej niespełna
 jedną piątą. Model EAM buduje własną przestrzeń wspólną dla obu modalności i osiąga w niej
-Recall@5 równe $0{,}157$ przy suficie $0{,}192$ wyznaczonym przez jego własną gałąź tekstową,
+Recall@5 równe $0{,}157$ przy górnej granicy $0{,}192$ wyznaczonej przez jego własną gałąź tekstową,
 czyli ponad cztery piąte tego, co potrafi jego strona tekstowa. Dopasowanie międzymodalne w modelu
 EAM działa zatem poprawnie, a zawodzi sama przestrzeń, wytrenowana na zbyt małym zbiorze.
 Wąskim gardłem obu rodzin jest więc co innego: dla APM rzutowanie audio, dla EAM jakość
-przestrzeni, do której to rzutowanie prowadzi. Wariant APM oparty na enkoderze SeamlessM4T nie
-osiąga wartości odbiegających od wyszukiwania losowego, co odpowiada załamaniu treningu opisanemu
-w rozdziale~\ref{sec:latentTranslation}. Model SONAR osiąga natomiast $0{,}753$ Recall@5 przy własnym suficie $0{,}816$, czyli ponad
+przestrzeni, do której to rzutowanie prowadzi. Wariant APM oparty na enkoderze SeamlessM4T osiąga
+wyniki nieodróżnialne od wyszukiwania losowego, co odpowiada załamaniu treningu opisanemu
+w rozdziale~\ref{sec:latentTranslation}. Model SONAR osiąga natomiast $0{,}753$ Recall@5 przy własnej górnej granicy $0{,}816$, czyli ponad
 dziewięć dziesiątych, mimo że jego przestrzeń jest przy tysiącu dokumentów wyraźnie trudniejsza od
-przestrzeni modelu jina. Łączy on obie brakujące własności:
+przestrzeni modelu Jina v4. Łączy on obie brakujące własności:
 przestrzeń wytrenowaną zadaniem tłumaczenia na dwustu językach oraz enkoder mowy destylowany do
-niej metodą teacher-student, opisane w podrozdziale~\ref{sec:multimodalne}, i to jemu zawdzięcza
-przewagę nad modelami własnymi.
+niej metodą teacher-student, opisane w podrozdziale~\ref{sec:multimodalne}, i to im zawdzięcza
+przewagę nad modelami zaproponowanymi w pracy.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{figures/wyniki/wyniki_latentne.png}
     \caption{Warianty latentne na zestawie tysiąca pytań, w rozbiciu na system syntezy mowy i model
-    osadzający nagranie. Linie poziome wyznaczają sufit każdej przestrzeni docelowej, czyli wynik
+    osadzający nagranie. Linie poziome wyznaczają górną granicę każdej przestrzeni docelowej, czyli wynik
     zapytania tekstowego w tej samej przestrzeni: modele APM dopasowywane są do przestrzeni jina,
     modele EAM i SONAR do własnych.}
     \label{fig:wynikiLatentne}
@@ -241,8 +288,8 @@ przewagę nad modelami własnymi.
 
 Osobnym czynnikiem okazuje się system syntezy mowy, którym wytworzono nagranie. Porównano trzy:
 XTTS-v2 (\texttt{tts\_models/multilingual/multi-dataset/xtts\_v2}), wielojęzyczny model zdolny do
-klonowania głosu, użyty z wbudowanym mówcą; SeamlessM4T v2 (\texttt{facebook/seamless-m4t-v2-large})
-\cite{m4t} w trybie syntezy z domyślnym mówcą; oraz Piper z głosem \texttt{en\_US-lessac-medium},
+klonowania głosu, użyty z wbudowanym mówcą, SeamlessM4T v2 (\texttt{facebook/seamless-m4t-v2-large})
+\cite{m4t} w trybie syntezy z domyślnym mówcą, oraz Piper z głosem \texttt{en\_US-lessac-medium},
 działający na procesorze. Wszystkie generują sygnał sprowadzany do 16~kHz, z językiem ustawionym
 na angielski i ustalonym ziarnem generatora, więc różnice między nimi wynikają z samego modelu,
 nie z parametrów przebiegu. Wyniki w rozbiciu na system syntezy i model ASR przedstawiono na
@@ -276,30 +323,106 @@ Wrażliwość na źródło mowy wykazują także modele latentne, przy czym w st
 rodziny. Model EAM traci na mowie SeamlessM4T połowę swojego wyniku, z Recall@5 równego $0{,}157$
 dla XTTS-v2 do $0{,}079$, podczas gdy model APM utrzymuje się w wąskim przedziale od $0{,}159$ do
 $0{,}180$, a enkoder modelu SONAR od $0{,}736$ do $0{,}753$, niezależnie od systemu syntezy.
-Odporność na zmianę głosu rośnie zatem wraz z wielkością zbioru treningowego przestrzeni.
+Przemawia to za tezą, że odporność na zmianę
+głosu rośnie wraz z wielkością zbioru, na którym wytrenowano przestrzeń docelową.
 
 \subsection{Koszt zadania pytania po polsku}
 \label{sec:jezyk}
-Podrozdział powtarza porównanie architektur na zestawie stu pytań, w trzech wariantach językowych
-opisanych w podrozdziale~\ref{sec:zbiory}, i na tej podstawie rozdziela utratę jakości wnoszoną
-przez sam język od utraty wnoszonej przez modalność. Wariant w całości anglojęzyczny odtwarza
+Porównanie architektur powtórzono na zestawie stu pytań, w trzech wariantach językowych
+opisanych w podrozdziale~\ref{sec:zbiory}, co pozwala rozdzielić utratę jakości wnoszoną przez sam
+język od utraty wnoszonej przez modalność. Wariant w całości anglojęzyczny odtwarza
 warunki podrozdziału~\ref{sec:czyste} na mniejszej próbie, więc pełni podwójną rolę: wyznacza punkt
-odniesienia dla dwóch pozostałych wariantów, a zarazem pozwala sprawdzić, czy setka zachowuje się
-jak tysiąc, z którego została wybrana.
+odniesienia dla dwóch pozostałych wariantów, a zarazem pozwala sprawdzić, czy wynik na stu
+pytaniach odpowiada wynikowi na zestawie tysiąca pytań, z którego zestaw ten wybrano.
 
 Rozstrzygnięcia wymaga zwłaszcza różnica między wariantem jednojęzykowym polskim a międzyjęzykowym,
 ponieważ wskazuje ona, jaka część utraty jakości bierze się z przekraczania granicy języka przez
 samo zapytanie, a jaka z tego, że polszczyzna jest dla użytych modeli językiem gorzej
 reprezentowanym niż angielski.
 
-\todo{Uzupełnić zestawienie wyników dla trzech wariantów językowych oraz omówienie po wykonaniu przebiegów}
+Wyniki trzech wariantów przedstawiono na Rysunku~\ref{fig:wynikiJezyk}. Pytania polskie
+syntezowano tymi samymi trzema systemami, a do transkrypcji dołączono czwarty model ASR: Whisper
+dostrojony do polskiej mowy medycznej metodą LoRA na zbiorze ADMEDVoice \cite{ADMEDVoice}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figures/wyniki/wyniki_jezyk.png}
+    \caption{Warianty językowe na zestawie stu pytań i stu dokumentów. Po lewej jakość
+    wyszukiwania, po prawej jakość transkrypcji; model oznaczony jako Whisper dostrojony to
+    Whisper large-v2 z adapterem LoRA wytrenowanym na zbiorze ADMEDVoice \cite{ADMEDVoice}. Oba warianty z pytaniem polskim korzystają z tego
+    samego nagrania, więc ich wskaźniki błędu transkrypcji są identyczne; różni je wyłącznie język
+    korpusu.}
+    \label{fig:wynikiJezyk}
+\end{figure}
+
+Koszt zadania pytania po polsku okazuje się dla kaskady z modelem Jina v4 zerowy. Recall@1 wynosi
+$0{,}98$ w wariancie polskim i międzyjęzykowym wobec $0{,}98$ w anglojęzycznym, a zapytanie
+tekstowe zachowuje się tak samo. Model embeddingowy trenowany wielojęzykowo nie odróżnia zatem
+pytania polskiego od angielskiego na tyle, by wpłynęło to na ranking, a przejście przez
+transkrypcję niczego nie psuje, ponieważ Whisper rozpoznaje polską mowę syntetyczną równie dobrze
+jak angielską, z WER odpowiednio $0{,}050$ i $0{,}045$.
+
+Inaczej wygląda to dla przestrzeni SONAR, w której język robi różnicę. Zapytanie tekstowe traci
+z $0{,}83$ Recall@1 dla wariantu anglojęzycznego do $0{,}74$ dla polskiego, a ścieżka głosowa
+z $0{,}80$ do $0{,}67$. Utrata dotyczy jednak nie tyle przekroczenia granicy języka, ile
+przetłumaczenia korpusu: wariant międzyjęzykowy, w którym pytanie polskie trafia do korpusu
+angielskiego, wypada lepiej niż jednojęzykowy polski, osiągając $0{,}79$ dla tekstu i $0{,}75$ dla
+ścieżki głosowej. Dokumenty przetłumaczone maszynowo są zatem trudniejszym celem niż dokumenty
+oryginalne, mimo że pytanie jest wtedy w tym samym języku co one. Jest to wynik zgodny
+z ograniczeniem zapisanym w podrozdziale~\ref{sec:zbiory}: tłumaczenie maszynowe wnosi własny błąd,
+który tutaj widać wprost.
+
+Zachowanie modeli osadzających nagranie wprost w przestrzeni korpusu przedstawiono osobno na
+Rysunku~\ref{fig:wynikiJezykAudio}, ponieważ różnią się one między wariantami językowymi znacznie
+silniej niż kaskada.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figures/wyniki/wyniki_jezyk_audio.png}
+    \caption{Modele osadzające nagranie wprost w przestrzeni korpusu w trzech wariantach
+    językowych, zestaw stu pytań i stu dokumentów. Adaptery APM i EAM pochodzą z tych samych
+    punktów kontrolnych we wszystkich trzech wariantach; dla modelu SONAR w wariantach z pytaniem
+    polskim użyto jego polskiego enkodera mowy.}
+    \label{fig:wynikiJezykAudio}
+\end{figure}
+
+Model APM wypada po polsku wyraźnie lepiej niż po angielsku: Recall@1 rośnie z $0{,}18$ do
+$0{,}47$, a Recall@5 z $0{,}46$ do $0{,}77$. Nie jest to efekt języka korpusu, lecz języka
+treningu, ponieważ adapter dopasowywano na nagraniach polskich rozmów medycznych ze zbioru
+ADMEDVoice \cite{ADMEDVoice}. Model przenosi zatem swoją domenę treningową na zadanie
+wyszukiwania, a zestawienie trzech wariantów pokazuje to wprost: przy pytaniu polskim wynik jest
+zbliżony niezależnie od tego, czy korpus jest polski, czy angielski ($0{,}47$ wobec $0{,}38$),
+a przy pytaniu angielskim spada ponad dwukrotnie.
+
+Model EAM zachowuje się odwrotnie i traci na polskim wszystko: z $0{,}21$ Recall@1 dla wariantu
+anglojęzycznego schodzi do $0{,}01$ w obu wariantach z pytaniem polskim, mimo że jego gałąź
+tekstowa radzi sobie po polsku nie gorzej niż po angielsku ($0{,}32$ wobec $0{,}25$). Zawodzi
+zatem samo dopasowanie mowy do przestrzeni, a nie przestrzeń, co odpowiada niestabilności treningu
+opisanej w rozdziale~\ref{sec:latentTranslation}. Ponieważ oba adaptery trenowano na tym samym
+zbiorze, różnicy między nimi nie tłumaczy dobór zbioru treningowego.
+
+Enkoder mowy modelu SONAR okazuje się najbardziej odporny na zmianę języka. Traci przy pytaniu
+polskim od pięciu do trzynastu punktów procentowych Recall@1, zachowując przy tym stały stosunek do własnej
+gałęzi tekstowej: $0{,}80$ wobec granicy $0{,}83$ po angielsku, $0{,}67$ wobec $0{,}74$ po polsku
+oraz $0{,}75$ wobec $0{,}79$ w wariancie międzyjęzykowym, a więc dziewięćdziesiąt kilka procent
+w każdym z nich. Utrata dotyczy zatem jakości samej przestrzeni dla języka polskiego, a nie
+dopasowania mowy do tekstu, które pozostaje równie dobre niezależnie od języka.
+
+Z porównania modeli ASR wynika jeszcze jedna obserwacja. Wielojęzyczne modele radzą sobie z polską
+mową syntetyczną dobrze, a SeamlessM4T nawet lepiej niż z angielską, z WER $0{,}083$ wobec
+$0{,}109$. Model wav2vec2 w wersji polskiej wypada natomiast gorzej niż jego wersja angielska,
+z WER $0{,}277$ wobec $0{,}202$. Whisper dostrojony do polskiej mowy medycznej osiąga WER $0{,}062$,
+a więc nieznacznie gorszy od modelu bazowego ($0{,}050$); dostrojenie prowadzono na nagraniach
+rzeczywistych rozmów klinicznych, podczas gdy w tym pomiarze użyto mowy syntetycznej
+wygenerowanej z tekstu pisanego, więc adaptacja do innej odmiany mowy nie pomaga, a lekko szkodzi.
+Na jakość wyszukiwania nie przekłada się to zresztą wcale: wszystkie cztery modele w połączeniu
+z modelem Jina v4 dają Recall@1 w przedziale od $0{,}94$ do $0{,}98$.
 
 \subsection{Jakość odpowiedzi generowanych z pobranego kontekstu}
 \label{sec:generacja}
 Wyszukiwanie jest w zastosowaniu klinicznym środkiem, a nie celem: użytkownik oczekuje odpowiedzi,
-nie listy dokumentów. Podrozdział sprawdza zatem, czy przewaga jednej architektury nad drugą,
-zmierzona metrykami rankingowymi, przenosi się na jakość odpowiedzi generowanej z pobranego
-kontekstu. Przejście to nie jest oczywiste, ponieważ model językowy potrafi odpowiedzieć poprawnie
+nie listy dokumentów. Pytaniem jest zatem, czy przewaga jednej architektury nad drugą, zmierzona metrykami
+rankingowymi, przenosi się na jakość odpowiedzi generowanej z pobranego kontekstu. Przejście to nie jest oczywiste, ponieważ model językowy potrafi odpowiedzieć poprawnie
 mimo niedoskonałego rankingu, o ile potrzebny fragment znalazł się w kontekście, i odwrotnie ---
 potrafi zawieść przy rankingu poprawnym.
 
@@ -321,21 +444,103 @@ językowego.
 
 \subsection{Odporność na degradację sygnału}
 \label{sec:odpornosc}
-Podrozdział przedstawia jakość wyszukiwania jako funkcję stosunku sygnału do szumu, osobną krzywą
-dla każdej z porównywanych architektur, a ponadto wpływ zmiany tempa mowy. Celem
-jest sprawdzenie hipotezy o odmiennym charakterze degradacji obu rozwiązań. W kaskadzie błąd
+Celem tej części pomiarów jest sprawdzenie hipotezy o odmiennym charakterze degradacji obu
+rozwiązań. Jakość wyszukiwania przedstawiono jako funkcję stosunku sygnału do szumu, osobną krzywą
+dla każdej z porównywanych architektur, a osobno zbadano wpływ zmiany tempa mowy. W kaskadzie błąd
 transkrypcji usuwa termin z zapytania bezpowrotnie, ponieważ dalsze etapy nie mają już dostępu do
 sygnału, z którego termin powstał. W dopasowaniu reprezentacji latentnych sygnał nie przechodzi
 przez pośrednią postać dyskretną, więc oczekuje się degradacji łagodniejszej, rozłożonej na
 wszystkie wymiary reprezentacji zamiast skupionej w pojedynczym utraconym słowie.
 
-\todo{Uzupełnić wykresy jakości w funkcji stosunku sygnału do szumu oraz omówienie po wykonaniu przebiegów}
+Zaburzenia wprowadza węzeł augmentacji audio, wstawiony między syntezę mowy a resztę ścieżki, więc
+wszystkie porównywane konfiguracje otrzymują identycznie zaburzony sygnał. Zbadano szum biały
+o stosunku sygnału do szumu od 0 do 20~dB, szum różowy i brązowy przy 15~dB, zmianę tempa
+wypowiedzi oraz obie te zmiany naraz. Wyniki podano dla mowy syntezowanej modelem SeamlessM4T,
+ponieważ tylko dla niej dostępny jest komplet warunków w obu ścieżkach przetwarzania. Przebieg
+jakości w funkcji stosunku sygnału do szumu przedstawiono na Rysunku~\ref{fig:wynikiSzumSnr},
+a wpływ pozostałych zaburzeń na Rysunku~\ref{fig:wynikiSzumTypy}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/wyniki/wyniki_szum_snr.png}
+    \caption{Jakość wyszukiwania w funkcji stosunku sygnału do szumu dla szumu białego, zestaw
+    tysiąca pytań. Po lewej wartość bezwzględna, po prawej część jakości zachowana względem
+    przebiegu bez zaburzeń, co pozwala porównać tempo degradacji ścieżek startujących z różnych
+    poziomów. Linią ciągłą oznaczono ścieżki latentne, przerywaną kaskadowe; dla kaskady zmierzono
+    warunki 5 i 15~dB.}
+    \label{fig:wynikiSzumSnr}
+\end{figure}
+
+Hipoteza o łagodniejszej degradacji ścieżki latentnej nie potwierdza się. Kaskada z modelem Whisper
+i modelem embeddingowym jina utrzymuje Recall@5 na poziomie $0{,}99$ zarówno bez zaburzeń, jak i przy
+szumie o 15~dB, a przy 5~dB spada do $0{,}985$. Ścieżka latentna oparta na enkoderze mowy modelu
+SONAR traci w tych samych warunkach więcej: z $0{,}742$ bez zaburzeń do $0{,}724$ przy 15~dB,
+$0{,}616$ przy 5~dB i $0{,}475$ przy 0~dB. Zachowuje zatem przy 5~dB osiemdziesiąt trzy procent
+swojej jakości z przebiegu bez zaburzeń, podczas gdy kaskada dziewięćdziesiąt dziewięć. Rozpoznawanie mowy okazuje się na szum
+odporniejsze niż osadzanie nagrania wprost, co odwraca oczekiwanie sformułowane na początku
+podrozdziału: pośrednia postać dyskretna nie tylko nie psuje się szybciej, lecz działa jak filtr,
+odrzucając to, co w sygnale nie jest mową.
+
+Wrażliwość zależy jednak silnie od modelu. Kaskada z modelem wav2vec2, wyraźnie słabszym w samej
+transkrypcji, zachowuje przy 5~dB osiemdziesiąt dziewięć procent swojej jakości, a kaskada
+z modelem LaBSE dziewięćdziesiąt trzy, obie zatem mieszczą się między Whisperem z modelem Jina v4
+a ścieżką latentną. Model EAM załamuje się przy dowolnym poziomie szumu, schodząc z $0{,}08$
+praktycznie do zera, natomiast model APM traci proporcjonalnie tyle co SONAR, lecz z poziomu
+tak niskiego, że nie ma to znaczenia praktycznego.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figures/wyniki/wyniki_szum_typy.png}
+    \caption{Część jakości zachowana po każdym rodzaju zaburzenia, odniesiona do przebiegu bez
+    zaburzeń tej samej konfiguracji, zestaw tysiąca pytań. Brakujące słupki odpowiadają warunkom
+    niezmierzonym dla danej ścieżki.}
+    \label{fig:wynikiSzumTypy}
+\end{figure}
+
+Rodzaj szumu nie ma większego znaczenia: przy tym samym stosunku sygnału do szumu wynik ścieżki
+latentnej zmienia się w granicach dwóch punktów procentowych między szumem białym, różowym
+i brązowym. Rozstrzygające okazuje się natomiast zaburzenie innego rodzaju, czyli zmiana tempa
+wypowiedzi. Kaskada z modelem Jina v4 zachowuje przy niej dziewięćdziesiąt osiem procent
+swojej jakości, podczas gdy ścieżka latentna siedemdziesiąt jeden, spadając z $0{,}742$ do
+$0{,}527$; po dołożeniu szumu do zmienionego tempa zostaje pięćdziesiąt osiem procent, czyli
+$0{,}430$. Modele ASR trenowane są na mowie o zmiennym tempie i traktują tę zmienność jako
+naturalną, natomiast enkoder mowy dopasowany do przestrzeni zdaniowej odwzorowuje
+rozciągnięty sygnał w inne miejsce tej przestrzeni. Jest to zarazem wskazówka dla dalszych prac:
+augmentacja tempem podczas treningu adaptera jest tańsza niż powiększanie zbioru i dotyczy
+dokładnie tej słabości, którą pokazał pomiar.
+
+Skoro kaskada znosi szum lepiej niż ścieżka latentna, warto sprawdzić, czy dzieje się to dzięki
+odporności samej transkrypcji, czy mimo jej braku. Rysunek~\ref{fig:wynikiSzumWer} zestawia obie
+wielkości w tych samych warunkach.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figures/wyniki/wyniki_szum_wer.png}
+    \caption{Jakość transkrypcji i jakość wyszukiwania w tych samych warunkach, zestaw tysiąca
+    pytań, mowa syntezowana modelem SeamlessM4T. Po lewej wskaźnik błędu transkrypcji, po prawej
+    część Recall@5 zachowana względem przebiegu bez zaburzeń.}
+    \label{fig:wynikiSzumWer}
+\end{figure}
+
+Transkrypcja psuje się znacznie szybciej niż wyszukiwanie. Whisper zwiększa WER blisko
+czterokrotnie, z $0{,}074$ bez zaburzeń do $0{,}273$ przy szumie 15~dB ze zmianą tempa, a wav2vec2
+dwukrotnie, z $0{,}268$ do $0{,}530$ przy szumie 5~dB. Wyszukiwanie zachowuje mimo to
+odpowiednio dziewięćdziesiąt dwa i osiemdziesiąt dziewięć procent swojej jakości. Model
+embeddingowy odtwarza zatem sens zapytania z transkrypcji, w której co czwarte słowo jest błędne,
+ponieważ do trafienia w dokument wystarcza część terminów swoistych, a te są w pytaniu
+biomedycznym zwykle najdłuższe i najlepiej rozpoznawane. Odporność kaskady nie bierze się więc
+z odporności modelu ASR, lecz z nadmiarowości zapytania wobec zadania wyszukiwania.
+
+Osobno warto odnotować zachowanie modelu SeamlessM4T w roli modelu ASR: szum obniża jego WER
+z $0{,}406$ bez zaburzeń do $0{,}169$ przy 15~dB. Model transkrybujący własną syntezę powiela na
+czystym sygnale fragmenty wypowiedzi, a szum to powielanie przerywa. Jest to kolejny argument, by nie zestawiać
+syntezy i transkrypcji tego samego modelu, i powód, dla którego pominięto tę parę na
+Rysunku~\ref{fig:wynikiSzumWer}.
 
 \subsection{Zależność jakości wyszukiwania od jakości transkrypcji}
 \label{sec:prog}
-Podrozdział zestawia jakość wyszukiwania z jakością transkrypcji, pytanie po pytaniu, i na tej
-podstawie wyznacza próg jakości transkrypcji, poniżej którego kaskada przestaje przewyższać
-rozwiązanie proponowane. Ponieważ konfiguracja latentna transkrypcji nie wytwarza, jej wyniki
+Zestawienie jakości wyszukiwania z jakością transkrypcji, pytanie po pytaniu, pozwala wyznaczyć
+próg jakości transkrypcji, poniżej którego kaskada przestaje przewyższać rozwiązanie proponowane. Ponieważ konfiguracja latentna transkrypcji nie wytwarza, jej wyniki
 przypisuje się wartości wskaźnika błędu osiągniętej przez kaskadę na tym samym pytaniu. Zestawienie
 takie jest możliwe wyłącznie dzięki temu, że obie konfiguracje przetwarzają ten sam zbiór, a ich
 wyniki pozostają powiązane identyfikatorem pytania.
@@ -344,9 +549,9 @@ Jest to wynik, który najbardziej bezpośrednio przekłada się na regułę dobo
 spodziewaną jakość transkrypcji w danym zastosowaniu, można z niego odczytać, która ścieżka
 przetwarzania jest korzystniejsza, bez powtarzania całego porównania.
 
-Zależność tę, dla osiemnastu konfiguracji kaskadowych zestawu tysiąca pytań, przedstawiono na
+Zależność tę, dla dwudziestu siedmiu konfiguracji kaskadowych zestawu tysiąca pytań, przedstawiono na
 Rysunku~\ref{fig:wynikiWer}. Progu takiego pomiar nie ujawnia. W zmierzonym zakresie WER, od
-$0{,}058$ do $0{,}406$, kaskada z modelem jina traci piętnaście punktów Recall@1, spadając
+$0{,}058$ do $0{,}406$, kaskada z modelem Jina v4 traci piętnaście punktów Recall@1, spadając
 z $0{,}990$ do $0{,}838$, a kaskada z modelem LaBSE siedemnaście, z $0{,}614$ do $0{,}444$.
 Względnie jest to jednak strata bardzo różna: pierwsza przestrzeń oddaje sześć procent swojej
 wartości, druga blisko trzydzieści. Odporność na błąd transkrypcji jest więc własnością modelu
@@ -355,12 +560,12 @@ w zapytaniu zostaje dość terminów swoistych dla dokumentu.
 
 Położenie progu zależy natomiast od modelu embeddingowego użytego w kaskadzie. Najlepszy wariant
 latentny, oparty na enkoderze mowy modelu SONAR, osiąga Recall@1 równe $0{,}524$, czyli tyle, ile
-kaskada z modelem LaBSE przy WER bliskim $0{,}27$ oraz kaskada z modelem SONAR przy WER bliskim
-$0{,}13$. Powyżej tych wartości pominięcie transkrypcji jest korzystniejsze niż jej wykonanie,
+kaskada z modelem LaBSE przy WER równym $0{,}26$ oraz kaskada z modelem SONAR przy WER równym
+$0{,}14$. Powyżej tych wartości pominięcie transkrypcji jest korzystniejsze niż jej wykonanie,
 a więc próg leży w zakresie osiąganym przez rzeczywiste modele ASR: wav2vec2 przekracza go na mowie
 z każdego z trzech systemów syntezy, a SeamlessM4T na mowie własnego modelu.
 
-Dla kaskady z modelem jina progu nie ma. Utrzymuje ona Recall@1 powyżej $0{,}83$ w całym zmierzonym
+Dla kaskady z modelem Jina v4 progu nie ma. Utrzymuje ona Recall@1 powyżej $0{,}83$ w całym zmierzonym
 zakresie, a więc niemal dwukrotnie powyżej najlepszego wariantu latentnego; zejście do jego poziomu
 wymagałoby transkrypcji niemal całkowicie błędnej. Reguła doboru architektury nie brzmi zatem
 ,,kaskada albo ścieżka latentna'', lecz wskazuje najpierw na jakość przestrzeni embeddingowej:
@@ -370,34 +575,44 @@ nagrania wprost, o ile dysponuje się enkoderem mowy dopasowanym do tej samej pr
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.92\linewidth]{figures/wyniki/wyniki_wer_recall.png}
-    \caption{Jakość wyszukiwania w funkcji jakości transkrypcji dla osiemnastu konfiguracji
-    kaskadowych zestawu tysiąca pytań. Linie poziome wyznaczają sufit każdej przestrzeni
-    embeddingowej, czyli wynik zapytania tekstowego w tej samej przestrzeni, oraz najlepszy
-    wariant latentny.}
+    \caption{Jakość wyszukiwania w funkcji jakości transkrypcji dla dwudziestu siedmiu
+    konfiguracji kaskadowych zestawu tysiąca pytań. Każdej przestrzeni embeddingowej odpowiada
+    prosta dopasowana metodą najmniejszych kwadratów, służąca wyłącznie jako pomoc w odczycie.
+    Pozioma linia oznacza najlepszy wariant latentny, a trójkąty miejsca, w których kaskada
+    schodzi do jego poziomu, czyli szukany próg.}
     \label{fig:wynikiWer}
 \end{figure}
 
 \subsection{Wykorzystanie zasobów i prędkość wyszukiwania}
 \label{sec:zasoby}
-Podrozdział przedstawia opóźnienie pełnej ścieżki przetwarzania, szczytowe zużycie pamięci karty
-graficznej, przepustowość oraz rozmiar indeksu. Oczekiwana przewaga konfiguracji latentnej wynika z
-pominięcia dekodowania autoregresyjnego: kaskada musi wytworzyć transkrypcję element po elemencie,
+Oczekiwana przewaga konfiguracji latentnej wynika z pominięcia dekodowania autoregresyjnego: kaskada musi wytworzyć transkrypcję element po elemencie,
 podczas gdy ścieżka latentna wykonuje pojedyncze przejście w przód przez enkoder oraz adapter.
-Pomiary te są dla wyboru architektury równorzędne z jakością, ponieważ w zastosowaniu klinicznym o
-przydatności systemu decyduje nie tylko trafność wyników, lecz także czas oczekiwania na nie.
+Zestawiono zatem koszt obliczeniowy pełnej ścieżki przetwarzania, przepustowość oraz rozmiar
+indeksu korpusu. Wielkości te są dla wyboru architektury równorzędne z jakością, ponieważ
+w zastosowaniu klinicznym o przydatności systemu decyduje nie tylko trafność wyników, lecz także
+czas oczekiwania na nie.
 
 Zmierzone czasy pracy węzłów na zestawie tysiąca pytań potwierdzają tę przewagę. Ścieżka
 zapytania w kaskadzie, złożona z modelu Whisper oraz embeddingu tekstu, zajmuje około 450~sekund
 na tysiąc pytań, czyli $0{,}45$~sekundy na zapytanie. Ścieżka latentna oparta na modelu APM
 z enkoderem Whisper potrzebuje od 10 do 11~sekund, oparta na modelu EAM od 6 do 84~sekund, a
 oparta na enkoderze mowy modelu SONAR od 85 do 97~sekund, czyli w najgorszym przypadku poniżej
-$0{,}10$~sekundy na zapytanie. Rezygnacja z dekodowania
-autoregresyjnego przyspiesza więc przetwarzanie zapytania od dwóch do pięciu razy. Tańsze modele
-ASR zmniejszają jednak tę różnicę: wav2vec2 transkrybuje tysiąc pytań w około 50~sekundach,
-a więc szybciej niż którykolwiek z modeli latentnych, kosztem czterokrotnie wyższego WER.
+$0{,}10$~sekundy na zapytanie. Najostrzej widać koszt dekodowania autoregresyjnego przy porównaniu dwóch zastosowań tego samego
+enkodera: Whisper użyty do transkrypcji potrzebuje 419~sekund, a ten sam enkoder w modelu APM,
+bez dekodera, 11~sekund, czyli blisko czterdzieści razy mniej. Różnica ta nie bierze się z modelu,
+lecz z tego, że transkrypcja powstaje token po tokenie, podczas gdy osadzenie wymaga jednego
+przejścia w przód.
+
+W przeliczeniu na przepustowość ścieżka kaskadowa z Whisperem obsługuje około dwóch zapytań na
+sekundę, z modelem SeamlessM4T trzy, a z modelem wav2vec2 szesnaście. Ścieżki latentne osiągają od
+jedenastu zapytań na sekundę dla enkodera SONAR do około dziewięćdziesięciu dla modelu APM. Tańsze
+modele ASR zmniejszają zatem przewagę ścieżki latentnej, a wav2vec2 wręcz ją odwraca, transkrybując
+tysiąc pytań w 46~sekundach, czyli szybciej niż SONAR, kosztem czterokrotnie wyższego wskaźnika
+błędu. Wyszukiwanie w indeksie jest wobec tych wielkości pomijalne: przeszukanie tysiąca dokumentów
+dla tysiąca zapytań zajmuje łącznie poniżej czterech sekund we wszystkich wariantach naraz.
 
 Gałąź korpusu, wykonywana raz i współdzielona przez wszystkie warianty, zajmuje 21~sekund dla
-modelu jina i 34~sekundy dla przestrzeni modelu EAM przy tysiącu dokumentów. Synteza mowy,
+modelu Jina v4 i 34~sekundy dla przestrzeni modelu EAM przy tysiącu dokumentów. Synteza mowy,
 wspólna dla wszystkich porównywanych konfiguracji, jest najdroższym etapem całego przebiegu i
 zajmuje od 1216~sekund dla modelu SeamlessM4T do 3630~sekund dla XTTS-v2, lecz nie należy do
 ścieżki zapytania systemu docelowego, w którym nagranie pochodzi od użytkownika.
@@ -407,11 +622,81 @@ opóźnieniem pojedynczego zapytania w trybie interaktywnym, i nie obejmują nar
 Przewagę ścieżki latentnej należy zatem czytać jako różnicę kosztu obliczeniowego, a nie jako
 zmierzony czas odpowiedzi systemu.
 
-\todo{Uzupełnić szczytowe zużycie pamięci karty graficznej, przepustowość oraz rozmiar indeksu}
+Rozmiar indeksu wynika wprost z wymiaru przestrzeni embeddingowej, ponieważ wszystkie warianty
+korzystają z indeksu płaskiego, przechowującego jeden wektor na dokument w postaci
+zmiennoprzecinkowej pojedynczej precyzji. Przestrzeń modelu Jina v4, wspólna dla kaskady oraz modelu
+APM, ma 2048 wymiarów, co daje $8{,}2$~MB na tysiąc dokumentów, przestrzeń modelu SONAR
+1024 wymiary i $4{,}1$~MB, przestrzeń modelu LaBSE 768 wymiarów i $3{,}1$~MB, a przestrzeń modelu
+EAM 512 wymiarów i $2{,}0$~MB. Przy korpusie miliona dokumentów odpowiada to od dwóch do ośmiu
+gigabajtów, a więc wielkościom mieszczącym się jeszcze w pamięci pojedynczej maszyny, zgodnie
+z ograniczeniem opisanym w podrozdziale~\ref{sec:opis}. Liczba potrzebnych indeksów wynika przy tym z liczby
+różnych przestrzeni, nie z liczby porównywanych ścieżek. Model APM, dopasowywany do przestrzeni
+istniejącego modelu tekstowego, korzysta z tego samego indeksu co zapytanie tekstowe i kaskada,
+podczas gdy modele EAM i SONAR, mające własne przestrzenie, wymagają osadzenia korpusu osobno.
+Dostrojenie enkodera mowy do gotowej przestrzeni ma zatem tę praktyczną zaletę, że dokłada ścieżkę
+głosową do istniejącego systemu bez powiększania indeksu.
+
+Szczytowego zużycia pamięci karty graficznej nie mierzono, ponieważ przebiegi wykonywano wsadowo
+na współdzielonych kartach, gdzie równolegle działały inne węzły tego samego grafu. Podana wyżej
+przewaga ścieżki latentnej dotyczy zatem czasu obliczeń, nie zajętości pamięci; ta ostatnia zależy
+przede wszystkim od rozmiaru wczytanego modelu, a w kaskadzie w pamięci muszą znaleźć się dwa
+modele naraz, model ASR oraz model embeddingowy, podczas gdy ścieżka latentna wymaga jednego.
 
 \subsection{Wnioski}
-Podrozdział zestawia obie architektury wraz z ich osiągami, wskazując warunki, w których przewaga
-jednej z nich jest rozstrzygająca, oraz warunki, w których wybór pozostaje kompromisem między
-jakością a kosztem obliczeniowym.
+Na zmierzonych danych kaskada wygrywa jednoznacznie. Zestawiona z mocnym modelem embeddingowym
+osiąga Recall@1 równe $0{,}990$ wobec $0{,}988$ dla zapytania tekstowego, a więc przejście na
+modalność mowy nie kosztuje nic mierzalnego, podczas gdy najlepsza ścieżka latentna zatrzymuje się
+na $0{,}524$. Wniosek ten dotyczy jednak zapytań syntezowanych, krótkich i pozbawionych zakłóceń,
+a jego przeniesienie na nagrania rzeczywiste pozostaje otwarte.
 
-\todo{Uzupełnić wnioski po zebraniu wyników z podrozdziałów \ref{sec:czyste}--\ref{sec:zasoby}}
+Rozstrzygnięcie nie brzmi jednak ,,kaskada zamiast ścieżki latentnej'', ponieważ o wyniku decyduje
+najpierw jakość przestrzeni embeddingowej, a dopiero w jej obrębie wybór ścieżki. Ta sama różnica
+jakości transkrypcji kosztuje mocną przestrzeń sześć procent Recall@1, a słabszą blisko
+trzydzieści; enkoder mowy modelu SONAR przewyższa natomiast kaskadę zbudowaną na tej samej
+przestrzeni dla każdego modelu ASR poza Whisperem. Reguła doboru architektury, o którą pytano
+w podrozdziale~\ref{sec:prog}, ma zatem postać warunkową: przy przestrzeni mocnej opłaca się
+transkrybować, przy słabszej korzystniejsze bywa osadzenie nagrania wprost, o ile dysponuje się
+enkoderem mowy dopasowanym do tej samej przestrzeni.
+
+Wyszukiwanie bez transkrypcji okazuje się wykonalne, lecz nie na modelach zbudowanych w ramach
+niniejszej pracy. Enkoder mowy modelu SONAR odtwarza blisko dziewięćdziesiąt procent wyniku swojej
+własnej gałęzi tekstowej, a więc dopasowanie mowy do przestrzeni zdaniowej działa; modele APM i EAM
+przegrywają na czym innym, pierwszy na rzutowaniu audio do mocnej przestrzeni, drugi na jakości
+przestrzeni, którą sam buduje. Wąskim gardłem ścieżki latentnej jest zatem nie architektura, lecz
+brak zbioru danych o odpowiedniej skali. Dopasowanie mowy do przestrzeni zdaniowej wymaga par
+nagranie--tekst liczonych w tysiącach godzin, a dla języka polskiego i domeny medycznej takiego
+zbioru publicznie nie ma; wykorzystany w treningu ADMEDVoice \cite{ADMEDVoice} jest o kilka rzędów
+wielkości mniejszy od zbioru, na którym powstał model SONAR. Jest to ograniczenie danych, nie
+metody, co ma bezpośrednią konsekwencję praktyczną: przy obecnej dostępności zbiorów korzystniej
+jest sięgnąć po gotową przestrzeń wielojęzykową wraz z jej enkoderem mowy niż trenować własną.
+
+Oczekiwanie, że ścieżka latentna degraduje łagodniej, nie potwierdziło się. Przy szumie o stosunku
+sygnału do szumu 5~dB kaskada zachowuje dziewięćdziesiąt dziewięć procent swojej jakości, a ścieżka
+latentna osiemdziesiąt trzy; transkrypcja działa jak filtr, odrzucając to, co w sygnale nie jest
+mową. Odporność kaskady nie bierze się przy tym z odporności modelu ASR, którego wskaźnik błędu
+rośnie w tych warunkach czterokrotnie, lecz z nadmiarowości zapytania wobec zadania wyszukiwania.
+Wyjątkiem jest zmiana tempa wypowiedzi, przy której ścieżka latentna traci blisko trzydzieści
+procent, a kaskada dwa; jest to zarazem najtańszy kierunek poprawy, ponieważ augmentacja tempem
+podczas treningu adaptera nie wymaga powiększania zbioru.
+
+Koszt obliczeniowy przemawia za ścieżką latentną, lecz nie rozstrzyga. Ten sam enkoder Whispera
+użyty bez dekodera jest blisko czterdzieści razy szybszy niż w roli modelu transkrybującego, co
+przekłada się na przepustowość od jedenastu do dziewięćdziesięciu zapytań na sekundę wobec dwóch
+dla kaskady. Osadzenie nagrania jest zatem zwykle tańsze od jego transkrypcji, lecz nie zawsze: wav2vec2
+transkrybuje tysiąc pytań szybciej niż którykolwiek z modeli latentnych, płacąc za to
+czterokrotnie wyższym wskaźnikiem błędu transkrypcji WER. Przewaga kosztowa ścieżki latentnej dotyczy więc
+zestawienia z modelami ASR o dobrej jakości transkrypcji, a nie z modelami ASR w ogóle. Po stronie
+wdrożeniowej istotne jest też to, że adapter dopasowany do istniejącej przestrzeni tekstowej
+dokłada ścieżkę głosową bez powiększania indeksu, podczas gdy model o własnej przestrzeni wymaga
+osadzenia całego korpusu na nowo.
+
+Język zapytania nie jest dla kaskady przeszkodą, a dla ścieżki latentnej jest nią o tyle, o ile
+przestrzeń docelowa gorzej radzi sobie z polszczyzną. Warto odnotować, że adapter przejmuje język zbioru, na którym
+go trenowano, co widać po modelu APM, wyraźnie lepszym na pytaniach polskich.
+
+Powyższe wnioski dotyczą jakości wyszukiwania. Ocena, czy przewaga zmierzona metrykami
+rankingowymi przenosi się na jakość odpowiedzi generowanej z pobranego kontekstu, wymaga wyników
+z podrozdziału~\ref{sec:generacja}.
+
+\todo{Uzupełnić wnioski dotyczące generacji odpowiedzi po wykonaniu przebiegów
+z podrozdziału \ref{sec:generacja}}
