@@ -349,7 +349,7 @@ dostrojony do polskiej mowy medycznej metodą LoRA na zbiorze ADMEDVoice \cite{A
     \includegraphics[width=\linewidth]{figures/wyniki/wyniki_jezyk.png}
     \caption{Warianty językowe na zestawie stu pytań i stu dokumentów. Po lewej jakość
     wyszukiwania, po prawej jakość transkrypcji; model oznaczony jako Whisper dostrojony to
-    Whisper large-v2 z adapterem LoRA wytrenowanym na zbiorze ADMEDVoice \cite{ADMEDVoice}. Oba warianty z pytaniem polskim korzystają z tego
+    Whisper medium z adapterem LoRA wytrenowanym na zbiorze ADMEDVoice \cite{ADMEDVoice}. Oba warianty z pytaniem polskim korzystają z tego
     samego nagrania, więc ich wskaźniki błędu transkrypcji są identyczne; różni je wyłącznie język
     korpusu.}
     \label{fig:wynikiJezyk}
@@ -480,10 +480,10 @@ i przebiegu bez kontekstu w tabeli~\ref{tab:generacjaProfil}.
 \toprule
 & \textbf{Bez kontekstu} & \textbf{Tekstowa} & \textbf{Kaskada} & \textbf{Latentna} \\
 \midrule
-Trafność decyzji        & $0{,}44$  & $0{,}43$  & $0{,}40$  & $0{,}41$ \\
-ROUGE-L                 & $0{,}143$ & $0{,}193$ & $0{,}191$ & $0{,}190$ \\
-Ocena łączna sędziego   & $0{,}37$  & $0{,}58$  & $0{,}57$  & $0{,}57$ \\
-Wskaźnik zdawalności    & $0{,}00$  & $0{,}22$  & $0{,}23$  & $0{,}23$ \\
+Trafność decyzji        & $\mathbf{0{,}44}$  & $0{,}43$  & $0{,}40$  & $0{,}41$ \\
+ROUGE-L                 & $0{,}143$ & $\mathbf{0{,}193}$ & $0{,}191$ & $0{,}190$ \\
+Ocena łączna sędziego   & $0{,}37$  & $\mathbf{0{,}58}$  & $0{,}57$  & $0{,}57$ \\
+Wskaźnik zdawalności    & $0{,}00$  & $0{,}22$  & $\mathbf{0{,}23}$  & $\mathbf{0{,}23}$ \\
 \bottomrule
 \end{tabular}
 \caption{Jakość odpowiedzi generowanych z pełnych artykułów na zestawie stu pytań, dla trzech
@@ -521,15 +521,15 @@ ponad jedna czwarta słów odpowiedzi pochodzi spoza pobranego kontekstu.
 \toprule
 & \textbf{Bez kontekstu} & \textbf{Kaskada} \\
 \midrule
-Trafność decyzji                & $0{,}44$ & $0{,}40$ \\
-ROUGE-1                         & $0{,}243$ & $0{,}290$ \\
-ROUGE-2                         & $0{,}049$ & $0{,}085$ \\
-ROUGE-L                         & $0{,}143$ & $0{,}191$ \\
+Trafność decyzji                & $\mathbf{0{,}44}$ & $0{,}40$ \\
+ROUGE-1                         & $0{,}243$ & $\mathbf{0{,}290}$ \\
+ROUGE-2                         & $0{,}049$ & $\mathbf{0{,}085}$ \\
+ROUGE-L                         & $0{,}143$ & $\mathbf{0{,}191}$ \\
 Wskaźnik halucynacji            & ---      & $0{,}281$ \\
 Pokrycie kontekstu              & ---      & $0{,}742$ \\
-Sędzia: trafność dokumentów     & $0{,}27$ & $0{,}87$ \\
-Sędzia: oparcie w kontekście    & $0{,}00$ & $0{,}39$ \\
-Sędzia: kompletność             & $0{,}84$ & $0{,}46$ \\
+Sędzia: trafność dokumentów     & $0{,}27$ & $\mathbf{0{,}87}$ \\
+Sędzia: oparcie w kontekście    & $0{,}00$ & $\mathbf{0{,}39}$ \\
+Sędzia: kompletność             & $\mathbf{0{,}84}$ & $0{,}46$ \\
 \bottomrule
 \end{tabular}
 \caption{Pełny profil metryk odpowiedzi dla kaskady oraz przebiegu bez kontekstu. Wskaźnik
@@ -563,9 +563,9 @@ w tabeli~\ref{tab:generacjaK}.
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}
 \textbf{Dokumenty w kontekście} & Trafność & ROUGE-L & Trafność & ROUGE-L \\
 \midrule
-1 & $0{,}43$ & $0{,}188$ & $0{,}39$ & $0{,}190$ \\
-3 & $0{,}43$ & $0{,}191$ & $0{,}44$ & $0{,}191$ \\
-5 & $0{,}36$ & $0{,}199$ & $0{,}42$ & $0{,}199$ \\
+1 & $\mathbf{0{,}43}$ & $0{,}188$ & $0{,}39$ & $0{,}190$ \\
+3 & $\mathbf{0{,}43}$ & $0{,}191$ & $\mathbf{0{,}44}$ & $0{,}191$ \\
+5 & $0{,}36$ & $\mathbf{0{,}199}$ & $0{,}42$ & $\mathbf{0{,}199}$ \\
 \bottomrule
 \end{tabular}
 \caption{Trafność decyzji i ROUGE-L w funkcji liczby dokumentów podawanych modelowi
