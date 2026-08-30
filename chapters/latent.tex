@@ -167,14 +167,14 @@ W ramach obliczania metryki MMD (\ref{eq:MMD}), skorzystano z liniowej funkcji j
     k_{\text{lin}}(x, y) = x^y
 \end{equation}
 
-\begin{figure}[h]
+\begin{figure}[!ht]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/labse_output.png}
     \caption{Ilości reprezentacji przykładów jako pozytywne i negatywne dla modelu Labse w ramach zbioru \textit{Medical Speech, Transcription, and Intent}. Kolorem pomarańczowym oznaczono ilość zdań, dla których dany przykład jest przykładem negatywnym, niebieskim -- pozytywnym}
     \label{fig:latent:labseDistribution}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[!ht]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/fleurs_labse_output.png}
     \caption{Ilości reprezentacji przykładów jako pozytywne i negatywne dla modelu Labse w ramach zbioru FLEURS. Kolorem pomarańczowym oznaczono ilość zdań, dla których dany przykład jest przykładem negatywnym, niebieskim -- pozytywnym}
@@ -191,11 +191,7 @@ Eksperymenty zostały przeprowadzone z wykorzystaniem języka Python w wersji 3.
 
 Rozkłady wartości metryki $S(x_{emb,asr})$ (równanie \ref{eq:tripletDiff}) dla poszczególnych modeli ASR przedstawione są na wykresach zamieszczonych w sekcji Dodatki.
 
-Tabela \ref{tab:latent:haniaCounts} przedstawia ilość przykładów w ramach zbioru danych \textit{Medical Speech, Transcription, and Intent}, dla których metryka $S(x_{emb,asr})$ przyjmowała wartości dodatnie, czyli tam, gdzie model ASR z powodzeniem uchwycił relacje semantyczne. Widać na niej wyraźną przewagę modelu SeamlessM4T, jak i dobre wyniki dla modeli Whisper i Hubert, które uchwyciły podobieństwo dla podobnie wysokiej liczby przykładów w ramach tego zbioru danych.
-
-Tabela \ref{tab:latent:haniaDist} ilustruje z kolei parametry dopasowanego rozkładu Student-t dla zagregowanych różnic podobieństwa w ramach wszystkich modeli embeddingowych. Liczba stopni swobody $\nu$ odpowiedzialna jest za opisanie stabilności rozkładu w świetle obecności ogonów -- im większa, tym bardziej stabilny jest rozkład. Wartości zbliżone do 2, otrzymane dla modeli Data2Vec, Wav2Vec i Whisper wskazują na ich wysoką niestabilność w uchwyceniu relacji semantycznych. SeamlessM4T okazuje się najbardziej przewidywalnie zachowującym się modelem, dla którego $\nu = 6.4$, znacznie przewyższając drugi najwyżej plasujący się model HuBERT ($\nu = 3.6$). Znormalizowana lokalizacja ($\mu/\sigma$) pozwala na porównanie separacji pozytywnych i negatywnych przykładów między ewaluowanymi modelami ASR (MMD nie zachowuje skali pomiędzy modelami). Po raz kolejny, model SeamlessM4T wykazuje się najsilniejszą zdolnością rozróżniania przykładów pozytywnych i negatywnych ($\mu/\sigma = 0.91$). Modele HuBERT i Whisper osiągneły wyniki blisko dwukrotnie gorsze ($\mu/\sigma = 0.61$ i $\mu/\sigma = 0.54$), natomiast Data2Vec i Wav2Vec przejawiają podobnie niską zdolność dyskryminacji ($\mu/\sigma \approx 0.33$). Ostatnią z badanych metryk jest prawdopodobieństwo prawidłowego uchwycenia relacji między $x^a$, $x^n$ i $x^p$. Jest ona podobna do podejścia stricte ilościowego, lecz pozwala ona również analizować osiągi modelu w świetle dopasowanego rozkładu. Podobnie jak w porównaniu ilościowym, SeamlessM4T deklasuje resztę modeli, natomiast zarówno Whisper jak i HuBERT wykazują podobnie dobre wyniki. Warto zauważyć jednak, że HuBERT osiąga lepsze wyniki dla tej metryki ($P(neg > pos) = 71\%$) niż Whisper ($P(neg>pos) = 67.8\%$), wskazując na przewagę tego modelu, niewidoczną dla porównania ilościowego, która spowodowana jest prawdopodobnie większą stabilnością dopasowanego rozkładu.
-
-\begin{table}[ht]
+\begin{table}[!ht]
 \centering
 \caption{$S(x_{emb,asr}) > 0$ dla zbioru \textit{Medical Speech, Transcription, and Intent} (Ilość przykładów = 5327)}
 \label{tab:latent:haniaCounts}
@@ -212,7 +208,7 @@ HuBERT   & 3801 & 3971 & 3827 \\
 \end{tabular}
 \end{table}
 
-\begin{table}[t]
+\begin{table}[!ht]
 \centering
 \begin{tabular}{lccc}
 \hline
@@ -229,9 +225,11 @@ HuBERT    & 3.6 & 0.61 & 71.0\% \\
 \label{tab:latent:haniaDist}
 \end{table}
 
-Wyniki dla dwujęzycznej wersji zbioru Fleurs (język polski i angielski) zostały przedstawione dla modeli ASR wspierających oba z tych języków, reprezentujące trzy rodziny modeli -- HuBERT (mHuBERT), Whisper i SeamlessM4T. Rozkłady dla tych modeli przedstawione zostały na rysunkach zamieszczonych w sekcji Dodatki. Tabele \ref{tab:latent:fleursCounts} i \ref{tab:latent:fleursDist} przedstawiają ilościowe porównanie wyników eksperymentu.
+Tabela \ref{tab:latent:haniaCounts} przedstawia ilość przykładów w ramach zbioru danych \textit{Medical Speech, Transcription, and Intent}, dla których metryka $S(x_{emb,asr})$ przyjmowała wartości dodatnie, czyli tam, gdzie model ASR z powodzeniem uchwycił relacje semantyczne. Widać na niej wyraźną przewagę modelu SeamlessM4T, jak i dobre wyniki dla modeli Whisper i Hubert, które uchwyciły podobieństwo dla podobnie wysokiej liczby przykładów w ramach tego zbioru danych.
 
-\begin{table}[ht]
+Tabela \ref{tab:latent:haniaDist} ilustruje z kolei parametry dopasowanego rozkładu Student-t dla zagregowanych różnic podobieństwa w ramach wszystkich modeli embeddingowych. Liczba stopni swobody $\nu$ odpowiedzialna jest za opisanie stabilności rozkładu w świetle obecności ogonów -- im większa, tym bardziej stabilny jest rozkład. Wartości zbliżone do 2, otrzymane dla modeli Data2Vec, Wav2Vec i Whisper wskazują na ich wysoką niestabilność w uchwyceniu relacji semantycznych. SeamlessM4T okazuje się najbardziej przewidywalnie zachowującym się modelem, dla którego $\nu = 6.4$, znacznie przewyższając drugi najwyżej plasujący się model HuBERT ($\nu = 3.6$). Znormalizowana lokalizacja ($\mu/\sigma$) pozwala na porównanie separacji pozytywnych i negatywnych przykładów między ewaluowanymi modelami ASR (MMD nie zachowuje skali pomiędzy modelami). Po raz kolejny, model SeamlessM4T wykazuje się najsilniejszą zdolnością rozróżniania przykładów pozytywnych i negatywnych ($\mu/\sigma = 0.91$). Modele HuBERT i Whisper osiągneły wyniki blisko dwukrotnie gorsze ($\mu/\sigma = 0.61$ i $\mu/\sigma = 0.54$), natomiast Data2Vec i Wav2Vec przejawiają podobnie niską zdolność dyskryminacji ($\mu/\sigma \approx 0.33$). Ostatnią z badanych metryk jest prawdopodobieństwo prawidłowego uchwycenia relacji między $x^a$, $x^n$ i $x^p$. Jest ona podobna do podejścia stricte ilościowego, lecz pozwala ona również analizować osiągi modelu w świetle dopasowanego rozkładu. Podobnie jak w porównaniu ilościowym, SeamlessM4T deklasuje resztę modeli, natomiast zarówno Whisper jak i HuBERT wykazują podobnie dobre wyniki. Warto zauważyć jednak, że HuBERT osiąga lepsze wyniki dla tej metryki ($P(neg > pos) = 71\%$) niż Whisper ($P(neg>pos) = 67.8\%$), wskazując na przewagę tego modelu, niewidoczną dla porównania ilościowego, która spowodowana jest prawdopodobnie większą stabilnością dopasowanego rozkładu.
+
+\begin{table}[!ht]
 \centering
 \caption{$S(x_{emb,asr}) > 0$ dla zbioru \textit{Fleurs} (Ilość przykładów = 5443)}
 \label{tab:latent:fleursCounts}
@@ -247,7 +245,7 @@ mHuBERT   & 3296 & 3430 & 3288 \\
 \end{tabular}
 \end{table}
 
-\begin{table}[t]
+\begin{table}[!ht]
 \centering
 \begin{tabular}{lccc}
 \hline
@@ -263,6 +261,8 @@ mHuBERT    & 2.8 & 0.27 & 59.6\% \\
 \label{tab:latent:fleursDist}
 \end{table}
 
+Wyniki dla dwujęzycznej wersji zbioru Fleurs (język polski i angielski) zostały przedstawione dla modeli ASR wspierających oba z tych języków, reprezentujące trzy rodziny modeli -- HuBERT (mHuBERT), Whisper i SeamlessM4T. Rozkłady dla tych modeli przedstawione zostały na rysunkach zamieszczonych w sekcji Dodatki. Tabele \ref{tab:latent:fleursCounts} i \ref{tab:latent:fleursDist} przedstawiają ilościowe porównanie wyników eksperymentu.
+
 Zarówno na podstawie Tabeli \ref{tab:latent:fleursCounts} jak i Tabeli \ref{tab:latent:fleursDist} zauważyć można dużą przewagę modelu M4T nad pozostałymi modelami. Zarówno umiejętność poprawnej separacji przykładów negatywnych i pozytywnych ($\mu/\sigma$ = 0.72), średnia ilość poprawnie przyporządkowanych przykładów ($E[n_\text{poz}] = 4150$), jak i prawdopodobieństwo poprawnego przyporządkowania przykładów ($P(\text{neg} > \text{poz}) = 75.3\%$) stawiają SeamlessM4T jako model najlepiej enkodujący semantykę wypowiedzi. Wyniki dla modelu Whisper również wskazują na enkodowanie przez niego znaczenia treści danych wejściowych, z gorszą zdolnością separacji przykładów ($\mu/\sigma$ = 0.49) i prawdopodobieństwem prawidłowego ich przyporządkowania ($P(\text{neg} > \text{poz}) = 68.3\%$), lecz z bardziej stabilnym rozkładem przypadków ($\nu = 10.4$) w porównaniu z SeamlessM4T ($\nu = 6.8$), co wskazuje na zadowalające zdolności modelu Whisper do reprezentacji semantyki danych wejściowych. Zdecydowanie najgorzej wypadł w tym porównaniu model mHuBERT, który z niskim prawdopodobieństwem poprawnie klasyfikował znaczenie danych wejściowych w świetale ich semantyki ($P(\text{neg} > \text{poz}) = 59.6\%$), osiągając wyniki niewiele większe niż wybór losowy i gorsze niż bazowy model HuBERT($P(\text{neg} > \text{poz}) = 64.5\%$). Możliwą przyczyną tak niskiego wyniku jest niska elastyczność modelu, stworzonego oryginalnie wyłącznie do transkrypcji mowy w języku angielskim, jak i mocy dekodera obecnego w pełnej propagacji w przód modelu. Kolejnym wyjaśnieniem jest zakłócenie oryginalnie silnej reprezentacji semantycznej w modelu angielskim (model HuBERT dla zbioru \textit{Medical Speech, Transcription, and Intent}, tabela \ref{tab:latent:haniaDist}) przez dotrenowanie na danych ze 146 kolejnych języków, przez które model o tak małej liczbie parametrów -- 94.4 miliona -- musiał enkodować tekst wejściowy w pewien bardziej skompresowany sposób, nie nadający się do interpretacji w świetle semantyki embeddingów. Hipotezę tę potwierdzają wyniki pracy \textit{Adapting multilingual speech representation model for a new, underresourced language through multilingual fine-tuning and continued pretraining}, w której autorzy zauważyli wyraźnie gorsze wyniki modelu dotrenowanego do transkrypcji języka Ainu na danych w języku angielskim (językowo bardzo różnym od Ainu) \cite{latentBreakMultilingual}. Wskazuje to na wysokie prawdopodobieństwo wystąpienia zjawiska zapominania (\textit{catastrophic forgetting}), analiza którego nie została umieszczona w oryginalnej pracy autorów mHuBERT-147 \cite{mhubert}.
 
 Warto zwrócić uwagę na parametr $\nu$ opisujący stabilność rozkładu, który największa wartość przyjmuje dla modelu Whisper, w porównaniu do jego wartości dla zbioru \textit{Medical Speech, Transcription, and Intent} -- dla zbioru \textit{Fleurs} modele o wiele lepiej radzą sobie z ekstremalnymi przypadkami odległości przykładów \textit{anchor}, \textit{pos} i \textit{neg}. Jest to najprawdopodobniej spowodowane kombinacją dwóch czynników -- sztucznej separacji przestrzeni embeddingowej między dwoma językami, która w mniejszym lub większym stopniu jest obecna w każdym z badanych modeli jak i szerszą domeną samego zbioru danych \textit{Fleurs}, który nie skupia się wyłącznie na tematycze medycznej.
@@ -272,21 +272,21 @@ Warto zwrócić uwagę na parametr $\nu$ opisujący stabilność rozkładu, któ
 %
 \subsubsection{Analiza efektu stożka dla wybranych wielojęzycznych modeli ASR}
 
-\begin{figure}[h]
+\begin{figure}[!h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/mhubert_cone.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla mHuBERT w ramach zbioru \textit{Fleurs}}
     \label{fig:latent:coneMHubert}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[!h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/m4t_cone.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla M4T w ramach zbioru \textit{Fleurs}}
     \label{fig:latent:coneM4T}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[!h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/whisper_cone.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla Whisper w ramach zbioru \textit{Fleurs}}
@@ -295,24 +295,23 @@ Warto zwrócić uwagę na parametr $\nu$ opisujący stabilność rozkładu, któ
 
 Wykresy gęstości podobieństwa kosinusowego dla zbioru \textit{Fleurs} w zależności od języków przedstawione zostały na rysunkach \ref{fig:latent:coneMHubert}, \ref{fig:latent:coneM4T} i \ref{fig:latent:coneWhisper}
 
-
 Widoczny jest tutaj wyraźnie fenomen stożka, zgodny z zależnością zaobserwowaną w pracy \textit{How Contextual are Contextualized Word Representations? Comparing the Geometry of BERT, ELMo, and GPT-2 Embeddings}, w której autor zauważył wzrost anizotropi przestrzeni ukrytych modeli językowych wraz ze wzrostem ilości warstw \cite{cone} -- wraz ze wzrostem liczby parametrów i warstw, reprezentacje latentne zajmują coraz to mniejszy fragment przestrzeni (rozkład dla mHuBERT -- 94.4 miliona parametrów [rysunek \ref{fig:latent:coneMHubert}] a ten sam rozkład dla SeamlessM4T -- 2 miliardy parametrów [rysunek \ref{fig:latent:coneM4T}]). W celu stwierdzenia czy reprezentacje mowy wymawianej w różnych językach tworzą osobne klastry w przestrzeni embeddingowej należy spojrzeć na odległość między wykresami gęstości dla podobieństw kosinusowych wewnątrz języków i między językami. Modele mHuBERT i SeamlessM4T wydają się enkodować informacje agnostycznie od języka, z separacją między grupami językowymi będącą wyraźnie najmniejszą dla pierwszego modelu (częściowe pokrycie i niewielkie przesunięcie gęstości między grupami a wewnątrz grup na rysunkach \ref{fig:latent:coneMHubert} i \ref{fig:latent:coneM4T}). Model Whisper wykazuje dosyć dużą separację między grupami językowymi w ramach reprezentacji latentnych (rysunek \ref{fig:latent:coneWhisper}). Właściwość ta może prowadzić do mniej dokładnego wyszukiwania informacji między językami polskim i angielskim, a także do gorszego transferu wiedzy pozyskanej w ramach treningu na specjalistycznych zbiorach w języku angielskim do analogicznej wiedzy w języku polskim.
 
-\begin{figure}[h]
+\begin{figure}[!h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/mhubert_cone_abtt.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla MHuBERT w ramach zbioru \textit{Fleurs} po transformacji ABTT}
     \label{fig:latent:coneMhubertAbtt}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[!h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/m4t_cone_abtt.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla M4T w ramach zbioru \textit{Fleurs} po transformacji ABTT}
     \label{fig:latent:coneM4TAbtt}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[!h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/whisper_cone_abtt.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla Whisper w ramach zbioru \textit{Fleurs} po transformacji ABTT}
@@ -321,21 +320,21 @@ Widoczny jest tutaj wyraźnie fenomen stożka, zgodny z zależnością zaobserwo
 
 Rysunki \ref{fig:latent:coneMhubertAbtt}, \ref{fig:latent:coneM4TAbtt} i \ref{fig:latent:coneWhisperAbtt} przedstawiają rozkłady gęstości podobieństwa kosinusowego między embeddingami po przekształceniu \textit{All But the Top}. Dla wszystkich modeli, badane reprezentacje latentne zajęły większą część dostępnej przestrzeni. Jest to spowodowane usunięciem pierwszej głównej składowej po analizie PCA, dzięki czemu pewne wspólne informacje przechowywane przez reprezentacje latentne zostały odrzucone, pozostawiając wyłącznie cechy własne charakteryzujące dane wejściowe. Model mHuBERT (rysunek \ref{fig:latent:coneMhubertAbtt}) zachował prawie identyczne rozkłady w ramach grup językowych, z gęstością podobieństwa lekko przesuniętą. Wskazuje to na większą separację grup językowych niż w ramach danych nieprzetworzonych (rysunek \ref{fig:latent:coneMHubert}). Może być to spowodowane tendencją modelu do enkodowania informacji dotyczących języka, w niewielkim stopniu, na przykład informacji prozodycznych. Seamless M4T wykazuje się podobną charakterystyką co do przesunięcia podobieństwa między grupami, które było obecne również dla danych nieprzetworzonych (rysunki \ref{fig:latent:coneM4TAbtt} i \ref{fig:latent:coneM4T}). Warto zwrócić uwagę na różnicę rozkładów wewnątrz grup językowych -- embeddingi dla języka polskiego zajmują o wiele większą część przestrzeni niż embeddingi dla języka angielskiego. Postawiona hipoteza zakłada obecność pewnego meta-języka opisującego dane dla modelu M4T, który podobny jest najbardziej do języka angielskiego. O ile autorzy modelu nie podali dokładnego balansu danych między różnymi językami w ramach danych treningowych modelu \cite{m4t}, można przypuszczać dominację danych w języku angielskim, stąd też bardziej dokładne reprezentacje danych w języku angielskim. Charakterystyka modelu Whisper (rysunek \ref{fig:latent:coneWhisperAbtt}) zaobserwowana dla danych nieprzetworzonych (rysunek \ref{fig:latent:coneWhisper}) została potwierdzona przez rozkłady dla embeddingów po przetworzeniu \textit{All But the Top}. Widoczna jest o wiele bardziej wyraźna separacja na pewne klastry reprezentujące języki polski i angielski. Jest to najprawdopodobniej spowodowane charakterystyką treningu, w ramach której funkcja straty nie wymusza w jakikolwiek sposób współdzielenia przestrzeni latentnej przez dane z różnych języków, dane treningowe dla transkrypcji precyzują język wypowiedzi \cite{whisper}.
 
-\begin{figure}[h]
+\begin{figure}[!h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/mhubert_cone_whitened.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla MHuBERT w ramach zbioru \textit{Fleurs} po wybielaniu}
     \label{fig:latent:coneMhubertWhitened}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[!h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/m4t_cone_wnitened.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla M4T w ramach zbioru \textit{Fleurs} po wybielaniu}
     \label{fig:latent:coneM4TWhitened}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[!h]
     \centering
     \includegraphics[width=0.8\linewidth]{figures/semantics/whisper_cone_wnitened.png}
     \caption{Gęstość podobieństwa kosinusowego z uwzględnieniem języków dla Whisper w ramach zbioru \textit{Fleurs} po wybielaniu}
