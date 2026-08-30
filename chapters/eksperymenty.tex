@@ -426,7 +426,7 @@ rankingowymi, przenosi się na jakość odpowiedzi generowanej z pobranego konte
 mimo niedoskonałego rankingu, o ile potrzebny fragment znalazł się w kontekście, i odwrotnie ---
 potrafi zawieść przy rankingu poprawnym.
 
-Kontekstem są pełne artykuły, a nie abstrakty, ponieważ abstrakt rzadko zawiera dane liczbowe
+Kontekstem są pełne artykuły, a nie abstrakty, ponieważ abstrakt rzadko zawiera dane 
 potrzebne do uzasadnienia odpowiedzi. Jest to jednak kontekst wyłącznie angielski, więc konfiguracje
 z pytaniem polskim pracują w układzie międzyjęzykowym również na etapie generacji. Mediana długości
 artykułu przekracza trzy tysiące słów, czyli około siedemnastokrotność abstraktu, co przy kilku
@@ -440,7 +440,151 @@ niepowodzenie wyszukiwania od niepowodzenia generacji: jego niska wartość ozna
 treści w pobranych dokumentach nie było, więc winą za błędną odpowiedź nie można obciążać modelu
 językowego.
 
-\todo{Uzupełnić zestawienie metryk odpowiedzi oraz omówienie po wykonaniu przebiegów}
+Pomiar wykonano na zestawie stu pytań w wariancie anglojęzycznym. Porównano trzy konfiguracje
+wyszukiwania: zapytanie tekstowe, kaskadę złożoną z syntezy XTTS-v2, modelu Whisper i modelu
+LaBSE oraz ścieżkę latentną opartą na enkoderze mowy modelu SONAR. Jako punkt odniesienia dodano
+przebieg bez wyszukiwania, w którym model językowy odpowiada wyłącznie na podstawie pytania.
+Odpowiedzi generuje uruchomiony lokalnie model Gemma~4 w wariancie E4B \cite{gemma4},
+w kwantyzacji czterobitowej (Q4\_K\_M), przy temperaturze zerowej i ustalonym ziarnie; kontekst tworzą trzy najwyżej uplasowane dokumenty, z każdego po
+cztery fragmenty pełnego tekstu o długości około 1200 znaków. Wariant E4B liczy osiem miliardów parametrów,
+z których efektywnie aktywne są cztery i pół miliarda.
+Wybór tak małego modelu otwartego wynika z założenia pracy o wykonywaniu obliczeń lokalnie.
+Ponieważ jakość generowanych odpowiedzi rośnie z wielkością modelu, a model użyty jest o blisko
+trzy rzędy wielkości mniejszy od największych modeli komercyjnych --- osiem miliardów parametrów
+wobec bilionów --- zmierzone tu wartości opisują dolny,
+osiągalny lokalnie poziom jakości generacji, nie możliwości podejścia RAG jako takiego.
+
+Polecenie generacji składa się z instrukcji systemowej i szablonu zapytania. Instrukcja
+nakazuje modelowi odpowiadać krótko i rzeczowo, wyłącznie na podstawie dostarczonego kontekstu,
+i wymusza stały format odpowiedzi: wiersz z decyzją tak/nie/może oraz wiersz z odpowiedzią
+opisową. Szablon zapytania zawiera kolejno pobrany kontekst i treść pytania. Dzięki wymuszonemu
+formatowi udział odpowiedzi z decyzją nierozpoznaną był we wszystkich przebiegach zerowy.
+
+Sędzią automatycznym jest ten sam model językowy. Instrukcja systemowa wyznacza mu rolę
+eksperta oceniającego odpowiedzi systemu na pytania medyczne, nakazuje oceniać surowo
+i spójnie, a wynik zwracać wyłącznie jako ścisły JSON. W treści zapytania sędzia otrzymuje
+pytanie, dziesięć najwyżej uplasowanych dokumentów wraz z ich treścią oraz wygenerowaną
+odpowiedź; odpowiedzi referencyjnej nie widzi, więc ocenia wyłącznie względem pytania
+i pobranych dokumentów. Każdy z trzech aspektów opisany jest w poleceniu jednozdaniową rubryką
+i oceniany w skali od zera do jedynki: trafność pobranych dokumentów względem pytania, oparcie
+odpowiedzi w pobranych dokumentach oraz to, czy odpowiedź w pełni odpowiada na pytanie. Ocena
+łączna jest średnią trzech aspektów, a przypadek uznaje się za zaliczony powyżej progu
+$0{,}5$, zgodnie z mechanizmem opisanym w podrozdziale~\ref{sec:rag}. Wyniki czterech
+konfiguracji zestawiono w tabeli~\ref{tab:generacjaPorownanie}, a pełny profil metryk kaskady
+i przebiegu bez kontekstu w tabeli~\ref{tab:generacjaProfil}.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+& \textbf{Bez kontekstu} & \textbf{Tekstowa} & \textbf{Kaskada} & \textbf{Latentna} \\
+\midrule
+Trafność decyzji        & $0{,}44$  & $0{,}43$  & $0{,}40$  & $0{,}41$ \\
+ROUGE-L                 & $0{,}143$ & $0{,}193$ & $0{,}191$ & $0{,}190$ \\
+Ocena łączna sędziego   & $0{,}37$  & $0{,}58$  & $0{,}57$  & $0{,}57$ \\
+Wskaźnik zdawalności    & $0{,}00$  & $0{,}22$  & $0{,}23$  & $0{,}23$ \\
+\bottomrule
+\end{tabular}
+\caption{Jakość odpowiedzi generowanych z pełnych artykułów na zestawie stu pytań, dla trzech
+konfiguracji wyszukiwania oraz przebiegu bez kontekstu. Ocena łączna sędziego dla przebiegu bez
+kontekstu jest z konstrukcji zaniżona, ponieważ dwa z trzech ocenianych aspektów odnoszą się do
+pobranych dokumentów, których ten przebieg nie ma.}
+\label{tab:generacjaPorownanie}
+\end{table}
+
+Wyszukiwanie nie jest w tym pomiarze czynnikiem ograniczającym. Kaskada umieszcza dokument
+istotny na pierwszym miejscu dla 87 pytań, a poza pierwszą dziesiątką tylko dla dwóch, co daje
+Recall@1 równe $0{,}87$ i Recall@5 równe $0{,}95$ przy wskaźniku błędu transkrypcji $0{,}045$;
+pokrycie kontekstu wynosi $0{,}742$, a więc blisko trzy czwarte słów odpowiedzi referencyjnej
+znajduje się w pobranych fragmentach. Mimo to trafność decyzji nie przekracza w żadnej
+konfiguracji $0{,}44$, czyli poziomu osiąganego przez odpowiadanie klasą większościową
+(,,tak'' stanowi $0{,}56$ zbioru). Co więcej, przebieg bez kontekstu osiąga trafność decyzji
+nie gorszą niż którakolwiek konfiguracja z wyszukiwaniem. Wąskim gardłem nie jest zatem
+wyszukiwanie, lecz zdolność modelu językowego do wyprowadzenia poprawnej decyzji z dostarczonego
+kontekstu.
+
+Kontekst zmienia natomiast charakter odpowiedzi w dwóch względach. Po pierwsze poprawia jej
+treść: ROUGE-L rośnie z $0{,}143$ do $0{,}191$, oparcie odpowiedzi w kontekście według sędziego
+z zera do $0{,}39$, a wskaźnik zdawalności z zera do $0{,}23$. Po drugie odwraca rozkład
+decyzji. Bez kontekstu model wykazuje skłonność do potwierdzania i odpowiada ,,tak'' na 58 pytań
+ze stu, co zbiega się z rozkładem zbioru, w którym klasa ,,tak'' przeważa; z kontekstem odpowiada
+,,nie'' na 66 do 73 pytań, stając się wyraźnie zachowawczy. Poprawność w klasie ,,nie'' rośnie wtedy z 7 do 26 przypadków na 36, lecz
+w klasie ,,tak'' spada z 34 do 14 na 56, więc łączna trafność pozostaje niemal niezmieniona,
+choć błędy mają zupełnie inną strukturę. Wskaźnik halucynacji $0{,}281$ pokazuje przy tym, że
+ponad jedna czwarta słów odpowiedzi pochodzi spoza pobranego kontekstu.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+& \textbf{Bez kontekstu} & \textbf{Kaskada} \\
+\midrule
+Trafność decyzji                & $0{,}44$ & $0{,}40$ \\
+ROUGE-1                         & $0{,}243$ & $0{,}290$ \\
+ROUGE-2                         & $0{,}049$ & $0{,}085$ \\
+ROUGE-L                         & $0{,}143$ & $0{,}191$ \\
+Wskaźnik halucynacji            & ---      & $0{,}281$ \\
+Pokrycie kontekstu              & ---      & $0{,}742$ \\
+Sędzia: trafność dokumentów     & $0{,}27$ & $0{,}87$ \\
+Sędzia: oparcie w kontekście    & $0{,}00$ & $0{,}39$ \\
+Sędzia: kompletność             & $0{,}84$ & $0{,}46$ \\
+\bottomrule
+\end{tabular}
+\caption{Pełny profil metryk odpowiedzi dla kaskady oraz przebiegu bez kontekstu. Wskaźnik
+halucynacji i pokrycie kontekstu nie są zdefiniowane bez pobranych dokumentów. Wysoka ocena
+kompletności przebiegu bez kontekstu pokazuje granice sędziego automatycznego: odpowiedź
+swobodna, niczym nieugruntowana, brzmi dla niego pełniej niż odpowiedź ostrożna, trzymająca się
+pobranych fragmentów.}
+\label{tab:generacjaProfil}
+\end{table}
+
+Trzy ścieżki zapytania dają odpowiedzi praktycznie nierozróżnialne: trafność decyzji mieści się
+w przedziale od $0{,}40$ do $0{,}43$, ROUGE-L w przedziale jednego punktu promilowego, a oceny
+sędziego różnią się o mniej niż jeden punkt procentowy. Jest to spójne z tym, że na korpusie stu
+dokumentów każda z trzech ścieżek umieszcza dokument istotny w pierwszej trójce dla większości
+pytań, więc model językowy dostaje na wejściu niemal ten sam kontekst. Różnica jakości
+wyszukiwania między ścieżkami, widoczna w podrozdziale~\ref{sec:jezyk}, nie przenosi się zatem
+na odpowiedzi. Korelacja ocen sędziego z elementowym Recall@5 jest w tych przebiegach bliska
+zeru i lekko ujemna, co przy 87 pytaniach z trafieniem na pierwszym miejscu oznacza, że
+zróżnicowanie ocen pochodzi z generacji, a nie z wyszukiwania.
+
+Osobno zbadano wpływ liczby dokumentów podawanych modelowi, powtarzając przebieg kaskadowy
+i latentny z kontekstem jednego, trzech oraz pięciu dokumentów; wyniki zestawiono
+w tabeli~\ref{tab:generacjaK}.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+& \multicolumn{2}{c}{\textbf{Kaskada}} & \multicolumn{2}{c}{\textbf{Latentna}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+\textbf{Dokumenty w kontekście} & Trafność & ROUGE-L & Trafność & ROUGE-L \\
+\midrule
+1 & $0{,}43$ & $0{,}188$ & $0{,}39$ & $0{,}190$ \\
+3 & $0{,}43$ & $0{,}191$ & $0{,}44$ & $0{,}191$ \\
+5 & $0{,}36$ & $0{,}199$ & $0{,}42$ & $0{,}199$ \\
+\bottomrule
+\end{tabular}
+\caption{Trafność decyzji i ROUGE-L w funkcji liczby dokumentów podawanych modelowi
+językowemu, zestaw stu pytań. Konfiguracja kaskadowa z trzema dokumentami wystąpiła także
+w pomiarze z tabeli~\ref{tab:generacjaPorownanie}, gdzie osiągnęła trafność $0{,}40$; różnica
+trzech punktów procentowych między identycznymi konfiguracjami wyznacza powtarzalność pomiaru.}
+\label{tab:generacjaK}
+\end{table}
+
+Powiększanie kontekstu nie poprawia wyniku. ROUGE-L rośnie z liczbą dokumentów o około jeden
+punkt procentowy, ponieważ dłuższy kontekst dostarcza więcej słownictwa wspólnego z odpowiedzią
+referencyjną, lecz trafność decyzji nie zyskuje nic, a dla kaskady przy pięciu dokumentach
+wręcz spada do $0{,}36$. Jest to zachowanie oczekiwane przy strukturze zbioru, w którym każde
+pytanie ma dokładnie jeden dokument istotny: dokumenty dokładane ponad pierwszy działają jak
+dystraktory, a przy pięciu pełnych artykułach materiał nieistotny zaczyna przeważać nad
+istotnym. Ponieważ różnice między wariantami liczby dokumentów mieszczą się w granicach
+powtarzalności pomiaru wyznaczonej powyżej, z zestawienia tego nie należy wyciągać wniosku
+mocniejszego niż ten, że zwiększanie kontekstu ponad jeden trafnie wyszukany dokument nie
+przynosi na tym zbiorze mierzalnej korzyści.
 
 \subsection{Odporność na degradację sygnału}
 \label{sec:odpornosc}
@@ -694,9 +838,17 @@ Język zapytania nie jest dla kaskady przeszkodą, a dla ścieżki latentnej jes
 przestrzeń docelowa gorzej radzi sobie z polszczyzną. Warto odnotować, że adapter przejmuje język zbioru, na którym
 go trenowano, co widać po modelu APM, wyraźnie lepszym na pytaniach polskich.
 
-Powyższe wnioski dotyczą jakości wyszukiwania. Ocena, czy przewaga zmierzona metrykami
-rankingowymi przenosi się na jakość odpowiedzi generowanej z pobranego kontekstu, wymaga wyników
-z podrozdziału~\ref{sec:generacja}.
-
-\todo{Uzupełnić wnioski dotyczące generacji odpowiedzi po wykonaniu przebiegów
-z podrozdziału \ref{sec:generacja}}
+Przewaga zmierzona metrykami rankingowymi nie przenosi się na jakość odpowiedzi generowanych
+z pobranego kontekstu. Trzy ścieżki zapytania, mimo różnic w jakości wyszukiwania, dają
+odpowiedzi nierozróżnialne w granicach powtarzalności pomiaru, ponieważ na korpusie stu
+dokumentów każda z nich umieszcza dokument istotny w kontekście dostatecznie często. Kontekst
+poprawia ugruntowanie odpowiedzi, podnosząc jej zgodność z referencją i oceny sędziego, lecz
+nie poprawia trafności decyzji, która dla wszystkich konfiguracji, także dla przebiegu bez
+wyszukiwania, pozostaje poniżej odpowiadania klasą większościową. Zmienia się natomiast
+struktura błędów: model bez kontekstu wykazuje skłonność do potwierdzania i odpowiada przeważnie
+,,tak'', co akurat sprzyja mu na zbiorze zdominowanym przez tę klasę, a z kontekstem staje się
+zachowawczy i nadużywa odpowiedzi ,,nie''. Nie pomaga również
+powiększanie kontekstu ponad jeden trafnie wyszukany dokument. Wąskim gardłem całości jest
+zatem użyty model językowy, nie wyszukiwanie, a wybór ścieżki głosowej przestaje mieć znaczenie
+na etapie odpowiedzi; czy wniosek ten utrzymuje się dla modeli generujących o większej skali,
+pozostaje pytaniem otwartym.
