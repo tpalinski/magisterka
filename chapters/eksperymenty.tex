@@ -105,6 +105,16 @@ ograniczona zmienność mowy: sygnał syntetyczny nie obejmuje pełnego zakresu 
 wad wymowy ani zakłóceń otoczenia. Wnioski o odporności należy zatem odnosić do zmienności
 wprowadzonej celowo, opisanej w podrozdziale \ref{sec:odpornosc}, a nie do zmienności naturalnej.
 
+Uzupełnieniem obu zestawów jest zbiór AdmedVOICE, użyty w rozdziale~\ref{sec:latentTranslation}
+do treningu proponowanych modeli: nagrania rzeczywistej polskiej mowy z domeny medycznej wraz
+z transkrypcjami. Pomiar prowadzony jest wyłącznie na jego splicie testowym, czyli na
+nagraniach, których modele APM i EAM nie widziały podczas treningu. W pomiarze służy on
+zadaniu odnajdywania własnej transkrypcji
+(\textit{self-retrieval}): nagranie odpytuje korpus złożony z transkrypcji wszystkich nagrań,
+a dokumentem istotnym jest transkrypcja tego właśnie nagrania. Zadanie to nie mierzy zdolności
+odpowiadania na pytania, lecz wierność, z jaką ścieżka głosowa odtwarza treść wypowiedzi,
+i uzupełnia pomiary na mowie syntezowanej o zmienność naturalną, której synteza nie obejmuje.
+
 \subsubsection{Porównywane architektury}
 Porównaniu podlegają trzy konfiguracje. Pierwsza pomija ścieżkę głosową i kieruje do wyszukiwania
 tekst pytania. Nie jest ona rozwiązaniem poddanym ocenie, lecz wyznacza górną granicę jakości
@@ -178,6 +188,13 @@ obejmuje wszystkie pytania danego zestawu.
 
 \subsection{Porównanie architektur na sygnale niezakłóconym}
 \label{sec:czyste}
+Porównanie na sygnale niezakłóconym prowadzone jest na dwóch zbiorach o odmiennym charakterze.
+Zestaw tysiąca pytań PubMedQA, z mową syntezowaną po angielsku, rozstrzyga porównanie architektur
+w zadaniu pytanie--dokument. Zbiór AdmedVOICE, z rzeczywistą polską mową medyczną, sprawdza
+w zadaniu \textit{self-retrieval}, czy wnioski przenoszą się na nagrania naturalne oraz na
+domenę, na której trenowano proponowane modele.
+
+\subsubsection{Testowanie na zbiorze PubMedQA}
 Zasadnicze porównanie niniejszej pracy obejmuje nagrania niezakłócone z zestawu tysiąca pytań:
 kaskadę zestawioną z dopasowaniem reprezentacji latentnych, obie odniesione do górnej granicy
 wyznaczonej przez konfigurację tekstową. Odniesienie
@@ -325,6 +342,94 @@ dla XTTS-v2 do $0{,}079$, podczas gdy model APM utrzymuje się w wąskim przedzi
 $0{,}180$, a enkoder modelu SONAR od $0{,}736$ do $0{,}753$, niezależnie od systemu syntezy.
 Przemawia to za tezą, że odporność na zmianę
 głosu rośnie wraz z wielkością zbioru, na którym wytrenowano przestrzeń docelową.
+
+\subsubsection{Testowanie na zbiorze AdmedVOICE (self-retrieval)}
+\label{sec:admedCzyste}
+Drugi pomiar przenosi porównanie na nagrania rzeczywiste. Objął on 1626 nagrań splitu
+testowego zbioru AdmedVOICE, a więc nagrań, których modele APM i EAM nie widziały podczas
+treningu; każde z nich odpytuje korpus złożony z transkrypcji wszystkich nagrań,
+a dokumentem istotnym jest transkrypcja własna. Górną granicę wyznacza zapytanie tekstowe,
+którym jest transkrypcja referencyjna; osiąga ono Recall@1 równy $1$ w każdej z badanych
+przestrzeni, ponieważ zapytanie i dokument istotny są wtedy tym samym tekstem. Granica jest
+więc z konstrukcji bliska jedności, a cała utrata jakości pochodzi ze ścieżki głosowej.
+Zestawienie przedstawiono w tabeli~\ref{tab:admedCzyste}.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+& \textbf{WER} & \textbf{Recall@1} & \textbf{Recall@5} & \textbf{MRR} \\
+\midrule
+Whisper + Jina v4                  & $0{,}226$ & $0{,}899$ & $0{,}967$ & $0{,}930$ \\
+Whisper + LaBSE                    & $0{,}226$ & $0{,}901$ & $0{,}969$ & $0{,}932$ \\
+Whisper + SONAR                    & $0{,}226$ & $0{,}910$ & $0{,}973$ & $0{,}938$ \\
+SeamlessM4T + Jina v4              & $0{,}357$ & $0{,}881$ & $0{,}967$ & $0{,}919$ \\
+SeamlessM4T + LaBSE                & $0{,}357$ & $0{,}888$ & $0{,}966$ & $0{,}926$ \\
+SeamlessM4T + SONAR                & $0{,}357$ & $0{,}909$ & $0{,}971$ & $0{,}939$ \\
+wav2vec2 + Jina v4                 & $0{,}630$ & $0{,}750$ & $0{,}903$ & $0{,}817$ \\
+wav2vec2 + LaBSE                   & $0{,}630$ & $0{,}756$ & $0{,}914$ & $0{,}825$ \\
+wav2vec2 + SONAR                   & $0{,}630$ & $0{,}803$ & $0{,}931$ & $0{,}860$ \\
+Whisper LoRA + Jina v4             & $\mathbf{0{,}049}$ & $\mathbf{0{,}971}$ & $\mathbf{0{,}997}$ & $\mathbf{0{,}983}$ \\
+Whisper LoRA + LaBSE               & $\mathbf{0{,}049}$ & $0{,}968$ & $\mathbf{0{,}997}$ & $0{,}981$ \\
+Whisper LoRA + SONAR               & $\mathbf{0{,}049}$ & $0{,}970$ & $0{,}995$ & $0{,}982$ \\
+\midrule
+APM (Whisper)                      & ---       & $0{,}885$ & $0{,}962$ & $0{,}920$ \\
+APM (SeamlessM4T)                  & ---       & $0{,}000$ & $0{,}002$ & $0{,}001$ \\
+EAM                                & ---       & $0{,}821$ & $0{,}965$ & $0{,}887$ \\
+SONAR (enkoder mowy)               & ---       & $0{,}900$ & $0{,}974$ & $0{,}934$ \\
+\bottomrule
+\end{tabular}
+\caption{Jakość wyszukiwania na zbiorze AdmedVOICE w zadaniu \textit{self-retrieval}, 1626
+nagrań rzeczywistej polskiej mowy medycznej ze splitu testowego, niewidzianych przez modele
+APM i EAM podczas treningu. Górna część zestawia konfiguracje kaskadowe
+(model ASR + model embeddingowy), dolna modele osadzające nagranie wprost w przestrzeni
+korpusu. Pogrubiono najlepszy wynik w każdej kolumnie.}
+\label{tab:admedCzyste}
+\end{table}
+
+Kaskada z ogólnodostępnymi modelami ASR płaci na rzeczywistej polskiej mowie medycznej wyraźną
+cenę transkrypcji: Whisper osiąga WER $0{,}226$, SeamlessM4T $0{,}357$, a dostrojony do
+polszczyzny wav2vec2 $0{,}630$, podczas gdy na syntezowanej mowie angielskiej zestawu głównego
+Whisper utrzymywał WER poniżej $0{,}074$. Wyszukiwanie pozostaje mimo to wysokie, z Recall@1
+od $0{,}750$ do $0{,}910$, ponieważ w zadaniu \textit{self-retrieval} nawet transkrypcja
+częściowo błędna zachowuje dużo słownictwa wspólnego z dokumentem istotnym. Największy zysk
+daje dostrojenie do domeny: Whisper z adapterem LoRA obniża WER do $0{,}049$ i osiąga Recall@1
+równe $0{,}971$ oraz Recall@5 równe $0{,}997$, a przewaga ta jest większa niż jakakolwiek
+różnica między modelami embeddingowymi w obrębie jednego modelu ASR.
+Uwagę zwraca przy tym zrównanie modeli embeddingowych. Na zestawie PubMedQA przestrzeń modelu
+Jina v4 przewyższała LaBSE o kilkadziesiąt punktów procentowych Recall@1, tutaj natomiast obie
+przestrzenie, wraz z przestrzenią modelu SONAR, mieszczą się dla każdego modelu ASR
+w przedziale około pięciu punktów procentowych, a przy transkrypcjach wav2vec2 Jina v4 wypada
+nawet minimalnie poniżej LaBSE ($0{,}750$ wobec $0{,}756$). Jest to spójne z charakterem
+zadania \textit{self-retrieval}: gdy zapytanie jest dosłownym brzmieniem dokumentu istotnego,
+o trafieniu decyduje pokrycie słownictwa, nie uogólnienie semantyczne, więc przewaga
+mocniejszej przestrzeni embeddingowej nie ma się na czym ujawnić. Wybór modelu embeddingowego
+przestaje być wtedy czynnikiem rozstrzygającym, a cały ciężar jakości przenosi się na wierność
+transkrypcji.
+
+Obraz ścieżki latentnej odwraca się względem zestawu PubMedQA. Modele APM i EAM, które na
+angielskim zestawie tysiąca pytań osiągały Recall@5 poniżej $0{,}20$, tu osiągają odpowiednio
+$0{,}962$ i $0{,}965$, czyli poziom kaskady z niedostrojonym Whisperem; enkoder mowy modelu
+SONAR osiąga Recall@1 równe $0{,}900$ i Recall@5 równe $0{,}974$. Wariant APM oparty na
+enkoderze SeamlessM4T pozostaje na poziomie wyszukiwania losowego, spójnie z załamaniem
+treningu opisanym w rozdziale~\ref{sec:latentTranslation}. Ponieważ pomiar prowadzony jest na
+splicie testowym, a więc na nagraniach niewidzianych podczas treningu, wynik ten mierzy
+rzeczywistą generalizację na nowe wypowiedzi, nie zapamiętanie danych treningowych. Odwrócenie
+ma mimo to dwa źródła, których ten pomiar nie rozdziela. Po pierwsze modele APM i EAM były
+trenowane na pozostałej części tego samego zbioru, więc pracują wewnątrz domeny, na której
+powstała ich przestrzeń: znają jej słownictwo, styl wypowiedzi i charakterystykę nagrań,
+podczas gdy na zestawie PubMedQA występowały poza domeną treningu. Po drugie zadanie
+\textit{self-retrieval} jest łagodniejsze niż zadanie
+pytanie--dokument: zapytanie jest dosłownym brzmieniem dokumentu istotnego, nie jego parafrazą,
+więc nie wymaga od przestrzeni embeddingowej uogólnienia semantycznego, które na zestawie
+PubMedQA okazało się wąskim gardłem.
+
+Wniosek architektoniczny łagodnieje zatem, lecz się nie odwraca. Dopasowanie latentne potrafi
+dorównać kaskadzie tam, gdzie przestrzeń wspólna powstała na danych z tej samej domeny,
+a zapytanie leży blisko dokumentu. O najlepszym wyniku wciąż decyduje jednak jakość
+transkrypcji: konfiguracja z Whisperem dostrojonym metodą LoRA pozostaje najlepsza w całym
+zestawieniu i jako jedyna zbliża się do granicy tekstowej.
 
 \subsection{Koszt zadania pytania po polsku}
 \label{sec:jezyk}
