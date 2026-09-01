@@ -1,17 +1,11 @@
-\section{Semantyczność reprezentacji modeli ASR}
-Omówienie wniosków, multi-lingual vs angielski, generalizacja i charakterystyki, wpływ rodzaju treningu na reprezentacje
+%LTex: language=pl
+W ramach tej pracy przeprowadzono szereg powiązanych ze sobą eksperymentów, pozwalających na analizę właściwości modeli ASR w ramach wykorzystania ich jako część potoku przetwarzania w systemach wyszukiwania informacji za pomocą sygnału mowy. Rozdział 3 koncentrował się na właściwościach przestrzeni latentnych obecnych w enkoderach dostępnych modeli automatycznego rozpoznawania mowy w świetle enkodowania semantyki danych wejściowych, jak i możliwości zastosowania dodatkowego przetwarzania danych enkodowanych przez te modele. Wnioski pozyskane z tych eksperymentów posłużyły w doborze odpowiednich enkoderów audio w ramach treningu proponowanych w tej pracy modeli, \textit{Attention Pool Model} i \textit{Embedding Alignment Model}, które wytrenowane zostały na zbiorze AdmedVOICE w celu semantycznego wyszukiwania dokumentów tekstowych za pomocą sygnału mowy. Rozdział 5 zawierał testy modeli w ramach różnych scenariuszy testowych, oferując porównanie różnych podejść, wykorzystujących zarówno proponowane architektury, jak i klasyczne podejście kaskadowe oparte na transkrypcji sygnału mowy.
 
-\section{Proponowane architektury modeli modelujących semantykę audio}
-\subsection{Architektura \textit{Attention Pool Model}}
-Omowienie, reiteracja wnioskow, wpływ Data2Vec
-\subsection{Architektura \textit{Semantic Alignment Model}}
-Omównienie, reiteracja wniosków, wpływ Data2Vec
-
-\section{Proponowane rozwiązania w kontekście stworzonego systemu wyszukiwania}
-Omówienie wniosków z podrozdziału \ref{sec:eksperymenty} w odniesieniu do pytań badawczych postawionych we wstępie
-
-\section{Wybór architektury do potencjalnego wykorzystania w warunkach klinicznych}
-Synteza wniosków z rozdziałów \ref{sec:latent} i \ref{sec:latentTranslation} oraz z podrozdziału \ref{sec:eksperymenty}. Wskazanie architektury rekomendowanej wraz z warunkami, przy których rekomendacja pozostaje ważna, w szczególności wobec progu jakości transkrypcji wyznaczonego eksperymentalnie
-
-\section{Potencjalne kierunki rozwoju proponowanego rozwiązania}
-Omówienie dalszego rozwoju, inne modele embeddingowe, usprawnienia systemu wyszukiwania, rozszerzenie modalności (zdjęcia)
+\section{Pytania badawcze}
+\subsection{Czy reprezentacje ukryte generowane przez modele ASR zawierają wystarczającą informację semantyczną do realizacji zadań wyszukiwania informacji?}
+W wyżej wymienionej formie, eksperymenty w tej pracy wykazały częściową zdolność wykorzystania modeli ASR w celu wyszukiwania informacji podobnych semantycznie w ramach domeny ogólnej. Wyniki badań w Rozdziale 3, wskazują na dosyć silną zdolność dyskryminacji między nagraniami mowy podobnymi semantycznie, a różnymi, w szczególności dla modeli SeamlessM4T i Whisper. Pośrednim potwierdzeniem tego wniosku jest stabilność treningu modeli \textit{Attention Pool Model} i \textit{Embedding Alignment Model}, wykorzystujących enkodery wyżej wymienionych modeli ASR, choć nie oznacza to bezpośrednio nacechowania semantycznego danych przetworzonych przez takie enkodery (Rozdział 4). Jednakże, na jednoznaczne potwierdzenie tej tezy nie pozwalają wyniki uzyskane w ramach eksperymentów zawartych w Rozdziale 5, gdzie proponowane w tej pracy architektury nie były w stanie dorównać wyszukiwaniu kaskadowemu lub modelowi embeddingowemu SONAR. Nie może oznaczać to jednak braku przydatności architektur \textit{APM} i \textit{EAM} w ramach wyszukiwania, ponieważ najprawdopodobniej najważniejszym czynnikiem prowadzącym do wyraźnie gorszych rezultatów wyszukiwania dla tych modeli jest ilość danych wykorzystanych w ramach treningu, będąca w niektórych przypadkach $10000$ razy mniejsza niż dla gotowych modeli ewaluowanych w ramach porównania \cite{m4t}. Podsumowując, nie udało się jednoznacznie udowodnić zdatności proponowanych architektur modeli wykorzystujących enkodery modeli ASR w ramach wyszukiwania informacji, lecz w pracy wykazano wiele przesłanek pozwalających sądzić, że przy większej ilości danych treningowych, architektury te mogłyby dobrze radzić sobie w ramach tego zadania.
+\subsection{Czy modele embeddingowe oparte na enkoderach modeli ASR są w stanie dokładnie enkodować semantykę danych wejściowych?}
+Powiązana z poprzednim pytaniem, hipoteza ta została potwierdzona w ramach eksperymentów opisanych w Rozdziale 4. Obie proponowane w tej pracy architektury wykazały się stabilnością i wysokimi wynikami maksymalizowanych metryk w ramach treningu. Pomijając wymaganie obecności modelu w ramach całościowego systemu wyszukiwania informacji i rozpatrując zarówno \textit{Attention Pool Model} i \textit{Embedding Alignment Model} w izolacji, stanowią one obiecujące metody tworzenia multimodalnych modeli embeddingowych.
+\subsection{Jak jakość wyszukiwania opartego na reprezentacjach ukrytych wypada w porównaniu z podejściem kaskadowym (ASR $\rightarrow$ embedding tekstowy)?}
+\todo - kaskada lepsza tak czy siak, ale wolniejsza, bardziej czytelna/wyjaśnialna, model embeddingowy is king
+\subsection{Jaki wpływ na jakość obu podejść ma język zapytania (polski a angielski) oraz domena (terminologia medyczna a język ogólny)?}
