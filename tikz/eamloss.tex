@@ -35,10 +35,10 @@
 % ============================================================
 
 \node[enc] (text)
-    {Encoded\\Text};
+    {Enkodowany\\Tekst};
 
 \node[enc, below=3cm of text] (audio)
-    {Encoded\\Audio};
+    {Ekodowane\\Audio};
 
 
 % Separate self-attention modules
@@ -46,7 +46,7 @@
     attn,
     right=1.8cm of text
 ] (txtattn)
-    {Text\\\textit{Self-Attention}};
+    {Tekst\\\textit{Self-Attention}};
 
 \node[
     attn,
@@ -61,7 +61,7 @@
     cross,
     below=1.5cm of txtattn
 ] (crossattn)
-    {Cross-Attention\\Audio $\leftarrow$ Text};
+    {Cross-Attention\\Audio $\leftarrow$ Tekst};
 
 
 % Shared pooling and projection
@@ -75,7 +75,7 @@
     proj,
     right=1.5cm of pool
 ] (proj)
-    {Projection};
+    {Warstwa Liniowa\\(Projekcja)};
 
 \node[attn, right=1.5cm of proj] (plain) {Repezentacje\\(brak \textit{cross-attention})};
 \node[cross, below=1.5cm of plain] (crossed) {Repezentacje w ramach\\\textit{cross-attention}};
