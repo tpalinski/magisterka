@@ -229,10 +229,32 @@ Oba modele poddane treningowi samonadzorowanemu posiadały identyczną architekt
 
 Mimo porażki modelu w drugiej połowie treningu, jego metryki przed gwałtownym załamaniem reprezentacji pozwalają na sprawdzenie jego zachowania w ramach dalszej ewaluacji.
 
+\subsubsection{Porównanie rozmiaru modeli}
+
+\begin{table}[!h]
+\centering
+\caption{Liczba parametrów oraz rozmiar modeli w reprezentacji 32 bitowej liczby zmiennoprzecinkowej}
+\label{tab:modelParamComparison}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrrr}
+\hline
+\textbf{Model} & \textbf{Enkoder audio} & \textbf{Enkoder tekstu} & \textbf{Pozostałe parametry} & \textbf{Łącznie} & \textbf{Rozmiar FP32} \\
+\hline
+APM (Whisper + \textit{att.}) & 636{,}8M & 3{,}8B & 10{,}1M & 4{,}45B & 17{,}80~GB \\
+APM (Whisper + \textit{mean}) & 636{,}8M & 3{,}8B & 6{,}8M & 4{,}44B & 17{,}79~GB \\
+APM (M4T + \textit{att.}) & 635{,}0M & 3{,}8B & 8{,}4M & 4{,}44B & 17{,}78~GB \\
+APM (M4T + \textit{mean}) & 635{,}0M & 3{,}8B & 6{,}3M & 4{,}44B & 17{,}77~GB \\
+EAM & 635{,}0M & 766{,}0M & 10{,}0M & 1{,}41B & 5{,}64~GB \\
+\hline
+\end{tabular}
+\end{table}
+
+Tabela \ref{tab:modelParamComparison} przedstawia całkowite rozmiary modeli \textit{Attention Pool Model} i \textit{Embedding Alignment Model} uzyskanych w ramach powyższych eksperymentów.
 
 \section{Wnioski}
 \subsection{Ewaluacja architektury \textit{Attention Pool Model}}
-Architektura \textit{Attention Pool Model} bardzo dobrze poradziła sobie z zadaniem translacji przestrzeni latentnych o różnych wymiarowościach i formatach. Wysokie wyniki podobieństwa kosinusowego pokazują, że sygnał audio jest wiernie odzwierciedlany w przestrzeni embeddingowej istniejącego modelu semantycznie enkodującego tekst. Należy mieć jednak na uwadzę, że wysokie metryki podobieinstwa nie przekładają się bezpośrednio na jakość wyszukiwania informacji. Przez wykorzystanie modelu embeddingowego jako wzorca, wszelkie błędy obecne w tym modelu propagowane będą przez gałąź przetwarzania mowy. Z racji braku istnienia takiego modelu dedykowanego dla mowy klinicznej w języku polskim, wymagane jest sprawdzenie działania \textit{APM} w warunkach całościowego systemu wyszukiwania informacji.
+Architektura \textit{Attention Pool Model} bardzo dobrze poradziła sobie z zadaniem translacji przestrzeni latentnych o różnych wymiarowościach i formatach. Wysokie wyniki podobieństwa kosinusowego pokazują, że sygnał audio jest wiernie odzwierciedlany w przestrzeni embeddingowej istniejącego modelu semantycznie enkodującego tekst. Należy mieć jednak na uwadzę, że wysokie metryki podobieństwa nie przekładają się bezpośrednio na jakość wyszukiwania informacji. Przez wykorzystanie modelu embeddingowego jako wzorca, wszelkie błędy obecne w tym modelu propagowane będą przez gałąź przetwarzania mowy. Z racji braku istnienia takiego modelu dedykowanego dla mowy klinicznej w języku polskim, wymagane jest sprawdzenie działania \textit{APM} w warunkach całościowego systemu wyszukiwania informacji.
 \subsection{Ewaluacja architektury \textit{Embedding Alignment Model}}
-Model \textit{Embedding Alignment Model} wytrenowany bez wykorzystania treningu wstępnego wykazał się stabilnością w ramach treningu i wysokim podobieństwem kosinusowym między przykładami pozytywnymi w zbiorze walidacyjnym. Trening metodą \textit{Data2Vec} nie okazał się być stabilny w warunkach eksperymentu, co miało diametralny wpływ na jakość modeli \textit{EAM} wykorzystujące powstałe enkodery. Najprawdopobniej czynikiem odpowiedzialnym za takie zachowanie treningu wstępnego była wspomniana w ramach analizy wyników niewystarczająca ilość danych treningowych dla modalności mowy. O ile ok. 10 tysięcy nagrań obecnych w ramach przeprowadzonego eksperymentu nie wystarczyło do uzyskania użytecznego modelu, pozyskanie dodatkowych nagrań mowy medycznej w sposób zautomatyzowany może pozwolić na bardziej rzetelną ewaluację tej metody i ocenę zasadności trengu wstępnego metodą Data2Vec dla modelu \textit{EAM}.
+Model \textit{Embedding Alignment Model} wytrenowany bez wykorzystania treningu wstępnego wykazał się stabilnością w ramach treningu i wysokim podobieństwem kosinusowym między przykładami pozytywnymi w zbiorze walidacyjnym. Trening metodą \textit{Data2Vec} nie okazał się być stabilny w warunkach eksperymentu, co miało diametralny wpływ na jakość modeli \textit{EAM} wykorzystujące powstałe enkodery. Najprawdopobniej czynnikiem odpowiedzialnym za takie zachowanie treningu wstępnego była wspomniana w ramach analizy wyników niewystarczająca ilość danych treningowych dla modalności mowy. O ile ok. 10 tysięcy nagrań obecnych w ramach przeprowadzonego eksperymentu nie wystarczyło do uzyskania użytecznego modelu, pozyskanie dodatkowych nagrań mowy medycznej w sposób zautomatyzowany może pozwolić na bardziej rzetelną ewaluację tej metody i ocenę zasadności trengu wstępnego metodą Data2Vec dla modelu \textit{EAM}.
 Zdecydowaną zaletą tego podejścia jest brak bezpośredniej zależności modelu \textit{Embedding Alignment Model} od wyspecjalizowanego modelu embeddingowego operującego na tekstach z domeny specjalistycznego języka medycznego w języku polskim. W przeciwieństwie do modelu \textit{Attention Pool Model}, model ten uczy się zależności obecnych w zbiorze danych tworząc własną przestrzeń embeddingową, co potencjalnie pozwoli na dobre wyniki w dalszej ewaluacji. W przyszłości, w przypadku powstania dedykowanego modelu embeddingowego dla tekstów medycznych w języku polskim, należy będzie porównać zachowanie modelu \textit{EAM} z modelem \textit{APM} opartym o taki model embeddingowy. Jednakże, na stan teraźniejszy, \textit{Embedding Alignment Model} wydaje się być potencjalnie lepszą alternatywą w ramach zadania wyszukiwania informacji na podstawie mowy w specjalistycznych bazach medycznych w języku polskim.
