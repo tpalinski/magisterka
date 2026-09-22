@@ -1,5 +1,5 @@
 \documentclass{szablonPG}
-\usepackage[style=numeric, language=polish, backend=biber, sorting=none]{biblatex}
+\usepackage[style=numeric, language=polish, backend=biber, sorting=nyt, giveninits=true, maxbibnames=4, minbibnames=1, dateabbrev=false, urldate=long]{biblatex}
 \usepackage{dirtree}
 \usepackage{listing_schemat}
 \usepackage{polski}
@@ -62,7 +62,7 @@
 \usepackage{setspace}
 \usepackage{times}
 \usepackage{pdfpages}
-\usepackage{ulem}
+\usepackage[normalem]{ulem}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{array}
@@ -75,6 +75,13 @@
 % Configure URL breaking for bibliography
 
 \newcommand{\todo}[1]{\textcolor{red}{TODO: #1}\PackageWarning{TODO:}{#1!}}
+\setcounter{biburlnumpenalty}{9000}
+\setcounter{biburlucpenalty}{9000}
+\setcounter{biburllcpenalty}{9000}
+\usepackage{xurl}
+\appto{\bibsetup}{\emergencystretch=3em}
+\DeclareFieldFormat{urldate}{\mkbibparens{dost\k{e}p:\space#1}}
+
 
 \begin{document}
 
