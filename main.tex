@@ -68,13 +68,12 @@
 \usepackage{array}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \usepackage{booktabs}
+\usepackage{longtable}
 \usepackage{csquotes}
 \usepackage{microtype}
 \usepackage{placeins}
 
 % Configure URL breaking for bibliography
-
-\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}\PackageWarning{TODO:}{#1!}}
 \setcounter{biburlnumpenalty}{9000}
 \setcounter{biburlucpenalty}{9000}
 \setcounter{biburllcpenalty}{9000}
@@ -82,6 +81,11 @@
 \appto{\bibsetup}{\emergencystretch=3em}
 \DeclareFieldFormat{urldate}{\mkbibparens{dost\k{e}p:\space#1}}
 
+
+\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}\PackageWarning{TODO:}{#1!}}
+
+% Inicjały autorów przy tytułach rozdziałów (nie zmieniane na wersaliki w spisie treści)
+\newcommand{\aut}[1]{\texorpdfstring{\NoCaseChange{ (#1)}}{ (#1)}}
 
 \begin{document}
 
@@ -92,35 +96,36 @@
 \newpage
 
 \input{chapters/abstract.tex}
+\input{chapters/skroty.tex}
 \tableofcontents
 
 % --- Wprowadzenie ---
-\chapter{Wprowadzenie}
+\chapter{Wprowadzenie\aut{K.Ch.}}
 \label{sec:wprowadzenie}
 % \input{wprowadzenie.tex}
 \input{chapters/wprowadzenie_przeglad}
 
 % --- Przegląd ---
-\chapter{Przegląd}
+\chapter{Przegląd\aut{K.Ch.}}
 \label{sec:przeglad}
 \input{chapters/przeglad_pogladow}
 
 % Badanie latent space
-\chapter{Semantyczne reprezentacje wektorów cech modeli ASR}
+\chapter{Semantyczne reprezentacje wektorów cech modeli ASR\aut{T.P.}}
 \label{sec:latent}
 \input{chapters/latent}
 
-\chapter{Ewaluacja architektur dopasowania reprezentacji latentnych modeli ASR i modeli embeddingowych}
+\chapter{Ewaluacja architektur dopasowania reprezentacji latentnych modeli ASR i modeli embeddingowych\aut{T.P.}}
 \label{sec:latentTranslation}
 \input{chapters/latentTranslation}
 
-\chapter{System ewaluacji wyszukiwania informacji na podstawie zapytania głosowego}
+\chapter{System ewaluacji wyszukiwania informacji na podstawie zapytania głosowego\aut{K.Ch.}}
 \label{sec:implementacja}
 \input{chapters/frameworkEwaluacji}
 \input{chapters/eksperymenty}
 
 % --- Podsumowanie ---
-\chapter{Podsumowanie}
+\chapter{Podsumowanie\aut{T.P.}}
 \label{sec:podsumowanie}
 \input{chapters/summary}
 

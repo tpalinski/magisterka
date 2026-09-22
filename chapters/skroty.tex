@@ -1,0 +1,55 @@
+\chapter*{Wykaz ważniejszych oznaczeń i skrótów}
+
+\noindent\textbf{Skróty}
+
+\begin{longtable}{@{}p{2.6cm}p{\dimexpr\linewidth-2.6cm-2\tabcolsep\relax}@{}}
+ABTT & \textit{All But the Top} -- metoda przetwarzania końcowego embeddingów usuwająca średnią i pierwsze składowe główne \\
+APM & \textit{Attention Pool Model} -- proponowany model dopasowania reprezentacji mowy do przestrzeni modelu embeddingowego \\
+ASR & automatyczne rozpoznawanie mowy (ang. \textit{Automatic Speech Recognition}) \\
+BERT & \textit{Bidirectional Encoder Representations from Transformers} \\
+CER & współczynnik błędów znakowych (ang. \textit{Character Error Rate}) \\
+CNN & konwolucyjna sieć neuronowa (ang. \textit{Convolutional Neural Network}) \\
+EAM & \textit{Embedding Alignment Model} -- proponowany model tworzący wspólną przestrzeń embeddingową mowy i tekstu \\
+HMM & ukryty model Markowa (ang. \textit{Hidden Markov Model}) \\
+InfoNCE & kontrastowa funkcja straty (ang. \textit{Noise-Contrastive Estimation}) \\
+kNN & algorytm $k$-najbliższych sąsiadów (ang. \textit{k-Nearest Neighbours}) \\
+LLM & duży model językowy (ang. \textit{Large Language Model}) \\
+LoRA & adaptacja niskiego rzędu (ang. \textit{Low-Rank Adaptation}) \\
+M4T & model SeamlessM4T (ang. \textit{Massively Multilingual and Multimodal Machine Translation}) \\
+MAP & średnia precyzja uśredniona (ang. \textit{Mean Average Precision}) \\
+MFCC & współczynniki cepstralne w skali mel (ang. \textit{Mel-Frequency Cepstral Coefficients}) \\
+MMD & maksymalna rozbieżność średnich (ang. \textit{Maximum Mean Discrepancy}) \\
+MMR & \textit{Maximal Marginal Relevance} -- metoda dywersyfikacji wyników wyszukiwania \\
+MRR & średnia odwrotność rangi (ang. \textit{Mean Reciprocal Rank}) \\
+NDCG & znormalizowany skumulowany zysk dyskontowany (ang. \textit{Normalized Discounted Cumulative Gain}) \\
+PCA & analiza składowych głównych (ang. \textit{Principal Component Analysis}) \\
+RAG & generowanie wspomagane wyszukiwaniem (ang. \textit{Retrieval-Augmented Generation}) \\
+ROUGE & \textit{Recall-Oriented Understudy for Gisting Evaluation} -- metryka jakości generowanego tekstu \\
+RRF & \textit{Reciprocal Rank Fusion} -- metoda łączenia list rankingowych \\
+SAE & rzadki autoenkoder (ang. \textit{sparse autoencoder}) \\
+SBERT & Sentence-BERT -- model embeddingowy zdań \\
+SVCCA & \textit{Singular Vector Canonical Correlation Analysis} -- metoda porównywania reprezentacji \\
+TF-IDF & \textit{Term Frequency -- Inverse Document Frequency} \\
+TTS & synteza mowy (ang. \textit{Text-to-Speech}) \\
+WER & współczynnik błędów słownych (ang. \textit{Word Error Rate}) \\
+\end{longtable}
+
+\noindent\textbf{Oznaczenia}
+
+\begin{longtable}{@{}p{2.6cm}p{\dimexpr\linewidth-2.6cm-2\tabcolsep\relax}@{}}
+$x^a$, $x^p$, $x^n$ & przykład bazowy, pozytywny i negatywny w trójce (ang. \textit{triplet}) \\
+$S(x_{emb,asr})$ & różnica podobieństw w trójce między modelem embeddingowym a modelem ASR \\
+$\mathrm{MMD}$ & metryka maksymalnej rozbieżności średnich między rozkładami reprezentacji \\
+$C$ & metryka poprawnej klasyfikacji relacji semantycznej w trójce \\
+$H$ & reprezentacja ukryta enkodera, $H \in \mathbb{R}^{n \times d}$ \\
+$M$ & maska atencji, $M \in \{0,1\}^{n \times 1}$ \\
+$E$ & macierz embeddingów, $E \in \mathbb{R}^{N \times d}$ \\
+$d$, $D$ & wymiar reprezentacji \\
+$N$ & liczba próbek \\
+$\mu$, $\sigma$ & parametry położenia i skali dopasowanego rozkładu Studenta \\
+$\nu$ & liczba stopni swobody rozkładu Studenta \\
+$P(\mathrm{neg} > \mathrm{poz})$ & prawdopodobieństwo poprawnego uchwycenia relacji między przykładami w trójce \\
+$\mathcal{L}$ & funkcja straty \\
+$\tau$ & współczynnik temperatury w funkcji InfoNCE \\
+$\lambda$ & współczynnik wagi składnika funkcji straty lub harmonogramu EMA \\
+\end{longtable}
