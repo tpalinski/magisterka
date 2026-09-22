@@ -256,7 +256,7 @@ przedstawiono na rysunku~\ref{fig:wynikiWielkosc}.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{figures/wyniki/wyniki_wielkosc.png}
-    \caption{Te same konfiguracje na zestawie stu i tysiąca pytań, po lewej Recall@1, po prawej
+    \caption{Te same konfiguracje na zestawie stu i tysiąca pytań, u góry Recall@1, u dołu
     Recall@5. Zestaw mniejszy jest podzbiorem większego, a nagrania w obu pochodzą z syntezy
     XTTS-v2, więc jedyną różnicą jest wielkość zbioru pytań i korpusu.}
     \label{fig:wynikiWielkosc}
@@ -313,8 +313,8 @@ w rozbiciu na system syntezy i model ASR przedstawiono na rysunku~\ref{fig:wynik
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{figures/wyniki/wyniki_kaskada.png}
-    \caption{Kaskada w rozbiciu na system syntezy mowy i model ASR na zestawie tysiąca pytań. Po
-    lewej jakość transkrypcji, po prawej jakość wyszukiwania dla obu modeli embeddingu tekstu.
+    \caption{Kaskada w rozbiciu na system syntezy mowy i model ASR na zestawie tysiąca pytań. U
+    góry jakość transkrypcji, u dołu jakość wyszukiwania dla obu modeli embeddingu tekstu.
     Wybór systemu syntezy zmienia WER kilkukrotnie, na wyszukiwanie przenosi się natomiast
     w stopniu zależnym od modelu embeddingowego.}
     \label{fig:wynikiKaskada}
@@ -461,8 +461,8 @@ medium z adapterem LoRA dostrojonym do polskiej mowy medycznej na zbiorze ADMEDV
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{figures/wyniki/wyniki_jezyk.png}
-    \caption{Warianty językowe na zestawie stu pytań i stu dokumentów. Po lewej jakość
-    wyszukiwania, po prawej jakość transkrypcji; model oznaczony jako Whisper dostrojony to
+    \caption{Warianty językowe na zestawie stu pytań i stu dokumentów. U góry jakość
+    wyszukiwania, u dołu jakość transkrypcji; model oznaczony jako Whisper dostrojony to
     Whisper medium z adapterem LoRA wytrenowanym na zbiorze ADMEDVoice \cite{ADMEDVoice}. Oba warianty z pytaniem polskim korzystają z tego
     samego nagrania, więc ich wskaźniki błędu transkrypcji są identyczne; różni je wyłącznie język
     korpusu.}
@@ -738,7 +738,7 @@ a wpływ pozostałych zaburzeń na rysunku~\ref{fig:wynikiSzumTypy}.
     \centering
     \includegraphics[width=0.95\linewidth]{figures/wyniki/wyniki_szum_snr.png}
     \caption{Jakość wyszukiwania w funkcji stosunku sygnału do szumu dla szumu białego, zestaw
-    tysiąca pytań. Po lewej wartość bezwzględna, po prawej część jakości zachowana względem
+    tysiąca pytań. U góry wartość bezwzględna, u dołu część jakości zachowana względem
     przebiegu bez zaburzeń, co pozwala porównać tempo degradacji ścieżek startujących z różnych
     poziomów. Linią ciągłą oznaczono ścieżki latentne, przerywaną kaskadowe; dla kaskady zmierzono
     warunki 5 i 15~dB.}
@@ -791,7 +791,7 @@ wielkości w tych samych warunkach.
     \centering
     \includegraphics[width=\linewidth]{figures/wyniki/wyniki_szum_wer.png}
     \caption{Jakość transkrypcji i jakość wyszukiwania w tych samych warunkach, zestaw tysiąca
-    pytań, mowa syntezowana modelem SeamlessM4T. Po lewej wskaźnik błędu transkrypcji, po prawej
+    pytań, mowa syntezowana modelem SeamlessM4T. U góry wskaźnik błędu transkrypcji, u dołu
     część Recall@5 zachowana względem przebiegu bez zaburzeń.}
     \label{fig:wynikiSzumWer}
 \end{figure}
