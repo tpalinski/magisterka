@@ -133,9 +133,12 @@
 \printbibliography
 
 % --- Appendix ---
-\newpage
-\chapter*{Dodatki}
-\addcontentsline{toc}{chapter}{Dodatki}
+\appendix
+% w spisie treści: "Dodatek A." zamiast samego "A."
+\titlecontents{chapter}[0em]{}{Dodatek \thecontentslabel.\quad}{}{\dotfill\contentspage}
+% podpisy rysunków w dodatkach: "Dodatek A.1." zamiast "Rys. A.1."
+\renewcommand{\figurename}{Dodatek}
+\titleformat{\chapter}[hang]{\bfseries\fontsize{12pt}{24pt}\selectfont\hyphenpenalty=10000\exhyphenpenalty=10000}{Dodatek \thechapter.\quad}{0pt}{\MakeUppercase{#1}}
 \input{chapters/latent_appendix.tex}
 
 
