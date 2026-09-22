@@ -546,7 +546,7 @@ głównego, którego obecnie brak.
 \subsection{Jakość odpowiedzi generowanych z pobranego kontekstu}
 \label{sec:generacja}
 Wyszukiwanie jest w zastosowaniu klinicznym środkiem, a nie celem: użytkownik oczekuje odpowiedzi,
-nie listy dokumentów. Pytaniem jest zatem, czy przewaga jednej architektury nad drugą, zmierzona metrykami
+a nie listy dokumentów. Pytaniem jest zatem, czy przewaga jednej architektury nad drugą, zmierzona metrykami
 rankingowymi, przenosi się na jakość odpowiedzi generowanej z pobranego kontekstu. Przejście to nie jest oczywiste, ponieważ model językowy potrafi odpowiedzieć poprawnie
 mimo niedoskonałego rankingu, o ile potrzebny fragment znalazł się w kontekście. Potrafi też
 zawieść przy rankingu poprawnym.
@@ -805,7 +805,7 @@ ponieważ do trafienia w dokument wystarcza część terminów swoistych, a te s
 biomedycznym zwykle najdłuższe i najlepiej rozpoznawane. Odporność kaskady nie bierze się więc
 z odporności modelu ASR, lecz z nadmiarowości zapytania wobec zadania wyszukiwania.
 
-Osobno warto odnotować zachowanie modelu SeamlessM4T w roli modelu ASR: szum obniża jego WER
+Dodatkowo warto odnotować zachowanie modelu SeamlessM4T w roli modelu ASR: szum obniża jego WER
 z $0{,}406$ bez zaburzeń do $0{,}169$ przy 15~dB. Model transkrybujący własną syntezę powiela na
 czystym sygnale fragmenty wypowiedzi, a szum to powielanie przerywa. Jest to kolejny argument, by nie zestawiać
 syntezy i transkrypcji tego samego modelu, i powód, dla którego pominięto tę parę na
