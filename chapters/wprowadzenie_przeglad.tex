@@ -37,7 +37,7 @@ Opcjonalnie architektura może być rozszerzona o komponent generacyjny zgodnie 
 
 \begin{figure}[htbp]
     \centering
-    \input{tikz/kaskada}
+    \adjustbox{width=0.92\linewidth}{\input{tikz/kaskada}}
     \caption{Architektura kaskadowa systemu wyszukiwania informacji na podstawie zapytań głosowych. Faza indeksowania dokumentów przebiega niezależnie od fazy zapytania. Komponent generacyjny (RAG) jest opcjonalnym rozszerzeniem architektury.}
     \label{fig:kaskadaArchitecture}
 \end{figure}
@@ -59,7 +59,7 @@ Architektura proponowanego systemu składa się z enkodera ASR, warstwy projekcj
 
 \begin{figure}[htbp]
     \centering
-    \input{tikz/s2r}
+    \adjustbox{width=0.92\linewidth}{\input{tikz/s2r}}
     \caption{Architektura systemu wyszukiwania opartego na reprezentacji cech ukrytych modelu ASR (\textit{Speech-to-Retrieval}). Etap transkrypcji tekstowej zostaje pominięty, a warstwa projekcji odwzorowuje reprezentację audio do przestrzeni wektorowej modelu embeddingowego, w której zindeksowane są dokumenty tekstowe.}
     \label{fig:s2rArchitecture}
 \end{figure}

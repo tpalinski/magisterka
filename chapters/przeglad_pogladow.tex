@@ -37,7 +37,7 @@ Architektura RAG oferuje szereg zalet w kontekście zastosowań specjalistycznyc
 
 \begin{figure}[htbp]
     \centering
-    \input{tikz/rag}
+    \adjustbox{max width=\linewidth}{\input{tikz/rag}}
     \caption{Architektura RAG (\textit{Retrieval-Augmented Generation}) z podziałem na fazy indeksowania, wyszukiwania i generacji. Zapytanie użytkownika trafia zarówno do modelu embeddingowego, jak i -- wraz z wyszukanymi fragmentami -- do kontekstu modelu językowego.}
     \label{fig:ragArchitecture}
 \end{figure}
@@ -71,7 +71,7 @@ Adaptacja modelu do zadania transkrypcji wymaga etapu dostrajania (ang. \textit{
 
 \begin{figure}[htbp]
     \centering
-    \input{tikz/wav2vec}
+    \adjustbox{max width=\linewidth}{\input{tikz/wav2vec}}
     \caption{Architektura modelu Wav2Vec 2.0. Podczas pretreningu zamaskowane reprezentacje kontekstowe są porównywane z kwantyzowanymi reprezentacjami cech w ramach zadania kontrastywnego. Etap dostrajania dodaje warstwę klasyfikacji generującą transkrypcję.}
     \label{fig:wav2vecArchitecture}
 \end{figure}
@@ -90,7 +90,7 @@ Wariantem modelu HuBERT jest mHuBERT \cite{mhubert}, przystosowany do przetwarza
 
 \begin{figure}[htbp]
     \centering
-    \input{tikz/hubert}
+    \adjustbox{max width=\linewidth}{\input{tikz/hubert}}
     \caption{Architektura modelu HuBERT. Pseudoetykiety powstają przez grupowanie $k$-średnich cech MFCC (pierwsza iteracja), a w kolejnych iteracjach -- reprezentacji ukrytych wytrenowanego modelu. Model uczy się przewidywać pseudoetykiety zamaskowanych segmentów.}
     \label{fig:hubertArchitecture}
 \end{figure}
@@ -107,7 +107,7 @@ Zaletą modelu Whisper jest gotowość do użycia bez konieczności dostrajania 
 
 \begin{figure}[htbp]
     \centering
-    \input{tikz/whisper}
+    \adjustbox{max width=\linewidth}{\input{tikz/whisper}}
     \caption{Architektura modelu Whisper. Enkoder przetwarza melspektrogram, a autoregresyjny dekoder generuje kolejne tokeny na podstawie reprezentacji enkodera, tokenów kontrolnych określających zadanie oraz wcześniej wygenerowanych tokenów.}
     \label{fig:whisperArchitecture}
 \end{figure}
@@ -122,7 +122,7 @@ W przypadku mowy Data2Vec wykorzystuje architekturę transformera analogiczną d
 
 \begin{figure}[htbp]
     \centering
-    \input{tikz/data2vec}
+    \adjustbox{max width=\linewidth}{\input{tikz/data2vec}}
     \caption{Architektura modelu Data2Vec. Nauczyciel przetwarza pełne dane wejściowe i wyznacza kontekstowe reprezentacje latentne stanowiące cel predykcji, natomiast uczeń otrzymuje dane zamaskowane. Wagi nauczyciela są wykładniczą średnią kroczącą (EMA) wag ucznia.}
     \label{fig:data2vecArchitecture}
 \end{figure}
@@ -210,7 +210,7 @@ Rosnące zapotrzebowanie na interfejsy głosowe motywuje rozwój systemów wyszu
 
 \begin{figure}[htbp]
     \centering
-    \input{tikz/speechdpr}
+    \adjustbox{max width=\linewidth}{\input{tikz/speechdpr}}
     \caption{Schemat treningu modelu SpeechDPR. Kaskadowy nauczyciel, złożony z nienadzorowanego modelu ASR i tekstowego retrievera, dostarcza ocen podobieństwa stanowiących cel destylacji dla enkodera mowy uczonego bezpośrednio na sygnale audio.}
     \label{fig:speechdprArchitecture}
 \end{figure}
@@ -219,7 +219,7 @@ Rosnące zapotrzebowanie na interfejsy głosowe motywuje rozwój systemów wyszu
 
 \begin{figure}[htbp]
     \centering
-    \input{tikz/speechrag}
+    \adjustbox{max width=\linewidth}{\input{tikz/speechrag}}
     \caption{Architektura systemu SpeechRAG. Enkoder mowy pełniący rolę adaptera jest dostrajany tak, aby fragmenty audio trafiały do przestrzeni wektorowej zamrożonego enkodera tekstu. Wyszukane fragmenty audio stanowią bezpośredni kontekst modelu języka mowy.}
     \label{fig:speechragArchitecture}
 \end{figure}
@@ -233,7 +233,7 @@ Budowa systemów wyszukiwania opartych na wspólnej przestrzeni reprezentacji dl
 
 \begin{figure}[htbp]
     \centering
-    \input{tikz/sonar}
+    \adjustbox{max width=\linewidth}{\input{tikz/sonar}}
     \caption{Budowa przestrzeni SONAR. Przestrzeń wyznacza enkoder tekstu uczony zadaniem
     tłumaczenia przez wektor zdania o stałej długości; enkoder mowy dołączany jest do niej
     osobno, przez dopasowanie wektora nagrania do wektora transkrypcji tego samego zdania przy
@@ -245,7 +245,7 @@ Budowa systemów wyszukiwania opartych na wspólnej przestrzeni reprezentacji dl
 
 \begin{figure}[htbp]
     \centering
-    \input{tikz/wavrag}
+    \adjustbox{max width=\linewidth}{\input{tikz/wavrag}}
     \caption{Architektura systemu WavRAG. Ten sam enkoder multimodalny obsługuje obie modalności, dzięki czemu dokumenty tekstowe i nagrania audio trafiają do wspólnej przestrzeni wektorowej, a wyszukane fragmenty obu typów stanowią kontekst modelu generacyjnego.}
     \label{fig:wavragArchitecture}
 \end{figure}
@@ -254,7 +254,7 @@ Budowa systemów wyszukiwania opartych na wspólnej przestrzeni reprezentacji dl
 
 \begin{figure}[htbp]
     \centering
-    \input{tikz/multimodalasr}
+    \adjustbox{max width=\linewidth}{\input{tikz/multimodalasr}}
     \caption{Wyszukiwanie multimodalne wspierające rozpoznawanie mowy. Wyszukane fragmenty oddziałują na model ASR dwiema drogami: poprzez mechanizm uwagi krzyżowej w dekoderze oraz poprzez interpolację rozkładu prawdopodobieństwa tokenów z rozkładem wyznaczonym metodą $k$-NN.}
     \label{fig:multimodalAsrArchitecture}
 \end{figure}

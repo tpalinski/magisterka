@@ -17,7 +17,9 @@ Znanym ograniczeniem modeli uczenia głębokiego jest ich specyficzność, model
 Mając na uwadzę sukcesy metod wykorzystujących mapowanie przestrzeni latentnych między modelami, pierwsza proponowana w tej pracy architektura wykorzystuje istniejące modele embeddingowe operujące w ramach modalności tekstu i pretrenowane modele ASR, w celu osadzenia sygnału mowy w przestrzeni właściwej dla modelu znaczeniowo enkodującego dane tekstowe. W tym celu, reprezentacje wyjściowe enkodera mowy poddawane są operacji \textit{poolingu}, po czym liniowa warstwa projekcji odpowiedzialna jest za dopasowanie ich do reprezentacji wyjściowych modelu embeddingowego dla transkrypcji odpowiadającym przetwarzanym nagraniom mowy.
 
 \begin{figure}[htbp]
-    \input{tikz/apm}
+    \centering
+    \adjustbox{max width=\linewidth}{\input{tikz/apm}}
+    \vspace{6pt}
     \caption{Architektura modelu \textit{Attention Pool Model}. Enkodery tekstu i mowy są zamrożone podczas treningu.}
     \label{fig:apmArchitecture}
 \end{figure}
@@ -50,7 +52,7 @@ Dodatkowo, warty sprawdzenia jest wpływ metod przetwarzania embeddingów uzyska
 
 \subsection{Model oparty o translację reprezentacji latentnych \textit{Embedding Alignment Model}}
 \begin{figure}[h]
-    \input{tikz/eam}
+    \adjustbox{max width=\linewidth}{\input{tikz/eam}}
     \caption{Architektura modelu \textit{Embedding Alignment Model}. Bloki \textit{TransformerEncoder} są opcjonalne i reprezentują modele poddane treningowi wstępnemu za pomocą uczenia nienadzorowanego.}
     \label{fig:eamArchitecture}
 \end{figure}
@@ -90,7 +92,8 @@ Oprócz samej funkcji straty wykorzystano również dwie dodatkowe metody regula
 \end{equation}
 
 \begin{figure}[!h]
-    \input{tikz/eamloss}
+    \centering
+    \adjustbox{max width=\linewidth}{\input{tikz/eamloss}}
     \caption{Diagram przebiegu treningu wraz z funkcjami straty. Wykorzystanie mechanizmu \textit{cross-attention} jest opcjonalne w ramach treningu i nie bierze on udziału w ramach procesu inferencji.}
     \label{fig:eamLoss}
 \end{figure}
@@ -237,7 +240,7 @@ Mimo porażki modelu w drugiej połowie treningu, jego metryki przed gwałtownym
 \label{tab:modelParamComparison}
 \small
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{lrrrrr}
+\adjustbox{max width=\linewidth}{\begin{tabular}{lrrrrr}
 \hline
 \textbf{Model} & \textbf{Enkoder audio} & \textbf{Enkoder tekstu} & \textbf{Pozostałe parametry} & \textbf{Łącznie} & \textbf{Rozmiar FP32} \\
 \hline
@@ -247,7 +250,7 @@ APM (M4T + \textit{att.}) & 635{,}0 mln & 3{,}8 mld & 8{,}4 mln & 4{,}44 mld & 1
 APM (M4T + \textit{mean}) & 635{,}0 mln & 3{,}8 mld & 6{,}3 mln & 4{,}44 mld & 17{,}77~GB \\
 EAM & 635{,}0 mln & 766{,}0 mln & 10{,}0 mln & 1{,}41 mld & 5{,}64~GB \\
 \hline
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 Tabela \ref{tab:modelParamComparison} przedstawia całkowite rozmiary modeli \textit{Attention Pool Model} i \textit{Embedding Alignment Model} uzyskanych w ramach powyższych eksperymentów. Widoczna jest na niej zdecydowana dominacja enkoderów dla obu modalności w świetle ilości parametrów modelu (kolumna \textit{Pozostałe parametry}). Wyraźnie zarysowana jest również różnica w liczbie parametrów w ramach różnych metod agregacji (\textit{poolingu}) dla \textit{APM}. Porównując liczbę parametrów między architekturami, model \textit{EAM}, mimo większego stopnia skomplikowania w swojej budowie, posiada podobną liczbę parametrów podobną do pozostałych wytrenowanych modeli. Najprawdopodobniej jest to spowodowane mniejszą ilością wymiarów wynikowych wektorów (512 dla pokazanego wariantu \textit{EAM}, 2048 dla wzorcowej przestrzeni modelu JinaV4 dla \textit{APM}).
